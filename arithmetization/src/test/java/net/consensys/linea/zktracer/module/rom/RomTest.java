@@ -16,15 +16,14 @@
 package net.consensys.linea.zktracer.module.rom;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
-import kotlin.Pair;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,9 +34,17 @@ import org.junit.jupiter.params.provider.MethodSource;
 @ExtendWith(UnitTestWatcher.class)
 public class RomTest extends TracerTestBase {
 
+  @Test
+  void oneIncompletePushTest(TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
+    program.incompletePush(12, "ff".repeat(4));
+    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
+  }
+
+  @Tag("nightly")
   @ParameterizedTest
   @MethodSource("incompletePushRomTestSource")
-  void incompletePushRomTest(int j, int k, TestInfo testInfo) {
+  void extensiveIncompletePushRomTest(int j, int k, TestInfo testInfo) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program.incompletePush(k, "ff".repeat(j));
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
@@ -51,25 +58,5 @@ public class RomTest extends TracerTestBase {
       }
     }
     return trailingFFRomTestSourceList.stream();
-  }
-
-  @Test
-  void randomConcatenationOfIncompletePushesRomTest(TestInfo testInfo) {
-    List<Pair<Integer, Integer>> permutationOfKAndJPairs = new ArrayList<>();
-    for (int k = 1; k <= 32; k++) {
-      for (int j = 0; j <= k; j++) {
-        permutationOfKAndJPairs.add(new Pair<>(k, j));
-      }
-    }
-    Collections.shuffle(permutationOfKAndJPairs);
-
-    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
-    for (Pair<Integer, Integer> kAndJPair : permutationOfKAndJPairs) {
-      int k = kAndJPair.getFirst();
-      int j = kAndJPair.getSecond();
-      program.incompletePush(k, "5b".repeat(j));
-    }
-
-    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
 }

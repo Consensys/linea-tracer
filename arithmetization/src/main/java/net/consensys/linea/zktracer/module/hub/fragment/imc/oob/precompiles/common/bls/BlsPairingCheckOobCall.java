@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls;
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_BLS_PAIRING_CHECK;
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_BLS_PAIRING_CHECK_PAIR;
 import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_BLS_PAIRING_CHECK;
@@ -65,7 +66,7 @@ public class BlsPairingCheckOobCall extends CommonPrecompileOobCall {
             ? bigIntegerToBytes(
                 BigInteger.valueOf(GAS_CONST_BLS_PAIRING_CHECK)
                     .add(
-                        BigInteger.valueOf(GAS_CONST_BLS_PAIRING_CHECK)
+                        BigInteger.valueOf(GAS_CONST_BLS_PAIRING_CHECK_PAIR)
                             .multiply(
                                 getCds()
                                     .toUnsignedBigInteger()

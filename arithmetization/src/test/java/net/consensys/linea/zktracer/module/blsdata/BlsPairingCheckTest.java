@@ -120,6 +120,6 @@ public class BlsPairingCheckTest extends TracerTestBase {
         }
       }
     }
-    return List.of(arguments.get(20)).stream();
+    return arguments.stream();
   }
 }

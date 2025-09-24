@@ -73,7 +73,7 @@ import static net.consensys.linea.zktracer.module.rlpaddr.RlpAddrOperation.*;
 import static net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation.lineCountForRlpTxnRcpt;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
+import static org.hyperledger.besu.evm.frame.MessageFrame.State.COMPLETED_SUCCESS;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -618,7 +618,7 @@ public class ZkCounter implements LineCountingTracer {
     final AddressUtils.PRC precompile = AddressUtils.PRC.fromAddress(frame.getContractAddress());
     final Bytes callData = frame.getInputData();
     final int callDataSize = callData.size();
-    final boolean prcSuccess = bytesToBoolean(frame.getStackItem(0));
+    final boolean prcSuccess = frame.getState() == COMPLETED_SUCCESS;
 
     // MMU
     switch (precompile) {

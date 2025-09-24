@@ -715,7 +715,7 @@ public class BlsDataOperation extends ModuleOperation {
           .isSecondInput(!isFirstInput && isData)
           .isInfinity(isInfinity.get(i))
           .nontrivialPairOfPointsBit(nontrivialPairOfPointsBit.get(i))
-          .nontrivialPairOfPointsAcc(nontrivialPairOfPointsAcc)
+          .nontrivialPairOfPointsAcc(nontrivialPairOfPointsAcc && precompileFlag == PRC_BLS_PAIRING_CHECK && isData)
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))
           .wcpArg1Lo(wcpArg1Lo.get(i))

@@ -152,19 +152,17 @@ public class ToyExecutionEnvironmentV2 {
                     + " than in light counter: "
                     + lightCounterCount.get(module));
 
-            // TODO: how to make this check smart ?
-
-            // checkArgument(
-            //    // Note: we compare to twice the (tracer count +1) to not get exceptions when
-            // tracer
-            //    // module is empty (GAS for SKIP tx for example)
-            //    lightCounterCount.get(module) <= 2 * (tracerCount.get(module) + 1),
-            //    "Module "
-            //        + module
-            //        + " has more than twice line counts in light tracer: "
-            //        + lightCounterCount.get(module)
-            //        + " than in full counter: "
-            //        + tracerCount.get(module));
+            // TODO: can we make this check smart ?
+            checkArgument(
+                // Note: we compare to twice the (tracer count +1) to not get exceptions when tracer
+                // module is empty (GAS for SKIP tx for example)
+                lightCounterCount.get(module) <= 2 * (tracerCount.get(module) + 1),
+                "Module "
+                    + module
+                    + " has more than twice line counts in light tracer: "
+                    + lightCounterCount.get(module)
+                    + " than in full counter: "
+                    + tracerCount.get(module));
           }
         }
       } catch (Exception e) {

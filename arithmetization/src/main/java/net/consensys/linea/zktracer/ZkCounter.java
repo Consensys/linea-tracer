@@ -31,6 +31,7 @@ import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.D
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.JumpOobCall.NB_ROWS_OOB_JUMP;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.JumpiOobCall.NB_ROWS_OOB_JUMPI;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.ReturnDataCopyOobCall.NB_ROWS_OOB_RDC;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.SstoreOobCall.NB_ROWS_OOB_SSTORE;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpCallDataSizeOobCall.NB_ROWS_OOB_MODEXP_CDS;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpExtractOobCall.NB_ROWS_OOB_MODEXP_EXTRACT;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpLeadOobCall.NB_ROWS_OOB_MODEXP_LEAD;
@@ -551,7 +552,12 @@ public class ZkCounter implements LineCountingTracer {
           }
         }
       }
-      case STORAGE -> hub.updateTally(NB_ROWS_HUB_STORAGE);
+      case STORAGE -> {
+        hub.updateTally(NB_ROWS_HUB_STORAGE);
+        if (opcode.mnemonic() == SSTORE) {
+          oob.updateTally(NB_ROWS_OOB_SSTORE);
+        }
+      }
       case TRANSIENT -> {
         switch (opcode.mnemonic()) {
           case TLOAD -> hub.updateTally(NB_ROWS_HUB_TLOAD);

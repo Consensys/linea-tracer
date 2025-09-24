@@ -50,12 +50,7 @@ public class Ext implements OperationSetWithAdditionalRowsModule<ExtOperation> {
   @Override
   public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
     if (opcode == ADDMOD || opcode == MULMOD) {
-      operations.add(
-          new ExtOperation(
-              opcode,
-              Bytes32.leftPad(frame.getStackItem(0)),
-              Bytes32.leftPad(frame.getStackItem(1)),
-              Bytes32.leftPad(frame.getStackItem(2))));
+      call(opcode, frame.getStackItem(0), frame.getStackItem(1), frame.getStackItem(2));
     }
   }
 

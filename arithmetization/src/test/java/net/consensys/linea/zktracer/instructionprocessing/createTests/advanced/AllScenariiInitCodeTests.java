@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.AdvancedCreate2ScenarioValue.*;
 import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.ScenarioUtils.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
@@ -97,10 +98,11 @@ Note : CALLC stands for CALL (contract) C
 public class AllScenariiInitCodeTests extends TracerTestBase {
 
   /*
-  ** Transaction 1 **
+  ** TRANSACTION 1 **
   Play Scenario from 1 to 5 with Calls from root context.
   The scenarii should end with a successful self-destruct of ContractC
-  ** Transaction 2 **
+
+  ** TRANSACTION 2 **
   As a check, we send a second transaction to attempt a redeployment of ContractC at the same address
    */
   @Test
@@ -153,7 +155,7 @@ public class AllScenariiInitCodeTests extends TracerTestBase {
             customCreate2Account,
             userAccount,
             List.of(advancedCreateScenariiTriggeredFromRoot, create2WithInitCodeC_withValue),
-            List.of(2L /* Msg.value is 2 for Scenario 4*/, 0L));
+            List.of(CREATE2_WITH_IMMEDIATE_REDEPLOYMENT, NONE));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
@@ -166,20 +168,26 @@ public class AllScenariiInitCodeTests extends TracerTestBase {
     // Check deployment number for ContractC
 
     // At start, deploymentNumber = 0
+
+    // TRANSACTION 1
+
     // Scenario 1 - create2 four times : deploymentNumber ++
     // - Only one create2 is successful so increments the deployment number by 1
     // - deploymentNumber = 1
+    // - ends with a revert
     // Scenario 2 - staticCallMyselfFail : deploymentNumber not changed
     // Scenario 3 - create2 within create2 : deploymentNumber ++
     // - Deploys contract C with empty bytecode
     // - deploymentNumber = 2
+    // - ends with a revert
     // Scenario 4 - create2 after create2 : deploymentNumber ++
     // - First create2 is successful so increments the deployment number
     // - deploymentNumber = 3
     // Scenario 5 - modify storage and self-destruct : deploymentNumber ++
     // - Self-destruct successful increments deployment number
     // - deploymentNumber = 4
-    // transaction 2 - attempt redeployment : deploymentNumber ++
+
+    // TRANSACTION 2 - attempt redeployment : deploymentNumber ++
     // - Attempts a redeployment of ContractC at the same address as in transaction 1
     // - deploymentNumber = 5
 
@@ -242,7 +250,7 @@ public class AllScenariiInitCodeTests extends TracerTestBase {
             customCreate2Account,
             userAccount,
             List.of(advancedCreateScenariiNestedCalls, create2WithInitCodeC_withValue),
-            List.of(2L /* Msg.value is 2 for Scenario 4*/, 0L));
+            List.of(CREATE2_WITH_IMMEDIATE_REDEPLOYMENT, NONE));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)

@@ -120,6 +120,7 @@ contract CustomCreate2 is TestingBase {
         }
         address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, msg.value);
         addContractC = addC;
+        // We test that the contract code is empty, so no event is emitted
         addC.call(
             abi.encodeWithSignature("storeInMap(uint256,address)", msg.value, addC)
         );

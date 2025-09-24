@@ -143,6 +143,8 @@ public class ToyExecutionEnvironmentV2 {
                     + " than in light counter: "
                     + lightCounterCount.get(module));
             checkArgument(
+                // Note: we compare to twice the (tracer count +1) to not get exceptions when tracer
+                // module is empty (GAS for SKIP tx for example)
                 lightCounterCount.get(module) <= 2 * (tracerCount.get(module) + 1),
                 "Module "
                     + module

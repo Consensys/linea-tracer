@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.AdvancedCreate2ScenarioValue.CREATE2_WITH_IMMEDIATE_REDEPLOYMENT;
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.AdvancedCreate2ScenarioValue.NONE;
 import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.ScenarioUtils.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
@@ -35,7 +37,7 @@ import org.junit.jupiter.api.TestInfo;
 
 /*
 
-SCENARIO 1 - ATTEMPT CREATE2 AFTER A CREATE2
+SCENARIO 4 - ATTEMPT CREATE2 AFTER A CREATE2
 
 Attempts a create2 after a successful create2.
 Done by calling the ContractC that has just been deployed to do a callback to CustomCreate2 and attempt redeployment.
@@ -52,6 +54,7 @@ When Nested :
                  (1) and (2) stay the same
 
 Note : storeInitCodeC and storeSalt transactions are preparation transactions
+Note 2 : CALLC stands for CALL (contract) C
 
 */
 
@@ -82,7 +85,7 @@ public class Scenario4UnitTests extends TracerTestBase {
             customCreate2Account,
             userAccount,
             List.of(storeInitCodeC, storeSalt, create2WithCallCtoCallback_noValue),
-            List.of(0L, 0L, 2L));
+            List.of(NONE, NONE, CREATE2_WITH_IMMEDIATE_REDEPLOYMENT));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
@@ -126,7 +129,7 @@ public class Scenario4UnitTests extends TracerTestBase {
                 storeInitCodeC,
                 storeSalt,
                 callMyselfWithCreate2WithCallCtoCallback_noValueAndNested),
-            List.of(0L, 0L, 2L));
+            List.of(NONE, NONE, CREATE2_WITH_IMMEDIATE_REDEPLOYMENT));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)

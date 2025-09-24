@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.AdvancedCreate2ScenarioValue.CREATE2_WITH_IMMEDIATE_REDEPLOYMENT;
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.AdvancedCreate2ScenarioValue.NONE;
 import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.ScenarioUtils.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
@@ -39,7 +41,7 @@ import org.junit.jupiter.api.TestInfo;
 SCENARIO 3 - ATTEMPT CREATE2 WITHIN A CREATE2
 
 (1) Deploy ContractC and the deployment attempts redeployment.
-The ContractC deployment is done with value 2 - this value pilots the initcode so immediate redeployment is attempted.
+The ContractC deployment is done with value 2 (CREATE2_WITH_IMMEDIATE_REDEPLOYMENT) - this value pilots the initcode so immediate redeployment is attempted.
 While deploying ContractC adds STOP opcode after immediate redeployment attempt has failed.
 ContractC is deployed with empty bytecode.
 (2) Call ContractC to modify storage
@@ -59,6 +61,7 @@ When Nested :
 
 
 Note : storeInitCodeC and storeSalt transactions are preparation transactions
+Note 2 : CALLC stands for CALL (contract) C
 
  */
 
@@ -73,7 +76,7 @@ public class Scenario3UnitTests extends TracerTestBase {
   TXSTATUS : Successful
   LOGS: 1 ContractCreated, 1 ImmediateRedeploymentFail, 0 CallCreate2WithInitCodeC_withValue
   because the create2 in the redeployment fails, 0 StoreInMap as the code is empty
-  Note: transaction is sent with value 2 to do a create2 within a create2
+  Note: transaction is sent with value 2 (CREATE2_WITH_IMMEDIATE_REDEPLOYMENT) to do a create2 within a create2
    */
   @Test
   void deployScenario3NoRevert(TestInfo testInfo) {
@@ -96,7 +99,7 @@ public class Scenario3UnitTests extends TracerTestBase {
             customCreate2Account,
             userAccount,
             List.of(storeInitCodeC, storeSalt, create2CallC_noRevert),
-            List.of(0L, 0L, 2L /* Msg.value is 2 */));
+            List.of(NONE, NONE, CREATE2_WITH_IMMEDIATE_REDEPLOYMENT));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
@@ -118,7 +121,7 @@ public class Scenario3UnitTests extends TracerTestBase {
   TXSTATUS : Failed
   LOGS: 0 ContractCreated, O ImmediateRedeploymentFail, 0 CallCreate2WithInitCodeC_withValue
   0 StoreInMap as the whole transaction is reverted
-  Note: transaction is sent with value 2 to pilot initcode and do a create2 within a create2
+  Note: transaction is sent with value 2 (CREATE2_WITH_IMMEDIATE_REDEPLOYMENT) to pilot initcode and do a create2 within a create2
   Note 2 : used in ScenariiTriggeredFromRoot
    */
   @Test
@@ -140,7 +143,7 @@ public class Scenario3UnitTests extends TracerTestBase {
             customCreate2Account,
             userAccount,
             List.of(storeInitCodeC, storeSalt, create2CallC_withRevert),
-            List.of(0L, 0L, 2L /* Msg.value is 2 */));
+            List.of(NONE, NONE, CREATE2_WITH_IMMEDIATE_REDEPLOYMENT));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
@@ -161,7 +164,7 @@ public class Scenario3UnitTests extends TracerTestBase {
   TXSTATUS : Successful
   LOGS: 1 CallMyselfFail, 0 ContractCreated, O ImmediateRedeploymentFail, 0
   CallCreate2WithInitCodeC_withValue, 0 StoreInMap
-  Note: transaction is sent with value 2 to pilot initcode and do a create2 within a create2
+  Note: transaction is sent with value 2 (CREATE2_WITH_IMMEDIATE_REDEPLOYMENT) to pilot initcode and do a create2 within a create2
   Note 2 : used in ScenariiNestedCalls
    */
   @Test
@@ -181,7 +184,7 @@ public class Scenario3UnitTests extends TracerTestBase {
             customCreate2Account,
             userAccount,
             List.of(storeInitCodeC, storeSalt, callMyselfWithCreate2CallC_withRevertAndNested),
-            List.of(0L, 0L, 2L /* Msg.value is 2 */));
+            List.of(NONE, NONE, CREATE2_WITH_IMMEDIATE_REDEPLOYMENT));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)

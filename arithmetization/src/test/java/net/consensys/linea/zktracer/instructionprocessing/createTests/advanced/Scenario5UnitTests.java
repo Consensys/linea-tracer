@@ -15,6 +15,8 @@
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
 import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.AdvancedCreate2ScenarioValue.CREATE2_WITH_IMMEDIATE_REDEPLOYMENT;
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.AdvancedCreate2ScenarioValue.NONE;
 import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.ScenarioUtils.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
@@ -47,6 +49,7 @@ After a successful create2 (from Scenario 4), we modify the contract storage and
      -------->  - (2) Self-destruct
 
 Note : storeInitCodeC and storeSalt and create2WithCallCtoCallback_noValue transactions are preparation transactions. create2WithCallCtoCallback_noValue is there to have the state post scenario 4
+Note 2 : CALLC stands for CALL (contract) C
 
  */
 
@@ -86,7 +89,11 @@ public class Scenario5UnitTests extends TracerTestBase {
                 storeSalt,
                 create2WithCallCtoCallback_noValue, /* Same deployment as scenario 4 */
                 callCToModifyStorageAndSelfdestruct),
-            List.of(0L, 0L, 2L, 2L));
+            List.of(
+                NONE,
+                NONE,
+                CREATE2_WITH_IMMEDIATE_REDEPLOYMENT,
+                CREATE2_WITH_IMMEDIATE_REDEPLOYMENT));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)

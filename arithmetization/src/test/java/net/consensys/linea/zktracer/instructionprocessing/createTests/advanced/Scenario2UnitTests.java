@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.AdvancedCreate2ScenarioValue.CREATE2_WITH_IMMEDIATE_REDEPLOYMENT;
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.AdvancedCreate2ScenarioValue.NONE;
 import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.ScenarioUtils.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
@@ -72,7 +74,10 @@ public class Scenario2UnitTests extends TracerTestBase {
 
     List<Transaction> transactions =
         getTransactions(
-            customCreate2Account, userAccount, List.of(create2WithStaticCall), List.of(2L));
+            customCreate2Account,
+            userAccount,
+            List.of(create2WithStaticCall),
+            List.of(CREATE2_WITH_IMMEDIATE_REDEPLOYMENT));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
@@ -115,7 +120,7 @@ public class Scenario2UnitTests extends TracerTestBase {
             customCreate2Account,
             userAccount,
             List.of(storeInitCodeC, storeSalt, callMyselfWithCreate2WithStaticCall_nested),
-            List.of(0L, 0L, 2L));
+            List.of(NONE, NONE, CREATE2_WITH_IMMEDIATE_REDEPLOYMENT));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)

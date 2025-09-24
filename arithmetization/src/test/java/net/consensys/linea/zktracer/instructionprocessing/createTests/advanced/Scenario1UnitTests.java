@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.AdvancedCreate2ScenarioValue.*;
 import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.ScenarioUtils.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
@@ -61,7 +62,7 @@ public class Scenario1UnitTests extends TracerTestBase {
 
   /*
    SCENARIO 1 - NO REVERT AT THE END
-   We test Scenario 1 with no revert at the end to check
+   The Scenario 1 ends with a revert. We test with no revert at the end as an intermediary step to check
    - ContractC is effectively deployed in attempt (2)
    - ContractC code is non-empty and we can modify its storage
    TXSTATUS : Successful
@@ -100,7 +101,7 @@ public class Scenario1UnitTests extends TracerTestBase {
             customCreate2Account,
             userAccount,
             List.of(storeInitCodeC, storeSalt, create2FourTimes_noRevert),
-            List.of(0L, 0L, 2L));
+            List.of(NONE, NONE, CREATE2_WITH_IMMEDIATE_REDEPLOYMENT));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
@@ -140,7 +141,7 @@ public class Scenario1UnitTests extends TracerTestBase {
             customCreate2Account,
             userAccount,
             List.of(storeInitCodeC, storeSalt, create2FourTimes_withRevert),
-            List.of(0L, 0L, 2L));
+            List.of(NONE, NONE, CREATE2_WITH_IMMEDIATE_REDEPLOYMENT));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
@@ -182,7 +183,7 @@ public class Scenario1UnitTests extends TracerTestBase {
             customCreate2Account,
             userAccount,
             List.of(storeInitCodeC, storeSalt, callMyselfWithCreate2FourTimes_withRevert),
-            List.of(0L, 0L, 2L));
+            List.of(NONE, NONE, CREATE2_WITH_IMMEDIATE_REDEPLOYMENT));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)

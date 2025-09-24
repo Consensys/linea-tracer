@@ -88,6 +88,8 @@ When Nested
        CALLC
      -------->  - (2) Self-destruct
 
+Note : CALLC stands for CALL (contract) C
+
  */
 
 @Slf4j

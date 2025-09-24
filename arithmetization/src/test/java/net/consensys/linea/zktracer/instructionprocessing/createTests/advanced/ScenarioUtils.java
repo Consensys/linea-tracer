@@ -148,7 +148,10 @@ public class ScenarioUtils {
   Create transactions with payloads/values for the same user and the same to account
   */
   public static List<Transaction> getTransactions(
-      ToyAccount to, ToyAccount userAccount, List<Bytes> payloads, List<Long> values) {
+      ToyAccount to,
+      ToyAccount userAccount,
+      List<Bytes> payloads,
+      List<AdvancedCreate2ScenarioValue> values) {
 
     checkArgument(payloads.size() == values.size());
     final List<ToyTransaction.ToyTransactionBuilder> builders = new ArrayList<>();
@@ -160,7 +163,7 @@ public class ScenarioUtils {
               .payload(payloads.get(i))
               .keyPair(keyPair)
               .gasLimit(gasLimit)
-              .value(Wei.of(values.get(i)));
+              .value(Wei.of(values.get(i).getAdvancedCreate2ScenarioValue()));
       builders.add(builder);
     }
     return ToyMultiTransaction.builder().build(builders, userAccount);

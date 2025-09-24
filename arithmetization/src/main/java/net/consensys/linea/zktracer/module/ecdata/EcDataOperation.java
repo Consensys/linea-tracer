@@ -370,13 +370,6 @@ public class EcDataOperation extends ModuleOperation {
       circuitSelectorEcrecover = true;
     }
 
-    // Very unlikely edge case: if the ext module is never used elsewhere, we need to insert a
-    // useless row, in order to trigger the construction of the first empty row, useful for the ext
-    // lookup.
-    // Because of the hashmap in the ext module, this useless row will only be inserted one time.
-    // Tested by TestEcRecoverWithEmptyExt
-    ext.callADDMOD(Bytes.EMPTY, Bytes.EMPTY, Bytes.EMPTY);
-
     // Set result rows
     EWord recoveredAddress = EWord.ZERO;
 

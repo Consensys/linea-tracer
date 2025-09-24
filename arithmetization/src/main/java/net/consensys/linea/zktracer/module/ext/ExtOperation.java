@@ -42,6 +42,7 @@ public class ExtOperation extends ModuleOperation {
   @EqualsAndHashCode.Include @Getter private final BaseBytes arg1;
   @EqualsAndHashCode.Include @Getter private final BaseBytes arg2;
   @EqualsAndHashCode.Include @Getter private final BaseBytes arg3;
+  @Getter private UInt256 resultUInt256;
   private final boolean isOneLineInstruction;
 
   private BaseTheta result;
@@ -68,10 +69,9 @@ public class ExtOperation extends ModuleOperation {
     this.isOneLineInstruction = isOneLineInstruction();
   }
 
-  public UInt256 compute() {
-    AbstractExtCalculator computer = AbstractExtCalculator.create(this.opCode);
-    return computer.computeResult(
-        this.arg1.getBytes32(), this.arg2.getBytes32(), this.arg3.getBytes32());
+  protected void computeResult() {
+    final AbstractExtCalculator computer = AbstractExtCalculator.create(opCode);
+    resultUInt256 = computer.computeResult(arg1.getBytes32(), arg2.getBytes32(), arg3.getBytes32());
   }
 
   public void setup() {
@@ -84,11 +84,10 @@ public class ExtOperation extends ModuleOperation {
     this.deltaBytes = BaseTheta.fromBytes32(Bytes32.ZERO);
     this.hBytes = new BytesArray(6);
 
-    AbstractExtCalculator computer = AbstractExtCalculator.create(this.opCode);
+    final AbstractExtCalculator computer = AbstractExtCalculator.create(this.opCode);
 
-    final UInt256 result = this.compute();
-    this.result = BaseTheta.fromBytes32(result);
-    this.rBytes = BaseTheta.fromBytes32(result);
+    this.result = BaseTheta.fromBytes32(resultUInt256);
+    this.rBytes = BaseTheta.fromBytes32(resultUInt256);
 
     if (!this.isOneLineInstruction) {
       cmp = computer.computeComparisonFlags(cBytes, rBytes);

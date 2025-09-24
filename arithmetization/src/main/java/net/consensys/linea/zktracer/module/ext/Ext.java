@@ -26,6 +26,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetWithAdditionalRowsModule;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationAdder;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -63,17 +64,11 @@ public class Ext implements OperationSetWithAdditionalRowsModule<ExtOperation> {
     final Bytes32 arg2 = Bytes32.leftPad(_arg2);
     final Bytes32 arg3 = Bytes32.leftPad(_arg3);
     final ExtOperation op = new ExtOperation(opCode, arg1, arg2, arg3);
-    final Bytes result = op.compute();
-    operations.add(op);
-    return result;
-  }
-
-  public Bytes callADDMOD(Bytes _arg1, Bytes _arg2, Bytes _arg3) {
-    return this.call(OpCode.ADDMOD, _arg1, _arg2, _arg3);
-  }
-
-  public Bytes callMULMOD(Bytes _arg1, Bytes _arg2, Bytes _arg3) {
-    return this.call(OpCode.MULMOD, _arg1, _arg2, _arg3);
+    final ModuleOperationAdder addedOp = operations.addAndGet(op);
+    if (addedOp.isNew()) {
+      ((ExtOperation) addedOp.op()).computeResult();
+    }
+    return ((ExtOperation) addedOp.op()).resultUInt256();
   }
 
   @Override

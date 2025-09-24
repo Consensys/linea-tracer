@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.Fork.LONDON;
 import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Trace.LINEA_BASE_FEE;
 import static net.consensys.linea.zktracer.container.module.IncrementAndDetectModule.ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX;
+import static net.consensys.linea.zktracer.module.ModuleName.*;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -132,6 +133,14 @@ public class ToyExecutionEnvironmentV2 {
 
           final List<String> moduleToCheck =
               copyEnvironment.zkCounter.checkedModules().stream().map(Module::moduleKey).toList();
+
+          // There is no point to check for conflation where an excluded PRC has been triggered:
+          if (lightCounterCount.get(POINT_EVAL.toString()) != 0
+              || lightCounterCount.get(BLS.toString()) != 0
+              || lightCounterCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString()) != 0
+              || lightCounterCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()) != 0) {
+            return;
+          }
 
           for (String module : moduleToCheck) {
             checkArgument(

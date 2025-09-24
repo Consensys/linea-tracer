@@ -46,6 +46,7 @@ import static net.consensys.linea.zktracer.module.hub.section.StackRamSection.NB
 import static net.consensys.linea.zktracer.module.hub.section.call.CallSection.NB_ROWS_HUB_CALL;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.EllipticCurvePrecompileSubsection.NB_ROWS_HUB_PRC_ELLIPTIC_CURVE;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.IdentitySubsection.NB_ROWS_HUB_PRC_IDENTITY;
+import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ModexpSubsection.NB_ROWS_HUB_PRC_MODEXP;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ShaTwoOrRipemdSubSection.NB_ROWS_HUB_PRC_SHARIP;
 import static net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection.NB_ROWS_HUB_CALL_DATA_COPY;
 import static net.consensys.linea.zktracer.module.hub.section.copy.CodeCopySection.NB_ROWS_HUB_CODE_COPY;
@@ -653,6 +654,7 @@ public class ZkCounter implements LineCountingTracer {
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
       }
       case PRC_MODEXP -> {
+        hub.updateTally(NB_ROWS_HUB_PRC_MODEXP);
         final MemoryRange memoryRange = new MemoryRange(0, 0, callData.size(), callData);
         final ModexpMetadata modexpMetadata = new ModexpMetadata(memoryRange);
         if (modexpMetadata.unprovableModexp()) {
@@ -660,8 +662,10 @@ public class ZkCounter implements LineCountingTracer {
           return;
         }
         modexpEffectiveCall.updateTally(prcSuccess ? 1 : 0);
-        final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modexpMetadata);
-        exp.call(modexpLogCallToExp);
+        if (modexpMetadata.loadRawLeadingWord()) {
+          final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modexpMetadata);
+          exp.call(modexpLogCallToExp);
+        }
         oob.updateTally(
             NB_ROWS_OOB_MODEXP_CDS
                 + 3 * NB_ROWS_OOB_MODEXP_XBS

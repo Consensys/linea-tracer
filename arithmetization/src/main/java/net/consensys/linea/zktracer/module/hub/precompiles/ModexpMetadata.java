@@ -105,15 +105,15 @@ public class ModexpMetadata {
   }
 
   public int bbsInt() {
-    return (int) Words.clampedToLong(bbs());
+    return Words.clampedToInt(bbs());
   }
 
   public int ebsInt() {
-    return (int) Words.clampedToLong(ebs());
+    return Words.clampedToInt(ebs());
   }
 
   public int mbsInt() {
-    return (int) Words.clampedToLong(mbs());
+    return Words.clampedToInt(mbs());
   }
 
   public boolean loadRawLeadingWord() {

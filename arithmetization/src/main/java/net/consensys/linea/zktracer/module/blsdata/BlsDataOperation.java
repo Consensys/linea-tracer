@@ -700,7 +700,7 @@ public class BlsDataOperation extends ModuleOperation {
           .rsltBlsPairingCheckFlag(precompileFlag == PRC_BLS_PAIRING_CHECK && !isData)
           .rsltBlsMapFpToG1Flag(precompileFlag == PRC_BLS_MAP_FP_TO_G1 && !isData)
           .rsltBlsMapFp2ToG2Flag(precompileFlag == PRC_BLS_MAP_FP2_TO_G2 && !isData)
-          .accInputs(accInputs)
+          .accInputs(isData? accInputs : 0)
           .byteDelta(
               i < nBYTES_OF_DELTA_BYTES ? UnsignedByte.of(deltaByte.get(i)) : UnsignedByte.of(0))
           .malformedDataInternalBit(mintBit.get(i) && isData)

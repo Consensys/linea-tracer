@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.ExecutionEnvironment;
@@ -45,11 +46,20 @@ public class LineCountingTracerTest extends TracerTestBase {
         tracer.getModulesToCount().stream().map(Module::moduleKey).toList();
     final List<String> tracedModules =
         tracer.getHub().getModulesToTrace().stream().map(Module::moduleKey).toList();
-    checkArgument(tracerToCount.containsAll(tracedModules), "Some traced modules are not counted");
+    final List<String> refTables =
+        tracer.getHub().refTableModules().stream().map(Module::moduleKey).toList();
+
+    // Check that all traced modules are counted or reference tables
+    checkArgument(
+        Stream.concat(tracerToCount.stream(), refTables.stream())
+            .toList()
+            .containsAll(tracedModules),
+        "Some traced modules are not counted");
+
+    // Search for duplicates
     checkArgument(
         tracerToCount.size() == tracerToCount.stream().distinct().toList().size(),
         "Duplicate has been found");
-
     final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration);
     final List<String> counterToCount =
         counter.getModulesToCount().stream().map(Module::moduleKey).toList();

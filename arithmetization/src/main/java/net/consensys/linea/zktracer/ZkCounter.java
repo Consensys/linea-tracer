@@ -21,8 +21,6 @@ import static net.consensys.linea.zktracer.Trace.Oob.*;
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
-import static net.consensys.linea.zktracer.TraceCancun.Rlpaddr.MAX_CT_CREATE;
-import static net.consensys.linea.zktracer.TraceCancun.Rlpaddr.MAX_CT_CREATE2;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.ModuleName.GAS;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NB_ROWS_ADD;
@@ -71,6 +69,7 @@ import static net.consensys.linea.zktracer.module.mod.ModOperation.NB_ROWS_MOD;
 import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunMSizeMxpCall.NB_ROWS_MXP_MSIZE;
 import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpdateMxpCall.NB_ROWS_MXP_UPDT_B;
 import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpdateWordPricingMxpCall.NB_ROWS_MXP_UPDT_W;
+import static net.consensys.linea.zktracer.module.rlpaddr.RlpAddrOperation.*;
 import static net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation.lineCountForRlpTxnRcpt;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
@@ -380,6 +379,11 @@ public class ZkCounter implements LineCountingTracer {
     rlpTxnRcpt.updateTally(lineCountForRlpTxnRcpt(logs));
     logData.updateTally(lineCountForLogData(logs));
     logInfo.updateTally(lineCountForLogInfo(logs));
+    // deploymentTransaction:
+    if (tx.isContractCreation()) {
+      rlpAddr.updateTally(NB_ROWS_RLPADDR_CREATE);
+      keccak.updateTally(MAX_SIZE_RLP_HASH_CREATE);
+    }
   }
 
   @Override
@@ -567,11 +571,18 @@ public class ZkCounter implements LineCountingTracer {
         mxp.updateTally(NB_ROWS_MXP_UPDT_W);
         oob.updateTally(CT_MAX_CREATE + 1);
         // MMU
-        final boolean isCreate2 = opcode.mnemonic() == OpCode.CREATE2;
-        rlpAddr.updateTally(1 + (isCreate2 ? MAX_CT_CREATE2 : MAX_CT_CREATE));
-        if (isCreate2) {
-          final int size = Words.clampedToInt(frame.getStackItem(2));
-          keccak.updateTally(size);
+        switch (opcode.mnemonic()) {
+          case CREATE -> {
+            rlpAddr.updateTally(NB_ROWS_RLPADDR_CREATE);
+            keccak.updateTally(MAX_SIZE_RLP_HASH_CREATE);
+          }
+          case CREATE2 -> {
+            rlpAddr.updateTally(NB_ROWS_RLPADDR_CREATE2);
+            keccak.updateTally(MAX_SIZE_RLP_HASH_CREATE2);
+            final int size = Words.clampedToInt(frame.getStackItem(2));
+            keccak.updateTally(size);
+          }
+          default -> throw new IllegalArgumentException(opcode + "is not of CREATE family");
         }
       }
       case CALL -> {
@@ -597,8 +608,8 @@ public class ZkCounter implements LineCountingTracer {
   @Override
   public void traceAccountCreationResult(
       final MessageFrame frame, final Optional<ExceptionalHaltReason> haltReason) {
-    if (frame.getCreatedCode() != null) {
-      keccak.updateTally(frame.getCreatedCode().getSize());
+    if (frame.memoryByteSize() != 0) {
+      keccak.updateTally((int) frame.memoryByteSize());
     }
   }
 

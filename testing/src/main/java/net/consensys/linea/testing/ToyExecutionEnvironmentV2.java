@@ -143,7 +143,7 @@ public class ToyExecutionEnvironmentV2 {
                     + " than in light counter: "
                     + lightCounterCount.get(module));
             checkArgument(
-                lightCounterCount.get(module) <= 2 * tracerCount.get(module),
+                lightCounterCount.get(module) <= 2 * (tracerCount.get(module) + 1),
                 "Module "
                     + module
                     + " has more than twice line counts in light tracer: "

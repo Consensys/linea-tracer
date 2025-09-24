@@ -219,7 +219,7 @@ public abstract class Hub implements Module {
   private final Blockdata blockdata;
   private final RomLex romLex = new RomLex(this);
   private final Rom rom = new Rom(romLex);
-  private final RlpTxn rlpTxn = setRlpTxn(this);
+  private final RlpTxn rlpTxn;
   private final Mmio mmio;
   private final TxnData<? extends TxnDataOperation> txnData = setTxnData();
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
@@ -446,6 +446,7 @@ public abstract class Hub implements Module {
             blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     trm = new Trm(fork, wcp);
+    rlpTxn = setRlpTxn(this);
     rlpAddr = new RlpAddr(this, trm, keccak);
     blockdata = setBlockData(this, wcp, euc, chain);
     mmu = new Mmu(euc, wcp);

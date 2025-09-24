@@ -72,7 +72,7 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
     } else {
       final OobExoCall numInputsGt128Call =
           callToGT(wcp, Bytes.ofUnsignedLong(numInputs), Bytes.ofUnsignedInt(128));
-      exoCalls.add(cdsIsMultipleOfMinMsmSizeCall);
+      exoCalls.add(numInputsGt128Call);
       numInputsLeq128 = !bytesToBoolean(numInputsGt128Call.result());
     }
 

@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT;
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___STACK_STAMP;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
@@ -371,7 +370,7 @@ public abstract class Hub implements Module {
    * The real modules, ie the ones that are traced and triggered during execution. It differs with
    * the moduleToTrace() as it contains module traced for some fork only.
    */
-  private List<Module> realModule() {
+  public List<Module> realModule() {
     return List.of(
         this,
         add,
@@ -414,34 +413,9 @@ public abstract class Hub implements Module {
     final List<Module> allModules =
         new ArrayList<>(Stream.concat(realModule().stream(), refTableModules.stream()).toList());
 
-    // All modules are in this list for the coordinator to have the same set of module whatever the
-    // fork. But we don't trace them.
-    final List<Module> appearsInCancun =
-        allModules.stream().filter(module -> module instanceof CountingOnlyModule).toList();
-    /*       LONDON CANCUN PRAGUE
-    rlpUtils CO     Inst.
-    powerRT  CO     Inst.
-    blsRT    CO     CO     Inst.
-    blsData  CO     Inst.
-    */
-    if (!isPostCancun(fork)) {
-      checkArgument(
-          appearsInCancun.size() == 4,
-          "rlpUtils, powerRT, blsRT, blsData expected to be CountingOnly");
-    }
-    if (fork == Fork.CANCUN) {
-      checkArgument(appearsInCancun.size() == 1, "blsRT expected to be CountingOnly");
-    }
-    if (fork == Fork.PRAGUE) {
-      checkArgument(appearsInCancun.isEmpty(), "no modules expected to be CountingOnly");
-    }
-    /*
-    if (!appearsInCancun.isEmpty()) {
-      checkArgument(!isPostCancun(fork), "No modules to remove after Cancun");
-      checkArgument(appearsInCancun.size() == 4 ); // blsData, rlpUtils, PowerRefTable, blsRefTable
-    }
-     */
-    return allModules.stream().filter(module -> !appearsInCancun.contains(module)).toList();
+    // The coordinator requires to have the same set of module in counting whatever the fork. But we
+    // don't trace them.
+    return allModules.stream().filter(module -> !(module instanceof CountingOnlyModule)).toList();
   }
 
   /**

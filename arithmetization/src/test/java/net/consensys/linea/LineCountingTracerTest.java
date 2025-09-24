@@ -21,6 +21,8 @@ import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.Fork.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import net.consensys.linea.reporting.TracerTestBase;
@@ -138,11 +140,25 @@ public class LineCountingTracerTest extends TracerTestBase {
     final ZkTracer tracer = new ZkTracer(chainConfig);
     tracer.traceStartConflation(1);
     tracer.traceStartBlock(world, blockHeader, DEFAULT_COINBASE_ADDRESS);
-    final int sizeBefore = tracer.getHub().lineCount();
+    final Map<String, Integer> sizeBeforeTracer = tracer.getModulesLineCount();
     tracer.popTransactionBundle();
-    final int sizeAfter = tracer.getHub().lineCount();
-    checkArgument(sizeBefore == sizeAfter, "Some start block stuff have been popped");
+    final Map<String, Integer> sizeAfterTracer = tracer.getModulesLineCount();
+    for (String module : sizeBeforeTracer.keySet()) {
+      checkArgument(
+          Objects.equals(sizeAfterTracer.get(module), sizeBeforeTracer.get(module)),
+          "Tracer: some block stuff has been removed in Module " + module);
+    }
 
-    // TODO: do the same for ZkCounter
+    final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration);
+    counter.traceStartConflation(1);
+    counter.traceStartBlock(world, blockHeader, DEFAULT_COINBASE_ADDRESS);
+    final Map<String, Integer> sizeBeforeCounter = counter.getModulesLineCount();
+    counter.popTransactionBundle();
+    final Map<String, Integer> sizeAfterCounter = counter.getModulesLineCount();
+    for (String module : sizeBeforeCounter.keySet()) {
+      checkArgument(
+          Objects.equals(sizeAfterCounter.get(module), sizeBeforeCounter.get(module)),
+          "Counter: some block stuff has been removed in Module " + module);
+    }
   }
 }

@@ -562,6 +562,8 @@ public class ZkCounter implements LineCountingTracer {
         gas.updateTally(1); // as CMC == 1
         // first IMC
         stp.updateTally(1);
+        mod.updateTally(
+            NB_ROWS_MOD); // coming from STP call, will be removed once STP is zkasmified
         mxp.updateTally(NB_ROWS_MXP_UPDT_W);
         oob.updateTally(CT_MAX_CREATE + 1);
         // MMU
@@ -578,6 +580,8 @@ public class ZkCounter implements LineCountingTracer {
         oob.updateTally(CT_MAX_CALL + 1);
         mxp.updateTally(NB_ROWS_MXP_UPDT_W);
         stp.updateTally(1);
+        mod.updateTally(
+            NB_ROWS_MOD); // coming from STP call, will be removed once STP is zkasmified
         // Note: precompiles specific limits are done in tracePrecompileCall()
       }
       default -> throw new IllegalArgumentException("Unknown opcode: " + opcode.byteValue());
@@ -593,7 +597,9 @@ public class ZkCounter implements LineCountingTracer {
   @Override
   public void traceAccountCreationResult(
       final MessageFrame frame, final Optional<ExceptionalHaltReason> haltReason) {
-    keccak.updateTally(frame.getCreatedCode().getSize());
+    if (frame.getCreatedCode() != null) {
+      keccak.updateTally(frame.getCreatedCode().getSize());
+    }
   }
 
   @Override

@@ -451,6 +451,7 @@ public class ZkCounter implements LineCountingTracer {
           case OpCode.EXP -> {
             hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP + 1);
             exp.call(new ExplogExpCall(frame));
+            mul.tracePreOpcode(frame, opcode.mnemonic());
           }
           case OpCode.MUL -> {
             hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
@@ -637,12 +638,13 @@ public class ZkCounter implements LineCountingTracer {
         }
       }
       case PRC_RIP -> {
-        // hub.updateTally(NBROWS_HUB_PRC_SHARIP);
-        // oob.updateTally(CT_MAX_RIPEMD + 1);
-        // mod.updateTally(NB_ROWS_MOD); // coming from OOB call
-        // if (callDataSize != 0) {
-        //   ripemdBlocks.updateTally(callDataSize);
-        // }
+        hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
+        oob.updateTally(CT_MAX_RIPEMD + 1);
+        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        if (callDataSize != 0) {
+          // ripemdBlocks.updateTally(callDataSize); Reenable me when RIPEMD is supported by the
+          // prover
+        }
         ripemdBlocks.detectEvent();
       }
       case PRC_IDENTITY -> {

@@ -73,6 +73,7 @@ public class Mul implements OperationSetModule<MulOperation> {
     for (MulOperation op : operations.sortOperations(new MulOperationComparator())) {
       op.trace(trace.mul(), ++stamp);
     }
+    // Note: for constraint simplicity we want to finish with this row:
     (new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO)).trace(trace.mul(), stamp + 1);
   }
 }

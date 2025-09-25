@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer;
 
+import static org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD;
+
 import java.util.List;
 
 import net.consensys.linea.reporting.TracerTestBase;
@@ -29,7 +31,12 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.parallel.Execution;
 
+/*
+ Test tracing per fork as well as fork switching, using a Besu node. The trace is then checked against the constraints.
+*/
+@Execution(SAME_THREAD)
 public class ForkTracingAndSwitchingBesuTest extends TracerTestBase {
 
   /*
@@ -78,6 +85,50 @@ public class ForkTracingAndSwitchingBesuTest extends TracerTestBase {
         .accounts(List.of(senderAccount, receiverAccount))
         .transaction(tx)
         .runWithBesuNode(true)
+        .build()
+        .run();
+  }
+
+  /*
+   Test tracing a fork switch from London to Paris.
+   We trace this switch separately : Clique creates blocks with a live timestamp and makes it difficult to prepare a Genesis file with parisTime, shanghaiTime etc in advance to follow up on block creation.
+  */
+  @Test
+  void testForkSwitchLondonToParis(TestInfo testInfo) {
+    KeyPair keyPair = new SECP256K1().generateKeyPair();
+    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+
+    ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+
+    BytecodeCompiler compilerMain =
+        BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
+
+    // PREVRANDAO opcode
+    Bytes codeParis = Bytes.concatenate(compilerMain.compile(), Bytes.fromHexString("0x44"));
+
+    ToyAccount receiverAccountLondon = getReceiverAccount("0x111100", compilerMain.compile());
+
+    ToyAccount receiverAccountParis = getReceiverAccount("0x111120", codeParis);
+
+    ToyTransaction.ToyTransactionBuilder txBuilderLondon =
+        ToyTransaction.builder().to(receiverAccountLondon).keyPair(keyPair);
+
+    ToyTransaction.ToyTransactionBuilder txBuilderParis =
+        ToyTransaction.builder().to(receiverAccountParis).keyPair(keyPair);
+
+    // create transactions with the same sender, manages nonce
+    final List<Transaction> transactions =
+        ToyMultiTransaction.builder()
+            .build(List.of(txBuilderLondon, txBuilderParis), senderAccount);
+
+    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+        .accounts(List.of(senderAccount, receiverAccountLondon, receiverAccountParis))
+        .transactions(transactions)
+        .runWithBesuNode(true)
+        .oneTxPerBlockOnBesuNode(true)
+        .customBesuNodeGenesis(
+            "BesuExecutionToolsGenesis_LondonToParis.json") /* Block 0 has totalDifficulty at 1 and increases by 2, so TTD is set to 3 in genesis to have Block 1 on London fork, and Block 1 on Paris fork */
         .build()
         .run();
   }
@@ -151,46 +202,6 @@ public class ForkTracingAndSwitchingBesuTest extends TracerTestBase {
         .oneTxPerBlockOnBesuNode(true)
         .customBesuNodeGenesis(
             "BesuExecutionToolsGenesis_ParisToPrague.json") /* Block 0 has totalDifficulty at 1, so TTD is set to 1 in genesis to have Block 1 on Paris fork */
-        .build()
-        .run();
-  }
-
-  @Test
-  void testForkSwitchLondonToParis(TestInfo testInfo) {
-    KeyPair keyPair = new SECP256K1().generateKeyPair();
-    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
-
-    ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
-
-    BytecodeCompiler compilerMain =
-        BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
-
-    // PREVRANDAO opcode
-    Bytes codeParis = Bytes.concatenate(compilerMain.compile(), Bytes.fromHexString("0x44"));
-
-    ToyAccount receiverAccountLondon = getReceiverAccount("0x111100", compilerMain.compile());
-
-    ToyAccount receiverAccountParis = getReceiverAccount("0x111120", codeParis);
-
-    ToyTransaction.ToyTransactionBuilder txBuilderLondon =
-        ToyTransaction.builder().to(receiverAccountLondon).keyPair(keyPair);
-
-    ToyTransaction.ToyTransactionBuilder txBuilderParis =
-        ToyTransaction.builder().to(receiverAccountParis).keyPair(keyPair);
-
-    // create transactions with the same sender, manages nonce
-    final List<Transaction> transactions =
-        ToyMultiTransaction.builder()
-            .build(List.of(txBuilderLondon, txBuilderParis), senderAccount);
-
-    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
-        .accounts(List.of(senderAccount, receiverAccountLondon, receiverAccountParis))
-        .transactions(transactions)
-        .runWithBesuNode(true)
-        .oneTxPerBlockOnBesuNode(true)
-        .customBesuNodeGenesis(
-            "BesuExecutionToolsGenesis_LondonToParis.json") /* Block 0 has totalDifficulty at 1 and increases by 2, so TTD is set to 3 in genesis to have Block 1 on London fork, and Block 1 on Paris fork */
         .build()
         .run();
   }

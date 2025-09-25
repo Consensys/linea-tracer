@@ -46,8 +46,6 @@ import net.consensys.linea.zktracer.module.txndata.london.LondonTxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.gascalculator.GasCalculator;
-import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
@@ -66,11 +64,6 @@ public class LondonHub extends Hub {
   protected BlsRt setBlsRt() {
     // BlsRt is not used in London
     return null;
-  }
-
-  @Override
-  protected GasCalculator setGasCalculator() {
-    return new LondonGasCalculator();
   }
 
   @Override

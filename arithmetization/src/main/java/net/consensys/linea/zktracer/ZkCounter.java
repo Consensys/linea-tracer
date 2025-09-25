@@ -59,6 +59,7 @@ import static net.consensys.linea.zktracer.module.hub.section.halt.RevertSection
 import static net.consensys.linea.zktracer.module.hub.section.halt.StopSection.NB_ROWS_HUB_STOP_DEPLOYMENT;
 import static net.consensys.linea.zktracer.module.hub.section.halt.StopSection.NB_ROWS_HUB_STOP_MSG_CALL;
 import static net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.SelfdestructSection.NB_ROWS_HUB_SELFDESTRUCT;
+import static net.consensys.linea.zktracer.module.hub.section.skip.TxSkipSection.NB_ROWS_HUB_SKIP;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.NB_ROWS_HUB_SYSI_EIP2935;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.NB_ROWS_HUB_SYSI_EIP4788;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.SysfNoopSection.NB_ROWS_HUB_SYSF_NOOP;
@@ -77,6 +78,7 @@ import static net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperati
 import static net.consensys.linea.zktracer.module.stp.StpOperation.NB_ROWS_STP;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
+import static net.consensys.linea.zktracer.types.TransactionProcessingMetadata.computeRequiresEvmExecution;
 import static net.consensys.linea.zktracer.types.Utils.fromDataSizeToLimbNbRows;
 import static org.hyperledger.besu.evm.frame.MessageFrame.State.COMPLETED_SUCCESS;
 
@@ -137,7 +139,8 @@ public class ZkCounter implements LineCountingTracer {
   final Add add = new Add();
   final Bin bin = new Bin();
   final CountingOnlyModule blakemodexp =
-      new CountingOnlyModule(BLAKE_MODEXP_DATA); // useless to count imho
+      new CountingOnlyModule(
+          BLAKE_MODEXP_DATA, trace.blake2fmodexpdata().spillage()); // useless to count imho
   final CountingOnlyModule blockData = new CountingOnlyModule(BLOCK_DATA);
   final CountingOnlyModule blockHash =
       new CountingOnlyModule(BLOCK_HASH, trace.blockhash().spillage());
@@ -163,7 +166,8 @@ public class ZkCounter implements LineCountingTracer {
   final RlpUtils rlpUtils;
   final CountingOnlyModule rom = new CountingOnlyModule(ROM, trace.rom().spillage());
   final CountingOnlyModule rolex = new CountingOnlyModule(ROM_LEX, trace.romlex().spillage());
-  final CountingOnlyModule shakiradata = new CountingOnlyModule(SHAKIRA_DATA);
+  final CountingOnlyModule shakiradata =
+      new CountingOnlyModule(SHAKIRA_DATA, trace.shakiradata().spillage());
   final Shf shf = new Shf();
   final IncrementingModule stp = new IncrementingModule(STP);
   final Trm trm;
@@ -368,6 +372,37 @@ public class ZkCounter implements LineCountingTracer {
   }
 
   @Override
+  public void tracePrepareTransaction(WorldView worldView, Transaction tx) {
+    switch (tx.getType()) {
+      case FRONTIER, ACCESS_LIST, EIP1559 -> {
+        blockTransactions.traceStartTx(null, null);
+
+        final boolean triggersEvm = computeRequiresEvmExecution(worldView, tx);
+        if (triggersEvm) {
+          hub.updateTally(NB_ROWS_HUB_INIT + NB_ROWS_HUB_FINL);
+          if (tx.getAccessList().isPresent()) {
+            final int nRowsWarmPhase =
+                tx.getAccessList().get().stream()
+                    .mapToInt(listEntry -> listEntry.storageKeys().size() + 1)
+                    .sum();
+            hub.updateTally(nRowsWarmPhase);
+          }
+        } else {
+          hub.updateTally(NB_ROWS_HUB_SKIP);
+        }
+        // deploymentTransaction:
+        if (tx.isContractCreation()) {
+          rlpAddr.updateTally(NB_ROWS_RLPADDR_CREATE);
+          keccak.updateTally(MAX_SIZE_RLP_HASH_CREATE);
+        }
+      }
+      case BLOB, DELEGATE_CODE -> throw new IllegalStateException(
+          "Arithmetization doesn't support tx type: " + tx.getType());
+      default -> throw new IllegalArgumentException("tx type unknown: " + tx.getType());
+    }
+  }
+
+  @Override
   public void traceEndTransaction(
       WorldView worldView,
       Transaction tx,
@@ -377,31 +412,10 @@ public class ZkCounter implements LineCountingTracer {
       long gasUsed,
       Set<Address> selfDestructs,
       long timeNs) {
-    switch (tx.getType()) {
-      case FRONTIER, ACCESS_LIST, EIP1559 -> l1BlockSize.traceEndTx(tx, logs);
-      case BLOB, DELEGATE_CODE -> throw new IllegalStateException(
-          "Unsupported tx type: " + tx.getType());
-    }
-    // HUB line count
-    hub.updateTally(NB_ROWS_HUB_INIT + NB_ROWS_HUB_FINL);
-    if (tx.getAccessList().isPresent()) {
-      final int nRowsWarmPhase =
-          tx.getAccessList().get().stream()
-              .mapToInt(listEntry -> listEntry.storageKeys().size() + 1)
-              .sum();
-      hub.updateTally(nRowsWarmPhase);
-    }
-
-    // other modules:
-    blockTransactions.traceStartTx(null, null);
+    l1BlockSize.traceEndTx(tx, logs);
     rlpTxnRcpt.updateTally(lineCountForRlpTxnRcpt(logs));
     logData.updateTally(lineCountForLogData(logs));
     logInfo.updateTally(lineCountForLogInfo(logs));
-    // deploymentTransaction:
-    if (tx.isContractCreation()) {
-      rlpAddr.updateTally(NB_ROWS_RLPADDR_CREATE);
-      keccak.updateTally(MAX_SIZE_RLP_HASH_CREATE);
-    }
   }
 
   @Override

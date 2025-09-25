@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT;
+import static net.consensys.linea.zktracer.Fork.getGasCalculatorFromFork;
 import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___STACK_STAMP;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
@@ -143,7 +144,7 @@ public abstract class Hub implements Module {
   private final OpCodes opCodes;
 
   /** The {@link GasCalculator} used in this version of the arithmetization */
-  public final GasCalculator gasCalculator = setGasCalculator();
+  public final GasCalculator gasCalculator;
 
   public final GasProjector gasProjector;
 
@@ -430,6 +431,7 @@ public abstract class Hub implements Module {
 
   public Hub(final ChainConfig chain) {
     fork = chain.fork;
+    gasCalculator = getGasCalculatorFromFork(fork);
     opCodes = OpCodes.load(fork);
     gasProjector = new GasProjector(fork, gasCalculator);
     checkState(chain.id.signum() >= 0);
@@ -1143,8 +1145,6 @@ public abstract class Hub implements Module {
   protected abstract Module setBlsData(Hub hub);
 
   protected abstract BlsRt setBlsRt();
-
-  protected abstract GasCalculator setGasCalculator();
 
   protected abstract TxnData<? extends TxnDataOperation> setTxnData();
 

@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.Trace.*;
 import net.consensys.linea.plugins.BesuServiceProvider;
 import org.hyperledger.besu.datatypes.HardforkId;
 import org.hyperledger.besu.datatypes.HardforkId.MainnetHardforkId;
+import org.hyperledger.besu.evm.gascalculator.*;
 import org.hyperledger.besu.plugin.ServiceManager;
 import org.hyperledger.besu.plugin.services.BlockchainService;
 
@@ -175,6 +176,16 @@ public enum Fork {
       case SHANGHAI -> new TraceShanghai();
       case CANCUN -> new TraceCancun();
       case PRAGUE -> new TracePrague();
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
+  }
+
+  public static GasCalculator getGasCalculatorFromFork(Fork fork) {
+    return switch (fork) {
+      case LONDON, PARIS -> new LondonGasCalculator();
+      case SHANGHAI -> new ShanghaiGasCalculator();
+      case CANCUN -> new CancunGasCalculator();
+      case PRAGUE -> new PragueGasCalculator();
       default -> throw new IllegalArgumentException("Unknown fork: " + fork);
     };
   }

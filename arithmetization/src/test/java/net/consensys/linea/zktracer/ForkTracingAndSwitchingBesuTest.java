@@ -30,8 +30,12 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
-public class ExampleBesuTest extends TracerTestBase {
+public class ForkTracingAndSwitchingBesuTest extends TracerTestBase {
 
+  /*
+   Test tracing a simple transaction on different forks, each fork using an opcode introduced in that fork.
+   We check that tracing and go-corset check pass on each fork with the correct sets of constraints (zkevm_fork.bin).
+  */
   @Test
   void testPerFork(TestInfo testInfo) {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -47,6 +51,7 @@ public class ExampleBesuTest extends TracerTestBase {
       case LONDON -> {}
       case PARIS -> compiler.op(OpCode.PREVRANDAO);
       case SHANGHAI -> compiler.op(OpCode.PUSH0);
+        // Same opcode for Cancun and Prague, as no new opcode was introduced in Prague
       case CANCUN, PRAGUE -> compiler
           .push(Bytes.fromHexString("0x7F")) // value
           .push(32) // offset
@@ -78,7 +83,7 @@ public class ExampleBesuTest extends TracerTestBase {
   }
 
   @Test
-  void testForkSwitchParisToCancun(TestInfo testInfo) {
+  void testForkSwitchParisToPrague(TestInfo testInfo) {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
@@ -112,6 +117,9 @@ public class ExampleBesuTest extends TracerTestBase {
 
     ToyAccount receiverAccountCancun = getReceiverAccount("0x111112", codeCancun);
 
+    // Uses same code as in Cancun, as no new opcode was introduced in Prague
+    ToyAccount receiverAccountPrague = getReceiverAccount("0x111113", codeCancun);
+
     ToyTransaction.ToyTransactionBuilder txBuilderParis =
         ToyTransaction.builder().to(receiverAccountParis).keyPair(keyPair);
 
@@ -121,10 +129,15 @@ public class ExampleBesuTest extends TracerTestBase {
     ToyTransaction.ToyTransactionBuilder txBuilderCancun =
         ToyTransaction.builder().to(receiverAccountCancun).keyPair(keyPair);
 
+    ToyTransaction.ToyTransactionBuilder txBuilderPrague =
+        ToyTransaction.builder().to(receiverAccountPrague).keyPair(keyPair);
+
     // create transactions with the same sender, manages nonce
     final List<Transaction> transactions =
         ToyMultiTransaction.builder()
-            .build(List.of(txBuilderParis, txBuilderShanghai, txBuilderCancun), senderAccount);
+            .build(
+                List.of(txBuilderParis, txBuilderShanghai, txBuilderCancun, txBuilderPrague),
+                senderAccount);
 
     ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .accounts(
@@ -137,7 +150,7 @@ public class ExampleBesuTest extends TracerTestBase {
         .runWithBesuNode(true)
         .oneTxPerBlockOnBesuNode(true)
         .customBesuNodeGenesis(
-            "BesuExecutionToolsGenesis_ParisToCancun.json") /* Block 0 has totalDifficulty at 1, so TTD is set to 1 in genesis to have Block 1 on Paris fork */
+            "BesuExecutionToolsGenesis_ParisToPrague.json") /* Block 0 has totalDifficulty at 1, so TTD is set to 1 in genesis to have Block 1 on Paris fork */
         .build()
         .run();
   }

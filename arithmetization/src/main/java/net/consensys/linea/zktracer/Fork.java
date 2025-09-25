@@ -38,7 +38,7 @@ public enum Fork {
   OSAKA(EVM_OSAKA) // not yet live on L1
 ;
 
-  public static final Fork FORK_IN_PROD = CANCUN;
+  public static final Fork FORK_IN_PROD = LONDON;
 
   private final int releaseNumber;
 

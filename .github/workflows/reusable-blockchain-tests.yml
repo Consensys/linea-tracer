@@ -9,7 +9,7 @@ on:
       test_filter:
         required: false
         type: string
-        default: "BlockchainReferenceTest_*"
+        default: "ExecutionSpecBlockchainTest_*"
       failed_module:
         required: false
         type: string

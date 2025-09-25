@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
+import static net.consensys.linea.zktracer.Trace.Ecdata.TOTAL_SIZE_ECPAIRING_DATA_MIN;
 import static net.consensys.linea.zktracer.Trace.Oob.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
@@ -644,8 +645,11 @@ public class ZkCounter implements LineCountingTracer {
   @Override
   public void traceAccountCreationResult(
       final MessageFrame frame, final Optional<ExceptionalHaltReason> haltReason) {
-    shakiradata.updateTally(
-        fromDataSizeToLimbNbRows((int) frame.memoryByteSize()) + NB_ROWS_SHAKIRA_RESULT);
+    if (frame.getCurrentOperation() != null
+        && frame.getCurrentOperation().getOpcode() == RETURN.getOpcode()) {
+      shakiradata.updateTally(
+          fromDataSizeToLimbNbRows((int) frame.memoryByteSize()) + NB_ROWS_SHAKIRA_RESULT);
+    }
     keccak.updateTally((int) frame.memoryByteSize());
   }
 
@@ -731,7 +735,7 @@ public class ZkCounter implements LineCountingTracer {
       }
       case PRC_ECPAIRING -> {
         // trigger EcData to count the underlying EC operations
-        if (callDataSize != 0) {
+        if (callDataSize != 0 && callDataSize % TOTAL_SIZE_ECPAIRING_DATA_MIN == 0) {
           // Note: we can't know the id (and we don't care)
           ecdata.callEcData(
               0, precompile, frame.getInputData(), output == null ? Bytes.EMPTY : output);

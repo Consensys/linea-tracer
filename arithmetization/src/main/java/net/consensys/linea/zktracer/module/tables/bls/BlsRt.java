@@ -56,7 +56,7 @@ public class BlsRt implements Module {
   }
 
   // TODO: double check
-  static final Map<Integer, Integer> G1_MSM_DISCOUNTS =
+  public static final Map<Integer, Integer> G1_MSM_DISCOUNTS =
       Map.<Integer, Integer>ofEntries(
           Map.entry(1, 1000),
           Map.entry(2, 949),
@@ -187,7 +187,7 @@ public class BlsRt implements Module {
           Map.entry(127, 520),
           Map.entry(128, 519));
 
-  static final Map<Integer, Integer> G2_MSM_DISCOUNTS =
+  public static final Map<Integer, Integer> G2_MSM_DISCOUNTS =
       Map.<Integer, Integer>ofEntries(
           Map.entry(1, 1000),
           Map.entry(2, 1000),

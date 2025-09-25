@@ -97,7 +97,7 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
       exoCalls.add(noCall());
     } else {
       precompileCost =
-          numInputs * msmMultiplicationCost() * discount / PRC_BLS_MULTIPLICATION_MULTIPLIER;
+          (numInputs * msmMultiplicationCost() * discount) / PRC_BLS_MULTIPLICATION_MULTIPLIER;
       final OobExoCall insufficientGasCall =
           callToLT(wcp, getCalleeGas(), Bytes.ofUnsignedLong(precompileCost));
       exoCalls.add(insufficientGasCall);

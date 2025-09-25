@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.VALID_G2_
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -30,6 +31,7 @@ import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -45,8 +47,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class BlsG2MsmTest extends TracerTestBase {
 
   @ParameterizedTest
-  @MethodSource("blsG2MsmSource")
-  void testBlsG2MsmTest(List<String> largePoints, TestInfo testInfo) {
+  @MethodSource({"blsG2MsmSource", "blsG2MsmFullTableSource"})
+  void testBlsG2MsmTest(int n, List<String> largePoints, TestInfo testInfo) {
     final Bytes input =
         IntStream.range(0, largePoints.size())
             .mapToObj(
@@ -100,13 +102,21 @@ public class BlsG2MsmTest extends TracerTestBase {
   private static Stream<Arguments> blsG2MsmSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (String l1 : LARGE_POINTS) {
-      arguments.add(Arguments.of(List.of(l1)));
+      arguments.add(Arguments.of(1, List.of(l1)));
       for (String l2 : LARGE_POINTS) {
-        arguments.add(Arguments.of(List.of(l1, l2)));
+        arguments.add(Arguments.of(2, List.of(l1, l2)));
         for (String l3 : LARGE_POINTS) {
-          arguments.add(Arguments.of(List.of(l1, l2, l3)));
+          arguments.add(Arguments.of(3, List.of(l1, l2, l3)));
         }
       }
+    }
+    return arguments.stream();
+  }
+
+  private static Stream<Arguments> blsG2MsmFullTableSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (int n = 0; n < BlsRt.G2_MSM_DISCOUNTS.size() + 10; n++) {
+      arguments.add(Arguments.of(n + 1, Collections.nCopies(n + 1, VALID_G2_POINT)));
     }
     return arguments.stream();
   }

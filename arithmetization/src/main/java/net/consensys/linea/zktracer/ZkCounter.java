@@ -24,6 +24,7 @@ import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.ModuleName.GAS;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NB_ROWS_ADD;
 import static net.consensys.linea.zktracer.module.blockhash.BlockhashOperation.NB_ROWS_BLOCKHASH;
+import static net.consensys.linea.zktracer.module.gas.GasOperation.NB_ROWS_GAS;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallDataLoadOobCall.NB_ROWS_OOB_CDL;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.DeploymentOobCall.NB_ROWS_OOB_DEPLOYMENT;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.JumpOobCall.NB_ROWS_OOB_JUMP;
@@ -72,6 +73,7 @@ import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpda
 import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpdateWordPricingMxpCall.NB_ROWS_MXP_UPDT_W;
 import static net.consensys.linea.zktracer.module.rlpaddr.RlpAddrOperation.*;
 import static net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation.lineCountForRlpTxnRcpt;
+import static net.consensys.linea.zktracer.module.stp.StpOperation.NB_ROWS_STP;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static org.hyperledger.besu.evm.frame.MessageFrame.State.COMPLETED_SUCCESS;
@@ -252,7 +254,6 @@ public class ZkCounter implements LineCountingTracer {
         rom, // not trivial
         rolex,
         shakiradata, // useless to check as the underlying nb of precompiles is already bounded
-        stp, // currently under zkasmification
         trm, // not trivial
         txnData, // almost directly proportional to nb of txs
         wcp, // need MMU/TxnData/Oob etc ... to be counted
@@ -295,6 +296,7 @@ public class ZkCounter implements LineCountingTracer {
         rlpAddr,
         rlpTxnRcpt,
         shf,
+        stp,
         // traceless modules
         ecAddEffectiveCall,
         ecMulEffectiveCall,
@@ -581,11 +583,9 @@ public class ZkCounter implements LineCountingTracer {
       case CREATE -> {
         // ROM
         hub.updateTally(NB_ROWS_HUB_CREATE);
-        gas.updateTally(1); // as CMC == 1
+        gas.updateTally(NB_ROWS_GAS); // as CMC == 1
         // first IMC
-        stp.updateTally(1);
-        mod.updateTally(
-            NB_ROWS_MOD); // coming from STP call, will be removed once STP is zkasmified
+        stp.updateTally(NB_ROWS_STP);
         mxp.updateTally(NB_ROWS_MXP_UPDT_W);
         oob.updateTally(CT_MAX_CREATE + 1);
         // MMU
@@ -605,12 +605,10 @@ public class ZkCounter implements LineCountingTracer {
       }
       case CALL -> {
         hub.updateTally(NB_ROWS_HUB_CALL);
-        gas.updateTally(1); // as CMC == 1
+        gas.updateTally(NB_ROWS_GAS); // as CMC == 1
         oob.updateTally(CT_MAX_CALL + 1);
         mxp.updateTally(NB_ROWS_MXP_UPDT_W);
-        stp.updateTally(1);
-        mod.updateTally(
-            NB_ROWS_MOD); // coming from STP call, will be removed once STP is zkasmified
+        stp.updateTally(NB_ROWS_STP);
         // Note: precompiles specific limits are done in tracePrecompileCall()
       }
       default -> throw new IllegalArgumentException("Unknown opcode: " + opcode.byteValue());
@@ -620,7 +618,7 @@ public class ZkCounter implements LineCountingTracer {
   @Override
   public void traceContextExit(final MessageFrame frame) {
     hub.updateTally(1); // One context row in case of exception
-    gas.updateTally(1); // One gas row in case of exception
+    gas.updateTally(NB_ROWS_GAS); // One gas row in case of exception
   }
 
   @Override

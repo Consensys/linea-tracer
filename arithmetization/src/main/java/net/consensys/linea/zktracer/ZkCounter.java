@@ -109,11 +109,7 @@ import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
-import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
-import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
-import net.consensys.linea.zktracer.module.rlptxn.cancun.CancunRlpTxn;
 import net.consensys.linea.zktracer.module.shf.Shf;
-import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -133,8 +129,10 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class ZkCounter implements LineCountingTracer {
 
-  private final OpCodes opCodes = OpCodes.load(FORK_IN_PROD);
-  private static final Trace trace = getTraceFromFork(FORK_IN_PROD);
+  public static final Fork FORK_TU_USE_FOR_ZK_COUNTER = PRAGUE;
+
+  private final OpCodes opCodes = OpCodes.load(FORK_TU_USE_FOR_ZK_COUNTER);
+  private static final Trace trace = getTraceFromFork(FORK_TU_USE_FOR_ZK_COUNTER);
 
   // traced modules
   final Add add = new Add();
@@ -161,17 +159,18 @@ public class ZkCounter implements LineCountingTracer {
   final CountingOnlyModule mxp = new CountingOnlyModule(MXP, trace.mxp().spillage());
   final CountingOnlyModule oob = new CountingOnlyModule(OOB, trace.oob().spillage());
   final CountingOnlyModule rlpAddr = new CountingOnlyModule(RLP_ADDR, trace.rlpaddr().spillage());
-  final RlpTxn rlpTxn;
+  final CountingOnlyModule rlpTxn = new CountingOnlyModule(RLP_TXN, trace.rlptxn().spillage());
   final CountingOnlyModule rlpTxnRcpt =
       new CountingOnlyModule(RLP_TXN_RCPT, trace.rlptxrcpt().spillage());
-  final RlpUtils rlpUtils;
+  final CountingOnlyModule rlpUtils =
+      new CountingOnlyModule(RLP_UTILS, trace.rlputils().spillage());
   final CountingOnlyModule rom = new CountingOnlyModule(ROM, trace.rom().spillage());
   final CountingOnlyModule rolex = new CountingOnlyModule(ROM_LEX, trace.romlex().spillage());
   final CountingOnlyModule shakiradata =
       new CountingOnlyModule(SHAKIRA_DATA, trace.shakiradata().spillage());
   final Shf shf = new Shf();
   final IncrementingModule stp = new IncrementingModule(STP);
-  final Trm trm;
+  final CountingOnlyModule trm = new CountingOnlyModule(TRM, trace.trm().spillage());
   final CountingOnlyModule txnData = new CountingOnlyModule(TXN_DATA, trace.txndata().spillage());
   final Wcp wcp = new Wcp();
 
@@ -327,9 +326,6 @@ public class ZkCounter implements LineCountingTracer {
 
   public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration) {
     euc = new Euc(wcp);
-    rlpUtils = new RlpUtils(wcp);
-    trm = new Trm(FORK_IN_PROD, wcp);
-    rlpTxn = new CancunRlpTxn(rlpUtils, trm);
     keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
     ecdata =
         new EcData(

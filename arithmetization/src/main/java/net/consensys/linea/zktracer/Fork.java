@@ -37,9 +37,6 @@ public enum Fork {
   PRAGUE(EVM_PRAGUE),
   OSAKA(EVM_OSAKA) // not yet live on L1
 ;
-
-  public static final Fork FORK_IN_PROD = LONDON;
-
   private final int releaseNumber;
 
   Fork(int releaseNumber) {

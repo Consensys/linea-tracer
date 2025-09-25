@@ -67,7 +67,6 @@ tasks.register("generateExecutionSpecTests", RefTestGenerationTask) {
 tasks.register('referenceBlockchainTests', Test) {
   finalizedBy(jacocoReferenceBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
-  dependsOn generateBlockchainReferenceTests
   dependsOn generateExecutionSpecTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 

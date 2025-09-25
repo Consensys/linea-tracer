@@ -659,7 +659,7 @@ public class ZkCounter implements LineCountingTracer {
 
     // MMU
     switch (precompile) {
-      case PRC_ECRECOVER, PRC_ECADD, PRC_ECMUL, PRC_ECPAIRING -> {
+      case PRC_ECRECOVER, PRC_ECADD, PRC_ECMUL -> {
         // trigger EcData to count the underlying EC operations
         if (prcSuccess && callDataSize != 0) {
           // Note: we can't know the id (and we don't care)
@@ -678,11 +678,6 @@ public class ZkCounter implements LineCountingTracer {
           case PRC_ECMUL -> {
             hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
             oob.updateTally(CT_MAX_ECMUL + 1);
-          }
-          case PRC_ECPAIRING -> {
-            hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-            oob.updateTally(CT_MAX_ECPAIRING + 1);
-            mod.updateTally(NB_ROWS_MOD); // coming from OOB call
           }
         }
       }
@@ -733,6 +728,17 @@ public class ZkCounter implements LineCountingTracer {
                 + NB_ROWS_OOB_MODEXP_PRICING
                 + NB_ROWS_OOB_MODEXP_EXTRACT);
         mod.updateTally(2 * NB_ROWS_MOD); // 2 coming from OOB pricing call
+      }
+      case PRC_ECPAIRING -> {
+        // trigger EcData to count the underlying EC operations
+        if (callDataSize != 0) {
+          // Note: we can't know the id (and we don't care)
+          ecdata.callEcData(
+              0, precompile, frame.getInputData(), output == null ? Bytes.EMPTY : output);
+        }
+        hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
+        oob.updateTally(CT_MAX_ECPAIRING + 1);
+        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
       }
       case PRC_BLAKE2F -> blakeEffectiveCall.detectEvent();
       case PRC_POINT_EVALUATION -> pointEval.detectEvent();

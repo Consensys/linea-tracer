@@ -24,6 +24,7 @@ import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.ModuleName.GAS;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NB_ROWS_ADD;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.NB_ROWS_BLAKEMODEXP_MODEXP;
+import static net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData.NB_ROWS_BLOCK_DATA;
 import static net.consensys.linea.zktracer.module.blockhash.BlockhashOperation.NB_ROWS_BLOCKHASH;
 import static net.consensys.linea.zktracer.module.gas.GasOperation.NB_ROWS_GAS;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallDataLoadOobCall.NB_ROWS_OOB_CDL;
@@ -77,9 +78,15 @@ import static net.consensys.linea.zktracer.module.rlpaddr.RlpAddrOperation.*;
 import static net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation.lineCountForRlpTxnRcpt;
 import static net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation.NB_ROWS_SHAKIRA_RESULT;
 import static net.consensys.linea.zktracer.module.stp.StpOperation.NB_ROWS_STP;
+import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysfNoopTransaction.NB_ROWS_TXN_DATA_SYSF_NOOP;
+import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysiEip2935Transaction.NB_ROWS_TXN_DATA_SYSI_EIP2935;
+import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysiEip4788Transaction.NB_ROWS_TXN_DATA_SYSI_EIP4788;
+import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.UserTransaction.NB_ROWS_TXN_DATA_USER_1559_SEMANTIC;
+import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.UserTransaction.NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static net.consensys.linea.zktracer.types.TransactionProcessingMetadata.computeRequiresEvmExecution;
+import static net.consensys.linea.zktracer.types.TransactionUtils.transactionHasEip1559GasSemantics;
 import static net.consensys.linea.zktracer.types.Utils.fromDataSizeToLimbNbRows;
 import static org.hyperledger.besu.evm.frame.MessageFrame.State.COMPLETED_SUCCESS;
 
@@ -140,7 +147,8 @@ public class ZkCounter implements LineCountingTracer {
   final CountingOnlyModule blakemodexp =
       new CountingOnlyModule(
           BLAKE_MODEXP_DATA, trace.blake2fmodexpdata().spillage()); // useless to count imho
-  final CountingOnlyModule blockData = new CountingOnlyModule(BLOCK_DATA);
+  final CountingOnlyModule blockData =
+      new CountingOnlyModule(BLOCK_DATA, trace.blockdata().spillage());
   final CountingOnlyModule blockHash =
       new CountingOnlyModule(BLOCK_HASH, trace.blockhash().spillage());
   final CountingOnlyModule blsdata = new CountingOnlyModule(BLS_DATA); // useless to count imho
@@ -249,8 +257,7 @@ public class ZkCounter implements LineCountingTracer {
   // The line counting for those modules is known to be incomplete / inaccurate
   public List<Module> uncheckedModules() {
     return List.of(
-        blockData, // useless to check as the nb of rows is constant per block
-        blsdata, // useless to check as the underlying nb of precompiles is already bounded
+        blsdata, // useless to check as the underlying precompiles are, for now, excluded
         euc, // need MMU
         mmio, // need MMU
         mmu, // not trivial
@@ -259,7 +266,6 @@ public class ZkCounter implements LineCountingTracer {
         rom, // not trivial
         rolex,
         trm, // not trivial
-        txnData, // almost directly proportional to nb of txs
         wcp, // need MMU/TxnData/Oob etc ... to be counted
         // traceless modules
         blakeRounds, // blakeEffectiveCall is counted and already rejects all BLAKE calls
@@ -285,8 +291,8 @@ public class ZkCounter implements LineCountingTracer {
     return List.of(
         add,
         bin,
-        blakemodexp, // could be useless to check as the underlying nb of precompiles is already
-        // bounded
+        blakemodexp, // could be useless to check as the underlying nb of precompiles is already bounded
+        blockData,
         blockHash,
         ecdata, // could be useless to check as the underlying nb of precompiles is already bounded
         exp,
@@ -301,8 +307,8 @@ public class ZkCounter implements LineCountingTracer {
         oob,
         rlpAddr,
         rlpTxnRcpt,
-        shakiradata, // could be useless to check as the underlying nb of precompiles is already
-        // bounded
+        shakiradata, // could be useless to check as the underlying nb of precompiles is already bounded
+        txnData,
         shf,
         stp,
         // traceless modules
@@ -361,9 +367,13 @@ public class ZkCounter implements LineCountingTracer {
       final BlockBody blockBody,
       final Address miningBeneficiary) {
     l1BlockSize.traceStartBlock(world, blockHeader, miningBeneficiary);
+    blockData.updateTally(NB_ROWS_BLOCK_DATA);
     hub.updateTally(NB_ROWS_HUB_SYSI_EIP4788);
+    txnData.updateTally(NB_ROWS_TXN_DATA_SYSI_EIP4788);
     hub.updateTally(NB_ROWS_HUB_SYSI_EIP2935);
+    txnData.updateTally(NB_ROWS_TXN_DATA_SYSI_EIP2935);
     hub.updateTally(NB_ROWS_HUB_SYSF_NOOP);
+    txnData.updateTally(NB_ROWS_TXN_DATA_SYSF_NOOP);
 
     commitTransactionBundle();
   }
@@ -373,7 +383,6 @@ public class ZkCounter implements LineCountingTracer {
     switch (tx.getType()) {
       case FRONTIER, ACCESS_LIST, EIP1559 -> {
         blockTransactions.traceStartTx(null, null);
-
         final boolean triggersEvm = computeRequiresEvmExecution(worldView, tx);
         if (triggersEvm) {
           hub.updateTally(NB_ROWS_HUB_INIT + NB_ROWS_HUB_FINL);
@@ -387,6 +396,10 @@ public class ZkCounter implements LineCountingTracer {
         } else {
           hub.updateTally(NB_ROWS_HUB_SKIP);
         }
+        txnData.updateTally(
+            transactionHasEip1559GasSemantics(tx)
+                ? NB_ROWS_TXN_DATA_USER_1559_SEMANTIC
+                : NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC);
         // deploymentTransaction:
         if (tx.isContractCreation()) {
           rlpAddr.updateTally(NB_ROWS_RLPADDR_CREATE);

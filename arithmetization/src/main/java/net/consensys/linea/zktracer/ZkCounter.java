@@ -17,12 +17,12 @@ package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
 import static net.consensys.linea.zktracer.Trace.Oob.*;
-import static net.consensys.linea.zktracer.TraceCancun.Mxp.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.ModuleName.GAS;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NB_ROWS_ADD;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.NB_ROWS_BLAKEMODEXP_MODEXP;
 import static net.consensys.linea.zktracer.module.blockhash.BlockhashOperation.NB_ROWS_BLOCKHASH;
 import static net.consensys.linea.zktracer.module.gas.GasOperation.NB_ROWS_GAS;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallDataLoadOobCall.NB_ROWS_OOB_CDL;
@@ -73,9 +73,11 @@ import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpda
 import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpdateWordPricingMxpCall.NB_ROWS_MXP_UPDT_W;
 import static net.consensys.linea.zktracer.module.rlpaddr.RlpAddrOperation.*;
 import static net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation.lineCountForRlpTxnRcpt;
+import static net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation.NB_ROWS_SHAKIRA_RESULT;
 import static net.consensys.linea.zktracer.module.stp.StpOperation.NB_ROWS_STP;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
+import static net.consensys.linea.zktracer.types.Utils.fromDataSizeToLimbNbRows;
 import static org.hyperledger.besu.evm.frame.MessageFrame.State.COMPLETED_SUCCESS;
 
 import java.util.*;
@@ -243,17 +245,15 @@ public class ZkCounter implements LineCountingTracer {
   // The line counting for those modules is known to be incomplete / inaccurate
   public List<Module> uncheckedModules() {
     return List.of(
-        blakemodexp, // useless to check as the underlying nb of precompiles is already bounded
         blockData, // useless to check as the nb of rows is constant per block
         blsdata, // useless to check as the underlying nb of precompiles is already bounded
         euc, // need MMU
         mmio, // need MMU
         mmu, // not trivial
         rlpTxn, // need a refacto to have rlpTxn using not only TransactionProcessingMetadata
-        rlpUtils, // need a refacto to have rlpTxn using not only TransactionProcessingMetadata
+        rlpUtils, // need RLP_TXN
         rom, // not trivial
         rolex,
-        shakiradata, // useless to check as the underlying nb of precompiles is already bounded
         trm, // not trivial
         txnData, // almost directly proportional to nb of txs
         wcp, // need MMU/TxnData/Oob etc ... to be counted
@@ -281,8 +281,10 @@ public class ZkCounter implements LineCountingTracer {
     return List.of(
         add,
         bin,
+        blakemodexp, // could be useless to check as the underlying nb of precompiles is already
+        // bounded
         blockHash,
-        ecdata, // useless to check as the underlying nb of precompiles is already bounded
+        ecdata, // could be useless to check as the underlying nb of precompiles is already bounded
         exp,
         ext,
         gas,
@@ -295,6 +297,8 @@ public class ZkCounter implements LineCountingTracer {
         oob,
         rlpAddr,
         rlpTxnRcpt,
+        shakiradata, // could be useless to check as the underlying nb of precompiles is already
+        // bounded
         shf,
         stp,
         // traceless modules
@@ -501,6 +505,7 @@ public class ZkCounter implements LineCountingTracer {
         final int sizeToHash = Words.clampedToInt(frame.getStackItem(1));
         if (sizeToHash != 0) {
           // MMU
+          shakiradata.updateTally(fromDataSizeToLimbNbRows(sizeToHash) + NB_ROWS_SHAKIRA_RESULT);
           keccak.updateTally(sizeToHash);
         }
       }
@@ -598,6 +603,7 @@ public class ZkCounter implements LineCountingTracer {
             rlpAddr.updateTally(NB_ROWS_RLPADDR_CREATE2);
             keccak.updateTally(MAX_SIZE_RLP_HASH_CREATE2);
             final int size = Words.clampedToInt(frame.getStackItem(2));
+            shakiradata.updateTally(fromDataSizeToLimbNbRows(size) + NB_ROWS_SHAKIRA_RESULT);
             keccak.updateTally(size);
           }
           default -> throw new IllegalArgumentException(opcode + "is not of CREATE family");
@@ -624,6 +630,8 @@ public class ZkCounter implements LineCountingTracer {
   @Override
   public void traceAccountCreationResult(
       final MessageFrame frame, final Optional<ExceptionalHaltReason> haltReason) {
+    shakiradata.updateTally(
+        fromDataSizeToLimbNbRows((int) frame.memoryByteSize()) + NB_ROWS_SHAKIRA_RESULT);
     keccak.updateTally((int) frame.memoryByteSize());
   }
 
@@ -669,18 +677,21 @@ public class ZkCounter implements LineCountingTracer {
         oob.updateTally(CT_MAX_SHA2 + 1);
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
         if (prcSuccess && callDataSize != 0) {
+          shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) + NB_ROWS_SHAKIRA_RESULT);
           sha256Blocks.updateTally(callData.size());
         }
       }
       case PRC_RIPEMD_160 -> {
-        hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
-        oob.updateTally(CT_MAX_RIPEMD + 1);
-        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
-        if (callDataSize != 0) {
-          // ripemdBlocks.updateTally(callDataSize); Reenable me when RIPEMD is supported by the
-          // prover
-        }
         ripemdBlocks.detectEvent();
+        // Reenable me when RIPEMD is supported by the prover
+        // hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
+        // oob.updateTally(CT_MAX_RIPEMD + 1);
+        // mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        // if (prcSuccess && callDataSize != 0) {
+        //   shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) +
+        // NB_ROWS_SHAKIRA_RESULT);
+        //   ripemdBlocks.updateTally(callDataSize);
+        // }
       }
       case PRC_IDENTITY -> {
         hub.updateTally(NB_ROWS_HUB_PRC_IDENTITY);
@@ -695,6 +706,7 @@ public class ZkCounter implements LineCountingTracer {
           modexpEffectiveCall.detectEvent();
           return;
         }
+        blakemodexp.updateTally(NB_ROWS_BLAKEMODEXP_MODEXP);
         modexpEffectiveCall.updateTally(prcSuccess);
         if (modexpMetadata.loadRawLeadingWord()) {
           final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modexpMetadata);

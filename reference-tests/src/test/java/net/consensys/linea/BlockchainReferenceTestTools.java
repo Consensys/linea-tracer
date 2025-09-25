@@ -535,7 +535,7 @@ public class BlockchainReferenceTestTools {
     Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
     return PARAMS.generate(
         Arrays.stream(filePath)
-            .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())
+            .map(f -> Paths.get("build/execution-spec-tests/" + f).toFile())
             .toList());
   }
 
@@ -546,7 +546,7 @@ public class BlockchainReferenceTestTools {
     Collection<Object[]> params =
         PARAMS.generate(
             Arrays.stream(filePath)
-                .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())
+                .map(f -> Paths.get("build/execution-spec-tests/" + f).toFile())
                 .toList());
 
     return getRecordedFailedTestsFromJson(failedModule, failedConstraint)

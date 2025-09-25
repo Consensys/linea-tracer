@@ -44,10 +44,31 @@ tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   failedConstraint = System.getenv('FAILED_CONSTRAINT') ?: ""
 }
 
+tasks.register("generateExecutionSpecTests", RefTestGenerationTask) {
+/*  def tarPath = configurations.tarConfig.files.find{ it.name.startsWith('execution-spec-tests')}
+    if (tarPath == null) {
+        throw new GradleException("Could not find execution-spec-tests tarball in configurations.tarConfig. Ensure you have run 'gradle :reference-tests:dependencies' to download it.")
+    }*/
+  copy {
+    from tarTree("fixtures_develop.tar.gz")
+    into "$buildDir/execution-spec-tests"
+  }
+  refTestTemplateFilePath = "src/test/resources/templates/BlockchainReferenceTest.java.template"
+  refTests = "$buildDir/execution-spec-tests/fixtures/blockchain_tests"
+  refTestJsonParamsDirectory = "fixtures"
+  refTestJsonParamsExcludedPath = "" // exclude test for test filling tool
+  refTestNamePrefix = "ExecutionSpecBlockchainTest"
+  generatedRefTestsOutput = "src/test/java/net/consensys/linea/generated/blockchain"
+  failedTestsFilePath = System.getenv('FAILED_TEST_JSON_DIRECTORY') ?: "../tmp/local/"
+  failedModule = System.getenv('FAILED_MODULE') ?: ""
+  failedConstraint = System.getenv('FAILED_CONSTRAINT') ?: ""
+}
+
 tasks.register('referenceBlockchainTests', Test) {
   finalizedBy(jacocoReferenceBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
   dependsOn generateBlockchainReferenceTests
+  dependsOn generateExecutionSpecTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 
   it.configure {
@@ -100,9 +121,19 @@ dependencies {
 
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
   testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+  // testImplementation 'ethereum:execution-spec-tests:4.5.0:fixtures_develop@tar.gz'
 
   implementation project(":arithmetization")
   implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
   implementation project(path: ':testing')
   implementation 'org.junit.platform:junit-platform-launcher'
+}
+
+configurations {
+  // we need this because referenceTestImplementation defaults to 'canBeResolved=false'.
+  tarConfig.extendsFrom testImplementation
+  tarConfig {
+    canBeResolved = true
+    canBeConsumed = false
+  }
 }

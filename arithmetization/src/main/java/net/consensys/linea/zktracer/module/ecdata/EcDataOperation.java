@@ -210,7 +210,7 @@ public class EcDataOperation extends ModuleOperation {
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       Bytes callData,
       Bytes returnData) {
-    EcDataOperation ecDataOperation =
+    final EcDataOperation ecDataOperation =
         new EcDataOperation(wcp, ext, id, precompileFlag, callData, returnData);
     switch (precompileFlag) {
       case PRC_ECRECOVER -> ecDataOperation.handleRecover();

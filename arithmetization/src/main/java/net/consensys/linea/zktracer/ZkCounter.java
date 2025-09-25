@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
-import static net.consensys.linea.zktracer.Trace.Ecdata.TOTAL_SIZE_ECPAIRING_DATA_MIN;
 import static net.consensys.linea.zktracer.Trace.Oob.*;
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
@@ -25,7 +24,6 @@ import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.ModuleName.GAS;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NB_ROWS_ADD;
 import static net.consensys.linea.zktracer.module.blockhash.BlockhashOperation.NB_ROWS_BLOCKHASH;
-import static net.consensys.linea.zktracer.module.ext.ExtOperation.NB_ROWS_EXT;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallDataLoadOobCall.NB_ROWS_OOB_CDL;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.DeploymentOobCall.NB_ROWS_OOB_DEPLOYMENT;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.JumpOobCall.NB_ROWS_OOB_JUMP;
@@ -37,6 +35,7 @@ import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompil
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpLeadOobCall.NB_ROWS_OOB_MODEXP_LEAD;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpPricingOobCall.NB_ROWS_OOB_MODEXP_PRICING;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsOobCall.NB_ROWS_OOB_MODEXP_XBS;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.addressToPrecompileFlag;
 import static net.consensys.linea.zktracer.module.hub.section.AccountSection.NB_ROWS_HUB_ACCOUNT;
 import static net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection.NB_ROWS_HUB_CALLDATALOAD;
 import static net.consensys.linea.zktracer.module.hub.section.JumpSection.NB_ROWS_HUB_JUMP;
@@ -87,12 +86,14 @@ import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
+import net.consensys.linea.zktracer.module.ecdata.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
@@ -110,7 +111,6 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
-import net.consensys.linea.zktracer.types.AddressUtils;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -138,7 +138,7 @@ public class ZkCounter implements LineCountingTracer {
   final CountingOnlyModule blockHash =
       new CountingOnlyModule(BLOCK_HASH, trace.blockhash().spillage());
   final CountingOnlyModule blsdata = new CountingOnlyModule(BLS_DATA); // useless to count imho
-  final CountingOnlyModule ecdata = new CountingOnlyModule(EC_DATA); // useless to count imho
+  final EcData ecdata; // useless to count imho
   final Euc euc;
   final Exp exp = new Exp();
   final Ext ext = new Ext();
@@ -244,7 +244,6 @@ public class ZkCounter implements LineCountingTracer {
         blakemodexp, // useless to check as the underlying nb of precompiles is already bounded
         blockData, // useless to check as the nb of rows is constant per block
         blsdata, // useless to check as the underlying nb of precompiles is already bounded
-        ecdata, // useless to check as the underlying nb of precompiles is already bounded
         euc, // need MMU
         mmio, // need MMU
         mmu, // not trivial
@@ -282,6 +281,7 @@ public class ZkCounter implements LineCountingTracer {
         add,
         bin,
         blockHash,
+        ecdata, // useless to check as the underlying nb of precompiles is already bounded
         exp,
         ext,
         gas,
@@ -315,11 +315,21 @@ public class ZkCounter implements LineCountingTracer {
   }
 
   public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration) {
-    this.euc = new Euc(wcp);
-    this.rlpUtils = new RlpUtils(wcp);
-    this.trm = new Trm(FORK_IN_PROD, wcp);
-    this.rlpTxn = new CancunRlpTxn(rlpUtils, trm);
-    this.keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
+    euc = new Euc(wcp);
+    rlpUtils = new RlpUtils(wcp);
+    trm = new Trm(FORK_IN_PROD, wcp);
+    rlpTxn = new CancunRlpTxn(rlpUtils, trm);
+    keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
+    ecdata =
+        new EcData(
+            wcp,
+            ext,
+            ecAddEffectiveCall,
+            ecMulEffectiveCall,
+            ecRecoverEffectiveCall,
+            ecPairingG2MembershipCalls,
+            ecPairingMillerLoops,
+            ecPairingFinalExponentiations);
 
     l1BlockSize =
         new L1BlockSize(
@@ -616,27 +626,47 @@ public class ZkCounter implements LineCountingTracer {
   @Override
   public void traceAccountCreationResult(
       final MessageFrame frame, final Optional<ExceptionalHaltReason> haltReason) {
-    if (frame.memoryByteSize() != 0) {
-      keccak.updateTally((int) frame.memoryByteSize());
-    }
+    keccak.updateTally((int) frame.memoryByteSize());
   }
 
   @Override
   public void tracePrecompileCall(MessageFrame frame, long gasRequirement, Bytes output) {
-    final AddressUtils.PRC precompile = AddressUtils.PRC.fromAddress(frame.getContractAddress());
+    final PrecompileScenarioFragment.PrecompileFlag precompile =
+        addressToPrecompileFlag(frame.getContractAddress());
     final Bytes callData = frame.getInputData();
     final int callDataSize = callData.size();
     final boolean prcSuccess = frame.getState() == COMPLETED_SUCCESS;
 
     // MMU
     switch (precompile) {
-      case PRC_ECRECOVER -> {
-        hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-        oob.updateTally(CT_MAX_ECRECOVER + 1);
-        ecRecoverEffectiveCall.updateTally(prcSuccess ? 1 : 0);
+      case PRC_ECRECOVER, PRC_ECADD, PRC_ECMUL, PRC_ECPAIRING -> {
+        // trigger EcData to count the underlying EC operations
+        if (prcSuccess && callDataSize != 0) {
+          // Note: we can't know the id (and we don't care)
+          ecdata.callEcData(0, precompile, frame.getInputData(), output);
+        }
+        // now count lines for HUB, OOB
+        switch (precompile) {
+          case PRC_ECRECOVER -> {
+            hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
+            oob.updateTally(CT_MAX_ECRECOVER + 1);
+          }
+          case PRC_ECADD -> {
+            hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
+            oob.updateTally(CT_MAX_ECADD + 1);
+          }
+          case PRC_ECMUL -> {
+            hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
+            oob.updateTally(CT_MAX_ECMUL + 1);
+          }
+          case PRC_ECPAIRING -> {
+            hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
+            oob.updateTally(CT_MAX_ECPAIRING + 1);
+            mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+          }
+        }
       }
-
-      case PRC_SHA -> {
+      case PRC_SHA2_256 -> {
         hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
         oob.updateTally(CT_MAX_SHA2 + 1);
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
@@ -644,7 +674,7 @@ public class ZkCounter implements LineCountingTracer {
           sha256Blocks.updateTally(callData.size());
         }
       }
-      case PRC_RIP -> {
+      case PRC_RIPEMD_160 -> {
         hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
         oob.updateTally(CT_MAX_RIPEMD + 1);
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
@@ -667,7 +697,7 @@ public class ZkCounter implements LineCountingTracer {
           modexpEffectiveCall.detectEvent();
           return;
         }
-        modexpEffectiveCall.updateTally(prcSuccess ? 1 : 0);
+        modexpEffectiveCall.updateTally(prcSuccess);
         if (modexpMetadata.loadRawLeadingWord()) {
           final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modexpMetadata);
           exp.call(modexpLogCallToExp);
@@ -680,36 +710,11 @@ public class ZkCounter implements LineCountingTracer {
                 + NB_ROWS_OOB_MODEXP_EXTRACT);
         mod.updateTally(2 * NB_ROWS_MOD); // 2 coming from OOB pricing call
       }
-      case PRC_ECADD -> {
-        hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-        oob.updateTally(CT_MAX_ECADD + 1);
-        ecAddEffectiveCall.updateTally(prcSuccess ? 1 : 0);
-        ext.updateTally(8 * NB_ROWS_EXT);
-      }
-      case PRC_ECMUL -> {
-        hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-        oob.updateTally(CT_MAX_ECMUL + 1);
-        ecMulEffectiveCall.updateTally(prcSuccess ? 1 : 0);
-        ext.updateTally(4 * NB_ROWS_EXT);
-      }
-      case PRC_ECPARING -> {
-        final int nbOfPairs = callData.size() / TOTAL_SIZE_ECPAIRING_DATA_MIN;
-        hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-        oob.updateTally(CT_MAX_ECPAIRING + 1);
-        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
-        final boolean fktr = (callData.size() % TOTAL_SIZE_ECPAIRING_DATA_MIN) != 0;
-        if (!fktr) {
-          ecPairingG2MembershipCalls.updateTally(nbOfPairs);
-          ecPairingMillerLoops.updateTally(nbOfPairs);
-          ecPairingFinalExponentiations.updateTally(1);
-          ext.updateTally(nbOfPairs * 4 * NB_ROWS_EXT);
-        }
-      }
-      case PRC_BLAKE -> blakeEffectiveCall.detectEvent();
+      case PRC_BLAKE2F -> blakeEffectiveCall.detectEvent();
       case PRC_POINT_EVALUATION -> pointEval.detectEvent();
-      case PRC_BLS_G1ADD,
+      case PRC_BLS_G1_ADD,
           PRC_BLS_G1_MSM,
-          PRC_BLS_G2ADD,
+          PRC_BLS_G2_ADD,
           PRC_BLS_G2_MSM,
           PRC_BLS_PAIRING_CHECK,
           PRC_BLS_MAP_FP_TO_G1,

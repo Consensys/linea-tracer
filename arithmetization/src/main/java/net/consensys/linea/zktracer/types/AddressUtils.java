@@ -28,7 +28,6 @@ import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 import java.util.List;
 import java.util.stream.Stream;
 
-import lombok.Getter;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -42,42 +41,6 @@ import org.hyperledger.besu.ethereum.rlp.RLP;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class AddressUtils {
-
-  public enum PRC {
-    PRC_ECRECOVER(ECREC),
-    PRC_SHA(SHA256),
-    PRC_RIP(RIPEMD160),
-    PRC_IDENTITY(ID),
-    PRC_MODEXP(MODEXP),
-    PRC_ECADD(ALTBN128_ADD),
-    PRC_ECMUL(ALTBN128_MUL),
-    PRC_ECPARING(ALTBN128_PAIRING),
-    PRC_BLAKE(BLAKE2B_F_COMPRESSION),
-    PRC_POINT_EVALUATION(KZG_POINT_EVAL),
-    PRC_BLS_G1ADD(BLS12_G1ADD),
-    PRC_BLS_G1_MSM(BLS12_G1MULTIEXP),
-    PRC_BLS_G2ADD(BLS12_G2ADD),
-    PRC_BLS_G2_MSM(BLS12_G2MULTIEXP),
-    PRC_BLS_PAIRING_CHECK(BLS12_PAIRING),
-    PRC_BLS_MAP_FP_TO_G1(BLS12_MAP_FP_TO_G1),
-    PRC_BLS_MAP_FP2_TO_G2(BLS12_MAP_FP2_TO_G2),
-    PRC_P256_VERIFY(P256_VERIFY);
-
-    @Getter private final Address address;
-
-    PRC(Address address) {
-      this.address = address;
-    }
-
-    public static PRC fromAddress(Address address) {
-      for (PRC prc : PRC.values()) {
-        if (prc.address.equals(address)) {
-          return prc;
-        }
-      }
-      throw new IllegalArgumentException("Unknown precompile address: " + address);
-    }
-  }
 
   private static final Bytes CREATE2_PREFIX = Bytes.minimalBytes(CREATE2_SHIFT);
 

@@ -32,4 +32,10 @@ public class IncrementingModule extends CountingOnlyModule {
         "Can only update the tally by one at the time.");
     counts.add(numberEffectiveCall);
   }
+
+  public void updateTally(final boolean trigger) {
+    if (trigger) {
+      counts.add(1);
+    }
+  }
 }

@@ -40,7 +40,7 @@ jobs:
         uses: ./.github/actions/setup-environment
 
       - name: Generate block chain reference tests
-        run: ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.caching=true
+        run: ./gradlew :reference-tests:generateExecutionSpecTests -Dorg.gradle.caching=true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
 

@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.com
 
 import static net.consensys.linea.zktracer.Trace.PRC_BLS_MULTIPLICATION_MULTIPLIER;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToBlsRefTable;
+import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToDIV;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToGT;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
@@ -92,12 +93,24 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
     }
 
     // i + 6
+    if (!cdsIsMultipleOfMinMsmSize) {
+      exoCalls.add(noCall());
+    } else {
+      final OobExoCall precompileCostIntegerDivisionCall =
+          callToDIV(
+              mod,
+              Bytes.ofUnsignedLong(numInputs * msmMultiplicationCost() * discount),
+              Bytes.ofUnsignedLong(PRC_BLS_MULTIPLICATION_MULTIPLIER));
+      exoCalls.add(precompileCostIntegerDivisionCall);
+      precompileCost =
+          precompileCostIntegerDivisionCall.result().toUnsignedBigInteger().longValue();
+    }
+
+    // i + 7
     boolean sufficientGas = false;
     if (!cdsIsMultipleOfMinMsmSize) {
       exoCalls.add(noCall());
     } else {
-      precompileCost =
-          (numInputs * msmMultiplicationCost() * discount) / PRC_BLS_MULTIPLICATION_MULTIPLIER;
       final OobExoCall insufficientGasCall =
           callToLT(wcp, getCalleeGas(), Bytes.ofUnsignedLong(precompileCost));
       exoCalls.add(insufficientGasCall);

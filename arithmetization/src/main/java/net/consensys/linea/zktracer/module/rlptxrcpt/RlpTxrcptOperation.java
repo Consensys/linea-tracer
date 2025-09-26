@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.rlptxrcpt;
 
+import static net.consensys.linea.zktracer.types.Utils.fromDataSizeToLimbNbRows;
+
 import java.util.List;
 
 import lombok.Getter;
@@ -38,11 +40,11 @@ public final class RlpTxrcptOperation extends ModuleOperation {
     return lineCountForRlpTxnRcpt(this.logs);
   }
 
-  public static short lineCountForRlpTxnRcpt(List<Log> logs) {
+  public static int lineCountForRlpTxnRcpt(List<Log> logs) {
     // Phase 0 is always 1+8=9 row long, Phase 1, 1 row long, Phase 2 8 row long,
     // Phase 3 65 = 1 +
     // 64 row long
-    short rowSize = 83;
+    int rowSize = 83;
 
     // add the number of rows for Phase 4 : Log entry
     if (logs.isEmpty()) {
@@ -66,7 +68,7 @@ public final class RlpTxrcptOperation extends ModuleOperation {
         }
         // Row size of the data is 8 (RLP prefix)+ integer part (data-size - 1 /16) +1
         else {
-          rowSize += (short) (8 + (logs.get(i).getData().size() - 1) / 16 + 1);
+          rowSize += (8 + fromDataSizeToLimbNbRows(logs.get(i).getData().size()));
         }
       }
     }

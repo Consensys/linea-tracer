@@ -36,8 +36,8 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class UserTransaction extends CancunTxnDataOperation {
-  public static final short NB_ROWS_TXN_DATA_USER_1559_SEMANTIC = 15;
-  public static final short NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC = 13;
+  public static final short NB_ROWS_TXN_DATA_USER_1559_SEMANTIC = 16;
+  public static final short NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC = 14;
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
   public final TransactionProcessingMetadata txn;
   public final ProcessableBlockHeader blockHeader;
@@ -83,9 +83,10 @@ public class UserTransaction extends CancunTxnDataOperation {
 
   @Override
   protected int ctMax() {
-    return transactionTypeHasEip1559GasSemantics()
-        ? NB_ROWS_TXN_DATA_USER_1559_SEMANTIC
-        : NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC;
+    return (transactionTypeHasEip1559GasSemantics()
+            ? NB_ROWS_TXN_DATA_USER_1559_SEMANTIC
+            : NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC)
+        - 1;
   }
 
   void hubRow() {

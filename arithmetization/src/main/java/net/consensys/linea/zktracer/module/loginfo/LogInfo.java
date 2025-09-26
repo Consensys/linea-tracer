@@ -104,7 +104,7 @@ public class LogInfo implements Module {
     return lineCountForLogInfo(tx.logs());
   }
 
-  public static short lineCountForLogInfo(List<Log> logs) {
+  public static int lineCountForLogInfo(List<Log> logs) {
     int txRowSize = 0;
     if (logs.isEmpty()) {
       return 1;
@@ -112,7 +112,7 @@ public class LogInfo implements Module {
       for (Log log : logs) {
         txRowSize += ctMax(log) + 1;
       }
-      return (short) txRowSize;
+      return txRowSize;
     }
   }
 

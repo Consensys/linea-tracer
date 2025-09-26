@@ -71,7 +71,7 @@ public class LogData implements Module {
     return lineCountForLogData(tx.logs());
   }
 
-  public static short lineCountForLogData(List<Log> logs) {
+  public static int lineCountForLogData(List<Log> logs) {
     int txRowSize = 0;
     if (logs.isEmpty()) {
       return 0;
@@ -79,7 +79,7 @@ public class LogData implements Module {
       for (Log log : logs) {
         txRowSize += indexMax(log) + 1;
       }
-      return (short) txRowSize;
+      return txRowSize;
     }
   }
 

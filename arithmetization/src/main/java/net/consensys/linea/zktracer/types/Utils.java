@@ -43,12 +43,12 @@ public class Utils {
     return Bytes.concatenate(input, Bytes.repeat((byte) 0, wantedSize - input.size()));
   }
 
-  public static short fromDataSizeToLimbNbRows(int dataSize) {
-    return (short) Math.ceil((double) dataSize / LLARGE);
+  public static int fromDataSizeToLimbNbRows(int dataSize) {
+    return (int) Math.ceil((double) dataSize / LLARGE);
   }
 
-  public static short fromDataSizeToLimbCtMax(int dataSize) {
-    return (short) (fromDataSizeToLimbNbRows(dataSize) - 1);
+  public static int fromDataSizeToLimbCtMax(int dataSize) {
+    return (fromDataSizeToLimbNbRows(dataSize) - 1);
   }
 
   /**

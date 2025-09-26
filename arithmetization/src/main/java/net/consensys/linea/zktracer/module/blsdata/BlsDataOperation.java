@@ -294,10 +294,10 @@ public class BlsDataOperation extends ModuleOperation {
       final int indexOffset = k * (CT_MAX_LARGE_POINT + 1);
 
       // Extract inputs
-      final Bytes aXIm = callData.slice(sizeOffset, 4 * LLARGE);
-      final Bytes aXRe = callData.slice(4 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes aYIm = callData.slice(8 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes aYRe = callData.slice(12 * LLARGE + sizeOffset, 4 * LLARGE);
+      final Bytes aXRe = callData.slice(sizeOffset, 4 * LLARGE);
+      final Bytes aXIm = callData.slice(4 * LLARGE + sizeOffset, 4 * LLARGE);
+      final Bytes aYRe = callData.slice(8 * LLARGE + sizeOffset, 4 * LLARGE);
+      final Bytes aYIm = callData.slice(12 * LLARGE + sizeOffset, 4 * LLARGE);
 
       final boolean wellFormedCoordinate =
           wellFormedFp2Coordinate(indexOffset, aXIm, aXRe, aYIm, aYRe);
@@ -324,10 +324,10 @@ public class BlsDataOperation extends ModuleOperation {
       final int indexOffset = k * (CT_MAX_LARGE_POINT + 1 + CT_MAX_SCALAR + 1);
 
       // Extract inputs
-      final Bytes aXIm = callData.slice(sizeOffset, 4 * LLARGE);
-      final Bytes aXRe = callData.slice(4 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes aYIm = callData.slice(8 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes aYRe = callData.slice(12 * LLARGE + sizeOffset, 4 * LLARGE);
+      final Bytes aXRe = callData.slice(sizeOffset, 4 * LLARGE);
+      final Bytes aXIm = callData.slice(4 * LLARGE + sizeOffset, 4 * LLARGE);
+      final Bytes aYRe = callData.slice(8 * LLARGE + sizeOffset, 4 * LLARGE);
+      final Bytes aYIm = callData.slice(12 * LLARGE + sizeOffset, 4 * LLARGE);
 
       final boolean wellFormedCoordinate =
           wellFormedFp2Coordinate(indexOffset, aXIm, aXRe, aYIm, aYRe);
@@ -358,10 +358,10 @@ public class BlsDataOperation extends ModuleOperation {
       final Bytes aX = callData.slice(sizeOffset, 4 * LLARGE);
       final Bytes aY = callData.slice(4 * LLARGE + sizeOffset, 4 * LLARGE);
       // Large point
-      final Bytes bXIm = callData.slice(8 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes bXRe = callData.slice(12 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes bYIm = callData.slice(16 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes bYRe = callData.slice(20 * LLARGE + sizeOffset, 4 * LLARGE);
+      final Bytes bXRe = callData.slice(8 * LLARGE + sizeOffset, 4 * LLARGE);
+      final Bytes bXIm = callData.slice(12 * LLARGE + sizeOffset, 4 * LLARGE);
+      final Bytes bYRe = callData.slice(16 * LLARGE + sizeOffset, 4 * LLARGE);
+      final Bytes bYIm = callData.slice(20 * LLARGE + sizeOffset, 4 * LLARGE);
 
       final boolean wellFormedFpCoordinate = wellFormedFpCoordinate(indexOffset, aX, aY);
       final boolean isSmallPointInSubgroup =

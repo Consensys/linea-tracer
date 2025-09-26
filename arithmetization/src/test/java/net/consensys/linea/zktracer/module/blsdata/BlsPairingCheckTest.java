@@ -46,8 +46,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(UnitTestWatcher.class)
 public class BlsPairingCheckTest extends TracerTestBase {
-
-  @Tag("nightly")
+  
   @ParameterizedTest
   @MethodSource("blsPairingCheckSource")
   void testBlsPairingCheckTest(

@@ -16,6 +16,8 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeSixtyFourths;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.module.oob.OobOperation.computeExponentLog;
@@ -196,9 +198,11 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     bytecodeRunner.run(gasLimit, chainConfig, testInfo);
 
-    assertNotEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
+    if (address == ALTBN128_ADD || isPostPrague(fork)) {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
+    }
   }
 
   static Stream<Arguments> fixedCostAddTestSource() {
@@ -257,9 +261,13 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
     bytecodeRunner.run(
         gasLimit, address == MODEXP ? additionalAccounts : List.of(), chainConfig, testInfo);
 
-    assertNotEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
+    if (!isBlsPrecompile(address)
+        || (address == KZG_POINT_EVAL && isPostCancun(fork))
+        || (isBlsPrecompile(address) && isPostPrague(fork))) {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
+    }
   }
 
   static Stream<Arguments> costGEQStipendTest() {

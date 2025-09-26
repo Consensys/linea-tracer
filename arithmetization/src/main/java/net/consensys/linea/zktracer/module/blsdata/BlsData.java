@@ -94,39 +94,24 @@ public class BlsData implements OperationListModule<BlsDataOperation> {
       // If data are detected to be malformed internally, all limits are implicitly 0
       switch (blsDataOperation.precompileFlag()) {
         case PRC_POINT_EVALUATION -> {
-          if (blsDataOperation.wnon()) {
-            pointEvaluationEffectiveCall.updateTally(1);
-          } else if (blsDataOperation.mext()) {
-            pointEvaluationFailureCall.updateTally(1);
-          }
+          pointEvaluationEffectiveCall.updateTally(blsDataOperation.wnon());
+          pointEvaluationFailureCall.updateTally(blsDataOperation.mext());
         }
         case PRC_BLS_G1_ADD -> {
-          if (blsDataOperation.wnon()) {
-            blsG1AddEffectiveCall.updateTally(1);
-          } else if (blsDataOperation.mext()) {
-            blsC1MembershipCalls.updateTally(1);
-          }
+          blsG1AddEffectiveCall.updateTally(blsDataOperation.wnon());
+          blsC1MembershipCalls.updateTally(blsDataOperation.mext());
         }
         case PRC_BLS_G1_MSM -> {
-          if (blsDataOperation.wnon()) {
-            blsG1MsmEffectiveCall.updateTally(1);
-          } else if (blsDataOperation.mext()) {
-            blsG1MembershipCalls.updateTally(1);
-          }
+          blsG1MsmEffectiveCall.updateTally(blsDataOperation.wnon());
+          blsG1MembershipCalls.updateTally(blsDataOperation.mext());
         }
         case PRC_BLS_G2_ADD -> {
-          if (blsDataOperation.wnon()) {
-            blsG2AddEffectiveCall.updateTally(1);
-          } else if (blsDataOperation.mext()) {
-            blsC2MembershipCalls.updateTally(1);
-          }
+          blsG2AddEffectiveCall.updateTally(blsDataOperation.wnon());
+          blsC2MembershipCalls.updateTally(blsDataOperation.mext());
         }
         case PRC_BLS_G2_MSM -> {
-          if (blsDataOperation.wnon()) {
-            blsG2MsmEffectiveCall.updateTally(1);
-          } else if (blsDataOperation.mext()) {
-            blsG2MembershipCalls.updateTally(1);
-          }
+          blsG2MsmEffectiveCall.updateTally(blsDataOperation.wnon());
+          blsG2MembershipCalls.updateTally(blsDataOperation.mext());
         }
         case PRC_BLS_PAIRING_CHECK -> {
           if (blsDataOperation.wtrv() || blsDataOperation.wnon()) {

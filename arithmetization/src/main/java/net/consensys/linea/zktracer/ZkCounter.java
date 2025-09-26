@@ -37,6 +37,7 @@ import static net.consensys.linea.zktracer.module.hub.section.AccountSection.NB_
 import static net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection.NB_ROWS_HUB_CALLDATALOAD;
 import static net.consensys.linea.zktracer.module.hub.section.JumpSection.NB_ROWS_HUB_JUMP;
 import static net.consensys.linea.zktracer.module.hub.section.McopySection.NB_ROWS_HUB_MCOPY;
+import static net.consensys.linea.zktracer.module.hub.section.MsizeSection.NB_ROWS_HUB_MSIZE;
 import static net.consensys.linea.zktracer.module.hub.section.SstoreSection.NB_ROWS_HUB_STORAGE;
 import static net.consensys.linea.zktracer.module.hub.section.StackOnlySection.NB_ROWS_HUB_SIMPLE_STACK_OP;
 import static net.consensys.linea.zktracer.module.hub.section.StackRamSection.NB_ROWS_HUB_STACKRAM;
@@ -493,9 +494,11 @@ public class ZkCounter implements LineCountingTracer {
         ext.tracePreOpcode(frame, opcode.mnemonic());
       }
       case MACHINE_STATE -> {
-        hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
         if (opcode.mnemonic() == MSIZE) {
+          hub.updateTally(NB_ROWS_HUB_MSIZE);
           mxp.updateTally(NB_ROWS_MXP_MSIZE);
+        } else {
+          hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
         }
       }
       case MUL -> {

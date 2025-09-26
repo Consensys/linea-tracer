@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
 import static net.consensys.linea.zktracer.Trace.Ecdata.TOTAL_SIZE_ECPAIRING_DATA_MIN;
-import static net.consensys.linea.zktracer.Trace.Oob.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
@@ -691,11 +690,11 @@ public class ZkCounter implements LineCountingTracer {
           ecdata.callEcData(0, precompile, frame.getInputData(), returnData);
         }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-        oob.updateTally(oobLineCountforPrc(precompile));
+        oob.updateTally(oobLineCountForPrc(precompile));
       }
       case PRC_SHA2_256 -> {
         hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
-        oob.updateTally(oobLineCountforPrc(precompile));
+        oob.updateTally(oobLineCountForPrc(precompile));
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
         if (prcSuccess && callDataSize != 0) {
           shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) + NB_ROWS_SHAKIRA_RESULT);
@@ -716,7 +715,7 @@ public class ZkCounter implements LineCountingTracer {
       }
       case PRC_IDENTITY -> {
         hub.updateTally(NB_ROWS_HUB_PRC_IDENTITY);
-        oob.updateTally(oobLineCountforPrc(precompile));
+        oob.updateTally(oobLineCountForPrc(precompile));
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
       }
       case PRC_MODEXP -> {
@@ -733,7 +732,7 @@ public class ZkCounter implements LineCountingTracer {
           final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modexpMetadata);
           exp.call(modexpLogCallToExp);
         }
-        oob.updateTally(oobLineCountforPrc(precompile));
+        oob.updateTally(oobLineCountForPrc(precompile));
         mod.updateTally(2 * NB_ROWS_MOD); // 2 coming from OOB pricing call
       }
       case PRC_ECPAIRING -> {
@@ -743,7 +742,7 @@ public class ZkCounter implements LineCountingTracer {
           ecdata.callEcData(0, precompile, frame.getInputData(), returnData);
         }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-        oob.updateTally(oobLineCountforPrc(precompile));
+        oob.updateTally(oobLineCountForPrc(precompile));
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
       }
       case PRC_BLAKE2F -> blakeEffectiveCall.detectEvent();
@@ -764,7 +763,7 @@ public class ZkCounter implements LineCountingTracer {
           blsdata.callBls(0, precompile, frame.getInputData(), returnData, prcSuccess);
         }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-        oob.updateTally(oobLineCountforPrc(precompile));
+        oob.updateTally(oobLineCountForPrc(precompile));
         // TODO: check if we have some MOD coming from OOB call
       }
       default -> throw new IllegalStateException("Unsupported precompile: " + precompile);

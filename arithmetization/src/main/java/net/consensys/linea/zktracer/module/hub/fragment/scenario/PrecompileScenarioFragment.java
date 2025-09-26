@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
 import static java.util.Map.entry;
-import static net.consensys.linea.zktracer.Trace.Oob.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_IDENTITY;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_RIPEMD;
 import static net.consensys.linea.zktracer.TracePrague.Blsdata.CT_MAX_POINT_EVALUATION;
@@ -193,7 +192,7 @@ public class PrecompileScenarioFragment implements TraceFragment {
       return false;
     }
 
-    public static short oobLineCountforPrc(PrecompileFlag prc) {
+    public static short oobLineCountForPrc(PrecompileFlag prc) {
       return switch (prc) {
         case PRC_ECRECOVER -> 1 + CT_MAX_ECRECOVER;
         case PRC_SHA2_256 -> 1 + CT_MAX_SHA2;

@@ -144,25 +144,14 @@ public class BlsData implements OperationListModule<BlsDataOperation> {
               blsPairingCheckFinalExponentiations.updateTally(1);
             }
           } else if (blsDataOperation.mext()) {
-            if (blsDataOperation.firstPointNotInSubgroupIsSmall()) {
-              blsG1MembershipCalls.updateTally(1);
-              blsG2MembershipCalls.updateTally(0);
-            } else {
-              blsG1MembershipCalls.updateTally(0);
-              blsG2MembershipCalls.updateTally(1);
-            }
+            blsG1MembershipCalls.updateTally(blsDataOperation.firstPointNotInSubgroupIsSmall());
+            blsG2MembershipCalls.updateTally(!blsDataOperation.firstPointNotInSubgroupIsSmall());
           }
         }
-        case PRC_BLS_MAP_FP_TO_G1 -> {
-          if (blsDataOperation.wnon()) {
-            blsG1MapFpToG1EffectiveCall.updateTally(1);
-          }
-        }
-        case PRC_BLS_MAP_FP2_TO_G2 -> {
-          if (blsDataOperation.wnon()) {
-            blsG1MapFp2ToG2EffectiveCall.updateTally(1);
-          }
-        }
+        case PRC_BLS_MAP_FP_TO_G1 -> blsG1MapFpToG1EffectiveCall.updateTally(
+            blsDataOperation.wnon());
+        case PRC_BLS_MAP_FP2_TO_G2 -> blsG1MapFp2ToG2EffectiveCall.updateTally(
+            blsDataOperation.wnon());
       }
     }
   }

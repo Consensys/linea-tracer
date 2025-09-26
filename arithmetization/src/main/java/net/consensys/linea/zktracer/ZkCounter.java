@@ -33,12 +33,7 @@ import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.J
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.JumpiOobCall.NB_ROWS_OOB_JUMPI;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.ReturnDataCopyOobCall.NB_ROWS_OOB_RDC;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.SstoreOobCall.NB_ROWS_OOB_SSTORE;
-import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpCallDataSizeOobCall.NB_ROWS_OOB_MODEXP_CDS;
-import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpExtractOobCall.NB_ROWS_OOB_MODEXP_EXTRACT;
-import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpLeadOobCall.NB_ROWS_OOB_MODEXP_LEAD;
-import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpPricingOobCall.NB_ROWS_OOB_MODEXP_PRICING;
-import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsOobCall.NB_ROWS_OOB_MODEXP_XBS;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.addressToPrecompileFlag;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.module.hub.section.AccountSection.NB_ROWS_HUB_ACCOUNT;
 import static net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection.NB_ROWS_HUB_CALLDATALOAD;
 import static net.consensys.linea.zktracer.module.hub.section.JumpSection.NB_ROWS_HUB_JUMP;
@@ -100,6 +95,7 @@ import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
+import net.consensys.linea.zktracer.module.blsdata.BlsData;
 import net.consensys.linea.zktracer.module.ecdata.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
@@ -145,14 +141,13 @@ public class ZkCounter implements LineCountingTracer {
   final Add add = new Add();
   final Bin bin = new Bin();
   final CountingOnlyModule blakemodexp =
-      new CountingOnlyModule(
-          BLAKE_MODEXP_DATA, trace.blake2fmodexpdata().spillage()); // useless to count imho
+      new CountingOnlyModule(BLAKE_MODEXP_DATA, trace.blake2fmodexpdata().spillage());
   final CountingOnlyModule blockData =
       new CountingOnlyModule(BLOCK_DATA, trace.blockdata().spillage());
   final CountingOnlyModule blockHash =
       new CountingOnlyModule(BLOCK_HASH, trace.blockhash().spillage());
-  final CountingOnlyModule blsdata = new CountingOnlyModule(BLS_DATA); // useless to count imho
-  final EcData ecdata; // useless to count imho
+  final BlsData blsdata;
+  final EcData ecdata;
   final Euc euc;
   final Exp exp = new Exp();
   final Ext ext = new Ext();
@@ -257,7 +252,6 @@ public class ZkCounter implements LineCountingTracer {
   // The line counting for those modules is known to be incomplete / inaccurate
   public List<Module> uncheckedModules() {
     return List.of(
-        blsdata, // useless to check as the underlying precompiles are, for now, excluded
         euc, // need MMU
         mmio, // need MMU
         mmu, // not trivial
@@ -268,22 +262,8 @@ public class ZkCounter implements LineCountingTracer {
         trm, // not trivial
         wcp, // need MMU/TxnData/Oob etc ... to be counted
         // traceless modules
-        blakeRounds, // blakeEffectiveCall is counted and already rejects all BLAKE calls
-        // all Cancun / Prague precompiles are rejected via bls pointEval for now
-        pointEvaluationEffectiveCall,
-        pointEvaluationFailureCall,
-        blsG1AddEffectiveCall,
-        blsG1MsmEffectiveCall,
-        blsG2AddEffectiveCall,
-        blsG2MsmEffectiveCall,
-        blsPairingCheckMillerLoops,
-        blsPairingCheckFinalExponentiations,
-        blsG1MapFpToG1EffectiveCall,
-        blsG1MapFp2ToG2EffectiveCall,
-        blsC1MembershipCalls,
-        blsC2MembershipCalls,
-        blsG1MembershipCalls,
-        blsG2MembershipCalls);
+        blakeRounds // blakeEffectiveCall is counted and already rejects all BLAKE calls
+        );
   }
 
   // The line counting for those modules are supposed to be accurate
@@ -291,10 +271,11 @@ public class ZkCounter implements LineCountingTracer {
     return List.of(
         add,
         bin,
-        blakemodexp, // could be useless to check as the underlying nb of precompiles is already bounded
+        blakemodexp,
         blockData,
         blockHash,
-        ecdata, // could be useless to check as the underlying nb of precompiles is already bounded
+        blsdata,
+        ecdata,
         exp,
         ext,
         gas,
@@ -307,7 +288,7 @@ public class ZkCounter implements LineCountingTracer {
         oob,
         rlpAddr,
         rlpTxnRcpt,
-        shakiradata, // could be useless to check as the underlying nb of precompiles is already bounded
+        shakiradata,
         txnData,
         shf,
         stp,
@@ -326,6 +307,20 @@ public class ZkCounter implements LineCountingTracer {
         blakeEffectiveCall,
         bls,
         pointEval,
+        pointEvaluationEffectiveCall,
+        pointEvaluationFailureCall,
+        blsG1AddEffectiveCall,
+        blsG1MsmEffectiveCall,
+        blsG2AddEffectiveCall,
+        blsG2MsmEffectiveCall,
+        blsPairingCheckMillerLoops,
+        blsPairingCheckFinalExponentiations,
+        blsG1MapFpToG1EffectiveCall,
+        blsG1MapFp2ToG2EffectiveCall,
+        blsC1MembershipCalls,
+        blsC2MembershipCalls,
+        blsG1MembershipCalls,
+        blsG2MembershipCalls,
         l1BlockSize,
         l2l1Logs);
   }
@@ -343,7 +338,23 @@ public class ZkCounter implements LineCountingTracer {
             ecPairingG2MembershipCalls,
             ecPairingMillerLoops,
             ecPairingFinalExponentiations);
-
+    blsdata =
+        new BlsData(
+            wcp,
+            pointEvaluationEffectiveCall,
+            pointEvaluationFailureCall,
+            blsG1AddEffectiveCall,
+            blsG1MsmEffectiveCall,
+            blsG2AddEffectiveCall,
+            blsG2MsmEffectiveCall,
+            blsPairingCheckMillerLoops,
+            blsPairingCheckFinalExponentiations,
+            blsG1MapFpToG1EffectiveCall,
+            blsG1MapFp2ToG2EffectiveCall,
+            blsC1MembershipCalls,
+            blsC2MembershipCalls,
+            blsG1MembershipCalls,
+            blsG2MembershipCalls);
     l1BlockSize =
         new L1BlockSize(
             blockTransactions,
@@ -669,6 +680,7 @@ public class ZkCounter implements LineCountingTracer {
     final Bytes callData = frame.getInputData();
     final int callDataSize = callData.size();
     final boolean prcSuccess = frame.getState() == COMPLETED_SUCCESS;
+    final Bytes returnData = output == null ? Bytes.EMPTY : output;
 
     // MMU
     switch (precompile) {
@@ -676,27 +688,14 @@ public class ZkCounter implements LineCountingTracer {
         // trigger EcData to count the underlying EC operations
         if (prcSuccess && callDataSize != 0) {
           // Note: we can't know the id (and we don't care)
-          ecdata.callEcData(0, precompile, frame.getInputData(), output);
+          ecdata.callEcData(0, precompile, frame.getInputData(), returnData);
         }
-        // now count lines for HUB, OOB
-        switch (precompile) {
-          case PRC_ECRECOVER -> {
-            hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-            oob.updateTally(CT_MAX_ECRECOVER + 1);
-          }
-          case PRC_ECADD -> {
-            hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-            oob.updateTally(CT_MAX_ECADD + 1);
-          }
-          case PRC_ECMUL -> {
-            hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-            oob.updateTally(CT_MAX_ECMUL + 1);
-          }
-        }
+        hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
+        oob.updateTally(oobLineCountforPrc(precompile));
       }
       case PRC_SHA2_256 -> {
         hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
-        oob.updateTally(CT_MAX_SHA2 + 1);
+        oob.updateTally(oobLineCountforPrc(precompile));
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
         if (prcSuccess && callDataSize != 0) {
           shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) + NB_ROWS_SHAKIRA_RESULT);
@@ -707,7 +706,7 @@ public class ZkCounter implements LineCountingTracer {
         ripemdBlocks.detectEvent();
         // Reenable me when RIPEMD is supported by the prover
         // hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
-        // oob.updateTally(CT_MAX_RIPEMD + 1);
+        // oob.updateTally(oobLineCountforPrc(precompile));
         // mod.updateTally(NB_ROWS_MOD); // coming from OOB call
         // if (prcSuccess && callDataSize != 0) {
         //   shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) +
@@ -717,7 +716,7 @@ public class ZkCounter implements LineCountingTracer {
       }
       case PRC_IDENTITY -> {
         hub.updateTally(NB_ROWS_HUB_PRC_IDENTITY);
-        oob.updateTally(CT_MAX_IDENTITY + 1);
+        oob.updateTally(oobLineCountforPrc(precompile));
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
       }
       case PRC_MODEXP -> {
@@ -734,34 +733,40 @@ public class ZkCounter implements LineCountingTracer {
           final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modexpMetadata);
           exp.call(modexpLogCallToExp);
         }
-        oob.updateTally(
-            NB_ROWS_OOB_MODEXP_CDS
-                + 3 * NB_ROWS_OOB_MODEXP_XBS
-                + NB_ROWS_OOB_MODEXP_LEAD
-                + NB_ROWS_OOB_MODEXP_PRICING
-                + NB_ROWS_OOB_MODEXP_EXTRACT);
+        oob.updateTally(oobLineCountforPrc(precompile));
         mod.updateTally(2 * NB_ROWS_MOD); // 2 coming from OOB pricing call
       }
       case PRC_ECPAIRING -> {
         // trigger EcData to count the underlying EC operations
         if (callDataSize != 0 && callDataSize % TOTAL_SIZE_ECPAIRING_DATA_MIN == 0) {
           // Note: we can't know the id (and we don't care)
-          ecdata.callEcData(
-              0, precompile, frame.getInputData(), output == null ? Bytes.EMPTY : output);
+          ecdata.callEcData(0, precompile, frame.getInputData(), returnData);
         }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
-        oob.updateTally(CT_MAX_ECPAIRING + 1);
+        oob.updateTally(oobLineCountforPrc(precompile));
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
       }
       case PRC_BLAKE2F -> blakeEffectiveCall.detectEvent();
-      case PRC_POINT_EVALUATION -> pointEval.detectEvent();
       case PRC_BLS_G1_ADD,
           PRC_BLS_G1_MSM,
           PRC_BLS_G2_ADD,
           PRC_BLS_G2_MSM,
           PRC_BLS_PAIRING_CHECK,
           PRC_BLS_MAP_FP_TO_G1,
-          PRC_BLS_MAP_FP2_TO_G2 -> bls.detectEvent();
+          PRC_BLS_MAP_FP2_TO_G2,
+          PRC_POINT_EVALUATION -> {
+        if (precompile == PRC_POINT_EVALUATION) {
+          pointEval.detectEvent();
+        } else {
+          bls.detectEvent();
+        }
+        if (callDataSize != 0) {
+          blsdata.callBls(0, precompile, frame.getInputData(), returnData, prcSuccess);
+        }
+        hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
+        oob.updateTally(oobLineCountforPrc(precompile));
+        // TODO: check if we have some MOD coming from OOB call
+      }
       default -> throw new IllegalStateException("Unsupported precompile: " + precompile);
     }
   }

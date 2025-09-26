@@ -52,7 +52,7 @@ public class OobExoCall {
         .addFlag(addFlag)
         .modFlag(modFlag)
         .wcpFlag(wcpFlag)
-        .outgoingInst(instruction & 0x00ff)
+        .outgoingInst(instruction)
         .outgoingData1(arg1.slice(0, LLARGE))
         .outgoingData2(arg1.slice(LLARGE, LLARGE))
         .outgoingData3(arg2.slice(0, LLARGE))

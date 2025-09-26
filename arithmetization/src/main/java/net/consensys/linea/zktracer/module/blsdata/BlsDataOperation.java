@@ -300,7 +300,7 @@ public class BlsDataOperation extends ModuleOperation {
       final Bytes aYIm = callData.slice(12 * LLARGE + sizeOffset, 4 * LLARGE);
 
       final boolean wellFormedCoordinate =
-          wellFormedFp2Coordinate(indexOffset, aXIm, aXRe, aYIm, aYRe);
+          wellFormedFp2Coordinate(indexOffset, aXRe, aXIm, aYRe, aYIm);
 
       final boolean isLargePointOnCurve =
           isLargePointOnCurve(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
@@ -330,7 +330,7 @@ public class BlsDataOperation extends ModuleOperation {
       final Bytes aYIm = callData.slice(12 * LLARGE + sizeOffset, 4 * LLARGE);
 
       final boolean wellFormedCoordinate =
-          wellFormedFp2Coordinate(indexOffset, aXIm, aXRe, aYIm, aYRe);
+          wellFormedFp2Coordinate(indexOffset, aXRe, aXIm, aYRe, aYIm);
 
       final boolean isLargePointInSubgroup =
           isLargePointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
@@ -377,7 +377,7 @@ public class BlsDataOperation extends ModuleOperation {
       }
 
       final boolean wellFormedFp2Coordinate =
-          wellFormedFp2Coordinate(8 + indexOffset, bXIm, bXRe, bYIm, bYRe);
+          wellFormedFp2Coordinate(8 + indexOffset, bXRe, bXIm, bYRe, bYIm);
 
       final boolean isLargePointInSubgroup =
           isLargePointInSubGroup(
@@ -422,14 +422,14 @@ public class BlsDataOperation extends ModuleOperation {
 
   private void handleBlsMapFp2ToG2() {
     // Extract inputs
-    final Bytes eIm = callData.slice(0, 4 * LLARGE);
-    final Bytes eRe = callData.slice(4 * LLARGE, 4 * LLARGE);
+    final Bytes eRe = callData.slice(0, 4 * LLARGE);
+    final Bytes eIm = callData.slice(4 * LLARGE, 4 * LLARGE);
 
-    final boolean eImIsInRange = callToLTBlsPrime(0, eIm);
+    final boolean eReIsInRange = callToLTBlsPrime(0, eRe);
 
-    final boolean eReIsInRange = callToLTBlsPrime(4, eRe);
+    final boolean eImIsInRange = callToLTBlsPrime(4, eIm);
 
-    final boolean internalChecksPassed = eImIsInRange && eReIsInRange;
+    final boolean internalChecksPassed = eReIsInRange && eImIsInRange;
 
     for (int j = 0; j <= CT_MAX_MAP_FP2_TO_G2; j++) {
       this.mintBit.set(j, !internalChecksPassed);
@@ -577,14 +577,14 @@ public class BlsDataOperation extends ModuleOperation {
     return wellFormedCoordinate;
   }
 
-  private boolean wellFormedFp2Coordinate(int i, Bytes pXIm, Bytes pXRe, Bytes pYIm, Bytes pYRe) {
-    final boolean pXImIsInRange = callToLTBlsPrime(i, pXIm);
-    final boolean pXReIsInRange = callToLTBlsPrime(i + 4, pXRe);
-    final boolean pYImIsInRange = callToLTBlsPrime(i + 8, pYIm);
-    final boolean pYReIsInRange = callToLTBlsPrime(i + 12, pYRe);
+  private boolean wellFormedFp2Coordinate(int i, Bytes pXRe, Bytes pXIm, Bytes pYRe, Bytes pYIm) {
+    final boolean pXReIsInRange = callToLTBlsPrime(i, pXRe);
+    final boolean pXImIsInRange = callToLTBlsPrime(i + 4, pXIm);
+    final boolean pYReIsInRange = callToLTBlsPrime(i + 8, pYRe);
+    final boolean pYImIsInRange = callToLTBlsPrime(i + 12, pYIm);
 
     final boolean wellFormedCoordinate =
-        pXImIsInRange && pXReIsInRange && pYImIsInRange && pYReIsInRange;
+        pXReIsInRange && pXImIsInRange && pYReIsInRange && pYImIsInRange;
 
     for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
       this.mintBit.set(i + j, !wellFormedCoordinate);

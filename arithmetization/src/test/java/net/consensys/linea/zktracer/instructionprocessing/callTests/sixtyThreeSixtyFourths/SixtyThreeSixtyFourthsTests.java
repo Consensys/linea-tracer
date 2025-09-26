@@ -24,15 +24,25 @@ import static net.consensys.linea.zktracer.opcode.OpCode.MLOAD;
 import static net.consensys.linea.zktracer.opcode.OpCode.POP;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.generateModexpInput;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getBLAKE2FCost;
+import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getBlsG1AddCost;
+import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getBlsG2AddCost;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getECADDCost;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getMODEXPCost;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getPrecompileCost;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareBlake2F;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareModexp;
+import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompile;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
 import static org.hyperledger.besu.datatypes.Address.BLAKE2B_F_COMPRESSION;
+import static org.hyperledger.besu.datatypes.Address.BLS12_G1ADD;
+import static org.hyperledger.besu.datatypes.Address.BLS12_G1MULTIEXP;
+import static org.hyperledger.besu.datatypes.Address.BLS12_G2ADD;
+import static org.hyperledger.besu.datatypes.Address.BLS12_G2MULTIEXP;
+import static org.hyperledger.besu.datatypes.Address.BLS12_MAP_FP2_TO_G2;
+import static org.hyperledger.besu.datatypes.Address.BLS12_MAP_FP_TO_G1;
+import static org.hyperledger.besu.datatypes.Address.BLS12_PAIRING;
 import static org.hyperledger.besu.datatypes.Address.ECREC;
 import static org.hyperledger.besu.datatypes.Address.ID;
 import static org.hyperledger.besu.datatypes.Address.KZG_POINT_EVAL;
@@ -76,8 +86,6 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 
 public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
-  // TODO: add BLS precompiles beyond POINT_EVALUATION
-
   /*
   Cases to cover:
 
@@ -128,7 +136,14 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
               ALTBN128_MUL,
               ALTBN128_PAIRING,
               BLAKE2B_F_COMPRESSION,
-              KZG_POINT_EVAL)
+              KZG_POINT_EVAL,
+              BLS12_G1ADD,
+              BLS12_G1MULTIEXP,
+              BLS12_G2ADD,
+              BLS12_G2MULTIEXP,
+              BLS12_PAIRING,
+              BLS12_MAP_FP_TO_G1,
+              BLS12_MAP_FP2_TO_G2)
           .collect(
               Collectors.toMap(
                   address -> address,
@@ -156,23 +171,27 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
   // corresponding PUSHes here
 
   /**
-   * Parameterized test for the ECADD precompile, that has a fixed cost of 150.
+   * Parameterized test for the ECADD, BLS_G1_ADD, BLS_G2_ADD precompiles, that have a fixed cost <
+   * 2300.
    *
-   * @param gasLimit the gas limit for the transaction. It is either as much as needed for the ECADD
-   *     call or slightly less.
-   * @param insufficientGasForPrecompileExpected flag indicating if insufficient gas for ECADD is
-   *     expected.
+   * @param gasLimit the gas limit for the transaction. It is either as much as needed for the
+   *     precompile call or slightly less.
+   * @param insufficientGasForPrecompileExpected flag indicating if insufficient gas for precompile
+   *     is expected.
    */
   @ParameterizedTest
-  @MethodSource("fixedCostEcAddTestSource")
-  void fixedCostEcAddTest(
-      long gasLimit, boolean insufficientGasForPrecompileExpected, TestInfo testInfo) {
+  @MethodSource("fixedCostAddTestSource")
+  void fixedCostAddTest(
+      Address address,
+      long gasLimit,
+      boolean insufficientGasForPrecompileExpected,
+      TestInfo testInfo) {
     // Whenever transferValue = true, gas is enough
     // so we only test the case in which transferValue = false
 
     final BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
-    program.immediate(preCallProgram(ALTBN128_ADD, false, false, 0)).op(CALL);
+    program.immediate(preCallProgram(address, false, false, 0)).op(CALL);
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     bytecodeRunner.run(gasLimit, chainConfig, testInfo);
@@ -182,24 +201,34 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
         bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
-  static Stream<Arguments> fixedCostEcAddTestSource() {
+  static Stream<Arguments> fixedCostAddTestSource() {
     List<Arguments> arguments = new ArrayList<>();
-    final long targetCalleeGas = getECADDCost();
-    for (int cornerCase : List.of(0, -1)) {
-      final long gasLimit =
-          getGasLimit(
-              targetCalleeGas + cornerCase,
-              false,
-              false,
-              preCallProgramGasMap.get(ALTBN128_ADD).get(false));
-      arguments.add(Arguments.of(gasLimit, cornerCase == -1));
+    Map<Address, Integer> addressToTargetCalleeGas =
+        new HashMap<>() {
+          {
+            put(ALTBN128_ADD, getECADDCost());
+            put(BLS12_G1ADD, getBlsG1AddCost());
+            put(BLS12_G2ADD, getBlsG2AddCost());
+          }
+        };
+    for (Address address : addressToTargetCalleeGas.keySet()) {
+      for (int cornerCase : List.of(0, -1)) {
+        final long gasLimit =
+            getGasLimit(
+                addressToTargetCalleeGas.get(address) + cornerCase,
+                false,
+                false,
+                preCallProgramGasMap.get(address).get(false));
+        arguments.add(Arguments.of(address, gasLimit, cornerCase == -1));
+      }
     }
     return arguments.stream();
   }
 
   /**
    * Parameterized test for precompile calls where the cost is greater than or equal to the stipend
-   * (every precompile except ECADD, as long as cds and inputs are properly selected).
+   * (every precompile except ECADD, BLS_G1_ADD, BLS_G2_ADD, as long as cds and inputs are properly
+   * selected).
    *
    * @param address the address of the precompile contract.
    * @param gasLimit the gas limit for the transaction. It is either as much as needed for the
@@ -245,7 +274,12 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
             ALTBN128_MUL,
             ALTBN128_PAIRING,
             BLAKE2B_F_COMPRESSION,
-            KZG_POINT_EVAL)) {
+            KZG_POINT_EVAL,
+            BLS12_G1MULTIEXP,
+            BLS12_G2MULTIEXP,
+            BLS12_PAIRING,
+            BLS12_MAP_FP_TO_G1,
+            BLS12_MAP_FP2_TO_G2)) {
       final int cds = getCallDataSize(address);
       final long targetCalleeGas =
           address == BLAKE2B_F_COMPRESSION
@@ -307,9 +341,9 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
         address,
         address == BLAKE2B_F_COMPRESSION
             ? PRECOMPILE_CALL_DATA_SIZE___BLAKE2F
-            : address == KZG_POINT_EVAL
-                ? PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION
-                : 0, // For BLAKE2F and POINT_EVALUATION we need a meaningful cds for the call to
+            : isBlsPrecompile(address)
+                ? getCallDataSize(address)
+                : 0, // For BLAKE2F and BLS precompiles we need a meaningful cds for the call to
         // succeed
         true);
   }
@@ -398,6 +432,20 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
       // non-zero non-trivial input
     } else if (address == KZG_POINT_EVAL) {
       return PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION;
+    } else if (address == BLS12_G1ADD) {
+      return PRECOMPILE_CALL_DATA_SIZE___G1_ADD;
+    } else if (address == BLS12_G1MULTIEXP) {
+      return PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G1_MSM; // 1 unit only
+    } else if (address == BLS12_G2ADD) {
+      return PRECOMPILE_CALL_DATA_SIZE___G2_ADD;
+    } else if (address == BLS12_G2MULTIEXP) {
+      return PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G2_MSM; // 1 unit only
+    } else if (address == BLS12_PAIRING) {
+      return PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK; // 1 unit only
+    } else if (address == BLS12_MAP_FP_TO_G1) {
+      return PRECOMPILE_RETURN_DATA_SIZE___BLS_MAP_FP_TO_G1;
+    } else if (address == BLS12_MAP_FP2_TO_G2) {
+      return PRECOMPILE_RETURN_DATA_SIZE___BLS_MAP_FP2_TO_G2;
     } else {
       return 0;
     }

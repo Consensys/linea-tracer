@@ -319,7 +319,7 @@ public class BlsRt implements Module {
           Map.entry(128, 524));
 
   public static int getMsmDiscount(final int instruction, final int numInputs) {
-    Preconditions.checkArgument(numInputs >= 1, "Number of inputs must be greater than 1");
+    Preconditions.checkArgument(numInputs >= 1, "Number of inputs must be at least 1");
     return switch (instruction) {
       case OOB_INST_BLS_G1_MSM -> numInputs <= 128
           ? G1_MSM_DISCOUNTS.get(numInputs)

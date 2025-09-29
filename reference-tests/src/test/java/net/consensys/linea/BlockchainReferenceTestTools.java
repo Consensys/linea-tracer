@@ -121,6 +121,8 @@ public class BlockchainReferenceTestTools {
     // withdrawals
     PARAMS.ignore("/prague/eip7002_el_triggerable_withdrawals/");
     PARAMS.ignore("/prague/eip7002_el_triggerable_withdrawals_and_transfers/");
+    PARAMS.ignore(
+        "/cancun/eip4788_beacon_root/test_beacon_root_contract.py::test_multi_block_beacon_root_timestamp_calls");
 
     // ignore tests that are failing in Besu too
     PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_*");

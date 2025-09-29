@@ -87,6 +87,14 @@ public class BlockchainReferenceTestTools {
     if (NETWORKS_TO_RUN.isEmpty()) {
       PARAMS.ignoreAll();
     }
+    // ignore type 3 and 4 transactions
+    PARAMS.ignore(
+        "prague/eip7623_increase_calldata_cost/test_transaction_validity/transaction_validity_type_3.json");
+    PARAMS.ignore(
+        "prague/eip7623_increase_calldata_cost/test_transaction_validity/transaction_validity_type_4.json");
+    PARAMS.ignore(
+        "/cancun/eip4788_beacon_root/test_beacon_root_contract/tx_to_beacon_root_contract\\[fork_Prague-tx_type_3.*");
+
     // ignore for v1.0 Prague release
     PARAMS.ignore("/cancun/eip4844_blobs/");
     PARAMS.ignore("/prague/eip6110_deposits/");

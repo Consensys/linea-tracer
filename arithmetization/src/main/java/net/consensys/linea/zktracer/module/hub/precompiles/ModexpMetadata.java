@@ -40,7 +40,7 @@ public class ModexpMetadata {
   public static final int BASE_MIN_OFFSET = 0x60;
   public static BigInteger MODEXP_MAX_PROVABLE_INPUT_SIZE =
       BigInteger.valueOf(MODEXP_COMPONENT_BYTE_SIZE);
-  private static int MODEXP_LARGE_INPUT_BITWIDTH = 216;
+  private static int MODEXP_LARGE_INPUT_BYTE_WIDTH = 32;
 
   private final MemoryRange callDataRange;
   @Setter private Bytes rawResult;
@@ -183,8 +183,8 @@ public class ModexpMetadata {
 
   /** This is to detect large (ie > 32 bytes = 216 bit) modexp for the prover */
   public boolean largeModexp() {
-    return bbsInt() > MODEXP_LARGE_INPUT_BITWIDTH
-        || ebsInt() > MODEXP_LARGE_INPUT_BITWIDTH
-        || mbsInt() > MODEXP_LARGE_INPUT_BITWIDTH;
+    return bbsInt() > MODEXP_LARGE_INPUT_BYTE_WIDTH
+        || ebsInt() > MODEXP_LARGE_INPUT_BYTE_WIDTH
+        || mbsInt() > MODEXP_LARGE_INPUT_BYTE_WIDTH;
   }
 }

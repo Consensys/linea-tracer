@@ -318,7 +318,7 @@ public abstract class Hub implements Module {
         ecPairingMillerLoops,
         ecPairingFinalExponentiations,
         modexpEffectiveCall,
-            modexpLargeCall,
+        modexpLargeCall,
         ripemdBlocks,
         blakeEffectiveCall,
         blakeRounds,

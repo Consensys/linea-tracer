@@ -128,5 +128,5 @@ public class ModexpLimitsTests extends TracerTestBase {
     return arguments.stream();
   }
 
-  private static List<Integer> BYTE_SIZE_TO_TEST = List.of(0, 18, 32, 318, 512, 513);
+  private static List<Integer> BYTE_SIZE_TO_TEST = List.of(0, 18, 32, 216, 318, 512, 513);
 }

@@ -128,6 +128,10 @@ public final class BytecodeRunner {
     this.run(senderBalance, gasLimit, additionalAccounts, Bytes.EMPTY, chainConfig, testInfo);
   }
 
+  public void run (Bytes payload, ChainConfig chainConfig, TestInfo testInfo) {
+    this.run(Wei.fromEth(1), (long) Trace.LINEA_BLOCK_GAS_LIMIT, List.of(), payload, chainConfig, testInfo);
+  }
+
   // Ad-hoc senderBalance, gasLimit, accounts and payload
   public void run(
       Wei senderBalance,

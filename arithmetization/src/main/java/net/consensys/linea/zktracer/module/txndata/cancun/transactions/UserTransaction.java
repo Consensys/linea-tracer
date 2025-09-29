@@ -23,6 +23,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
+import lombok.Getter;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.module.txndata.cancun.CancunTxnData;
 import net.consensys.linea.zktracer.module.txndata.cancun.CancunTxnDataOperation;
@@ -40,6 +41,13 @@ public class UserTransaction extends CancunTxnDataOperation {
   public final TransactionProcessingMetadata txn;
   public final ProcessableBlockHeader blockHeader;
   public final Fork fork;
+
+  public enum DominantCost {
+    FLOOR_COST_DOMINATES,
+    EXECUTION_COST_DOMINATES
+  }
+
+  @Getter private DominantCost dominantCost;
 
   public UserTransaction(
       final CancunTxnData txnData, final TransactionProcessingMetadata txnMetadata) {
@@ -218,6 +226,10 @@ public class UserTransaction extends CancunTxnDataOperation {
             Bytes.ofUnsignedLong(txn.getFloorCostPrague()));
 
     rows.add(comparingEffectiveRefundsVsFloorCost);
+    dominantCost =
+        comparingEffectiveRefundsVsFloorCost.result()
+            ? DominantCost.FLOOR_COST_DOMINATES
+            : DominantCost.EXECUTION_COST_DOMINATES;
   }
 
   private void detectingEmptyPayloadComputationRow() {

@@ -31,8 +31,6 @@ public class NontrivialExecutionTests extends TracerTestBase {
   /**
    * The 'to' address has byte code which can be padded with low-cost opcodes. This allows us to aim
    * for the threshold where the floor price is overtaken by the execution cost.
-   *
-   * @param testInfo
    */
   @ParameterizedTest
   @MethodSource("adjustableByteCodeTestSource")

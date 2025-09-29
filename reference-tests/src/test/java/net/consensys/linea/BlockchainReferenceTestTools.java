@@ -87,6 +87,16 @@ public class BlockchainReferenceTestTools {
     if (NETWORKS_TO_RUN.isEmpty()) {
       PARAMS.ignoreAll();
     }
+    // ignore for v1.0 Prague release
+    PARAMS.ignore("/prague/eip6110_deposits/");
+    PARAMS.ignore("/prague/eip7002_el_triggerable_withdrawals/");
+    PARAMS.ignore("/prague/eip7251_consolidations/");
+    PARAMS.ignore("/prague/eip7685_general_purpose_el_requests/");
+
+    // TODO: should be re-enabled for Prague v2.0
+    PARAMS.ignore("/prague/eip2537_bls_12_381_precompiles/");
+    PARAMS.ignore("/prague/eip7702_set_code_tx/");
+
     // ignore tests that are failing in Besu too
     PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_*");
     PARAMS.ignore("RevertInCreateInInit_d0g0v0_*");

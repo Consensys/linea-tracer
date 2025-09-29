@@ -76,17 +76,7 @@ import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L1BlockSizeOld;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingG2MembershipCalls;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
-import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
+import net.consensys.linea.zktracer.module.limits.precompiles.*;
 import net.consensys.linea.zktracer.module.logdata.LogData;
 import net.consensys.linea.zktracer.module.loginfo.LogInfo;
 import net.consensys.linea.zktracer.module.mmio.Mmio;
@@ -259,6 +249,7 @@ public abstract class Hub implements Module {
       new EcPairingFinalExponentiations();
 
   @Getter private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall();
+  private final LargeModexpEffectiveCall modexpLargeCall = new LargeModexpEffectiveCall();
 
   @Getter private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
 
@@ -278,6 +269,7 @@ public abstract class Hub implements Module {
         ecPairingMillerLoops,
         ecPairingFinalExponentiations,
         modexpEffectiveCall,
+        modexpLargeCall,
         ripemdBlocks,
         blakeEffectiveCall,
         blakeRounds,
@@ -293,7 +285,8 @@ public abstract class Hub implements Module {
 
   @Getter
   private final BlakeModexpData blakeModexpData =
-      new BlakeModexpData(wcp, modexpEffectiveCall, blakeEffectiveCall, blakeRounds);
+      new BlakeModexpData(
+          wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
 
   @Getter
   public final EcData ecData =

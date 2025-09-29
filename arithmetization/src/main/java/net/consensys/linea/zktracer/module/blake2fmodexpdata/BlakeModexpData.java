@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
+import net.consensys.linea.zktracer.module.limits.precompiles.LargeModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
@@ -35,6 +36,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 public class BlakeModexpData implements OperationListModule<BlakeModexpDataOperation> {
   private final Wcp wcp;
   private final ModexpEffectiveCall modexpEffectiveCall;
+  private final LargeModexpEffectiveCall largeModexpCall;
   private final BlakeEffectiveCall blakeEffectiveCall;
   private final BlakeRounds blakeRounds;
 
@@ -51,6 +53,9 @@ public class BlakeModexpData implements OperationListModule<BlakeModexpDataOpera
   public void callModexp(final ModexpMetadata modexpMetaData, final int operationID) {
     operations.add(new BlakeModexpDataOperation(modexpMetaData, operationID));
     modexpEffectiveCall.updateTally(1);
+    if (modexpMetaData.largeModexp()) {
+      largeModexpCall.updateTally(1);
+    }
     callWcpForIdCheck(operationID);
   }
 

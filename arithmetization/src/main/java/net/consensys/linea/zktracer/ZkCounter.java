@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
+import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 import static net.consensys.linea.zktracer.Trace.Ecdata.TOTAL_SIZE_ECPAIRING_DATA_MIN;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
@@ -372,7 +373,9 @@ public class ZkCounter implements LineCountingTracer {
   public void traceStartConflation(long numBlocksInConflation) {}
 
   @Override
-  public void traceEndConflation(WorldView state) {}
+  public void traceEndConflation(WorldView state) {
+    blockHash.updateTally((BLOCKHASH_MAX_HISTORY - 1) * NB_ROWS_BLOCKHASH);
+  }
 
   @Override
   public void traceStartBlock(
@@ -388,6 +391,7 @@ public class ZkCounter implements LineCountingTracer {
     txnData.updateTally(NB_ROWS_TXN_DATA_SYSI_EIP2935);
     hub.updateTally(NB_ROWS_HUB_SYSF_NOOP);
     txnData.updateTally(NB_ROWS_TXN_DATA_SYSF_NOOP);
+    blockHash.updateTally(NB_ROWS_BLOCKHASH);
 
     commitTransactionBundle();
   }

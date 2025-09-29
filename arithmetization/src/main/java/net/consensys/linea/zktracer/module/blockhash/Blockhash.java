@@ -15,9 +15,11 @@
 
 package net.consensys.linea.zktracer.module.blockhash;
 
+import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_HASH;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
+import static net.consensys.linea.zktracer.types.Conversions.longToBytes32;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +39,8 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Getter
@@ -54,6 +58,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
   private short relBlock;
   private long absBlock;
+  private BlockHeader header;
 
   private Bytes32 blockhashArg;
 
@@ -75,6 +80,11 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
       final Address miningBeneficiary) {
     relBlock += 1;
     absBlock = processableBlockHeader.getNumber();
+  }
+
+  @Override
+  public void traceEndBlock(BlockHeader blockHeader, final BlockBody blockBody) {
+    header = blockHeader;
   }
 
   @Override
@@ -108,6 +118,29 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
    */
   @Override
   public void traceEndConflation(WorldView state) {
+    // fill blockhash to have hashes of blocks STARTBLOCK-256 to ENDBLOCK -1
+    final long lastBlockNumberToFill = absBlock;
+    final long firstBlockToInclude = lastBlockNumberToFill - relBlock - BLOCKHASH_MAX_HISTORY;
+
+    for (long blockNumber = lastBlockNumberToFill;
+        blockNumber >= firstBlockToInclude;
+        blockNumber--) {
+
+      final Bytes32 hash = header.getParentHash();
+      // TODO header = header.getParentHeader().orElseThrow();
+      final Bytes32 blockNumberKey = longToBytes32(blockNumber);
+      final boolean isPresent = blockHashMap.containsKey(blockNumberKey);
+      if (!isPresent) {
+        blockHashMap.put(blockNumberKey, hash);
+      }
+      //   operations.add(new BlockhashOperation(blockNumber, Math.max(blockNumber+1,
+      // absBlock-relBlock), 1, hash, wcp));
+      else {
+        assert blockHashMap.get(blockNumberKey) == hash : "Not consistent blockhashes";
+      }
+    }
+
+    // end the conflation normally
     OperationSetModule.super.traceEndConflation(state);
     sortedOperations = sortOperations(new BlockhashComparator());
     Bytes32 prevBlockhashArg = Bytes32.ZERO;

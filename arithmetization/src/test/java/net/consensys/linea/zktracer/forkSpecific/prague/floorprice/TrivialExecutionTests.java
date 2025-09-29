@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.forkSpecific.prague.floorprice;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
@@ -44,23 +46,32 @@ public class TrivialExecutionTests extends TracerTestBase {
    */
   @ParameterizedTest
   @MethodSource("trivialCalleeTestSource")
-  void trivialCalleeTest(TestInfo testInfo) {
+  void trivialCalleeTest(Bytes callData, TestInfo testInfo) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program.op(OpCode.STOP);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    // bytecodeRunner.run(buildCallData(), chainConfig, testInfo);
+    bytecodeRunner.run(callData, chainConfig, testInfo);
   }
 
   static Stream<Arguments> trivialCalleeTestSource() {
-    return null;
+    List<Arguments> arguments = new ArrayList<>();
+    for (CallDataSetting callDataSetting : CallDataSetting.values()) {
+      for (boolean startsWithZero : new boolean[] {true, false}) {
+        for (int length = 1; length <= 10; length++) {
+          arguments.add(Arguments.of(buildCallData(callDataSetting, startsWithZero, 1)));
+        }
+      }
+    }
+    return arguments.stream();
   }
 
+  // Support enums and methods
   enum CallDataSetting {
     ALL_ZEROS,
     ZEROS_AND_NON_ZEROS
   }
 
-  Bytes buildCallData(CallDataSetting callDataSetting, boolean startsWithZero, int length) {
+  static Bytes buildCallData(CallDataSetting callDataSetting, boolean startsWithZero, int length) {
     Preconditions.checkArgument(length > 0, "length must be positive");
     return switch (callDataSetting) {
       case ALL_ZEROS -> Bytes.fromHexString("00".repeat(length));
@@ -71,10 +82,12 @@ public class TrivialExecutionTests extends TracerTestBase {
     };
   }
 
+  // Testing support method
   @Test
   void buildCallDataTest(TestInfo testInfo) {
     for (int size = 1; size <= 4; size++) {
-      Preconditions.checkArgument(buildCallData(CallDataSetting.ZEROS_AND_NON_ZEROS, false, size).size() == size);
+      Preconditions.checkArgument(
+          buildCallData(CallDataSetting.ZEROS_AND_NON_ZEROS, false, size).size() == size);
     }
   }
 }

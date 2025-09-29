@@ -87,24 +87,40 @@ public class BlockchainReferenceTestTools {
     if (NETWORKS_TO_RUN.isEmpty()) {
       PARAMS.ignoreAll();
     }
+    // TODO: should be re-enabled for Prague v2.0
+    PARAMS.ignore("/prague/eip2537_bls_12_381_precompiles/");
+    PARAMS.ignore("/prague/eip7702_set_code_tx/");
+
     // ignore type 3 and 4 transactions
     PARAMS.ignore(
-        "prague/eip7623_increase_calldata_cost/test_transaction_validity/transaction_validity_type_3.json");
+        "prague/eip7623_increase_calldata_cost/test_transaction_validity.py::test_transaction_validity_type_3");
     PARAMS.ignore(
-        "prague/eip7623_increase_calldata_cost/test_transaction_validity/transaction_validity_type_4.json");
+        "prague/eip7623_increase_calldata_cost/test_transaction_validity.py::test_transaction_validity_type_4");
     PARAMS.ignore(
-        "/cancun/eip4788_beacon_root/test_beacon_root_contract/tx_to_beacon_root_contract\\[fork_Prague-tx_type_3.*");
+        "/cancun/eip4788_beacon_root/test_beacon_root_contract.py::test_tx_to_beacon_root_contract\\[fork_Prague-tx_type_3-blockchain_test-call_beacon_root_contract_True-auto_access_list_\\w+");
+    PARAMS.ignore(
+        "prague/eip7623_increase_calldata_cost/test_execution_gas.py::TestGasConsumption::test_full_gas_consumption\\[fork_Prague-blockchain_test_from_state_test-exact_gas-type_3\\w+");
+    PARAMS.ignore(
+        "prague/eip7623_increase_calldata_cost/test_execution_gas.py::TestGasConsumption::test_full_gas_consumption\\[fork_Prague-blockchain_test_from_state_test-exact_gas-type_4\\w+");
+    PARAMS.ignore(
+        "prague/eip7623_increase_calldata_cost/test_execution_gas.py::TestGasConsumption::test_full_gas_consumption\\[fork_Prague-blockchain_test_from_state_test-extra_gas-type_3\\w+");
+    PARAMS.ignore(
+        "prague/eip7623_increase_calldata_cost/test_execution_gas.py::TestGasConsumption::test_full_gas_consumption\\[fork_Prague-blockchain_test_from_state_test-extra_gas-type_4\\w+");
+    PARAMS.ignore(
+        "prague/eip7623_increase_calldata_cost/test_execution_gas.py::TestGasConsumptionBelowDataFloor::test_gas_consumption_below_data_floor\\[fork_Prague-blockchain_test_from_state_test-exact_gas-type_3\\w+");
+    PARAMS.ignore(
+        "prague/eip7623_increase_calldata_cost/test_execution_gas.py::TestGasConsumptionBelowDataFloor::test_gas_consumption_below_data_floor\\[fork_Prague-blockchain_test_from_state_test-exact_gas-type_4\\w+");
+    PARAMS.ignore(
+        "tests/cancun/eip4788_beacon_root/test_beacon_root_contract.py::test_tx_to_beacon_root_contract\\[fork_Prague-tx_type_3-blockchain_test-call_beacon_root_contract_True-auto_access_list_\\w+");
 
     // ignore for v1.0 Prague release
     PARAMS.ignore("/cancun/eip4844_blobs/");
     PARAMS.ignore("/prague/eip6110_deposits/");
-    PARAMS.ignore("/prague/eip7002_el_triggerable_withdrawals/");
     PARAMS.ignore("/prague/eip7251_consolidations/");
     PARAMS.ignore("/prague/eip7685_general_purpose_el_requests/");
-
-    // TODO: should be re-enabled for Prague v2.0
-    PARAMS.ignore("/prague/eip2537_bls_12_381_precompiles/");
-    PARAMS.ignore("/prague/eip7702_set_code_tx/");
+    // withdrawals
+    PARAMS.ignore("/prague/eip7002_el_triggerable_withdrawals/");
+    PARAMS.ignore("/prague/eip7002_el_triggerable_withdrawals_and_transfers/");
 
     // ignore tests that are failing in Besu too
     PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_*");

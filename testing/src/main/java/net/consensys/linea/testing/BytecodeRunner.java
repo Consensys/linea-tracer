@@ -26,7 +26,6 @@ import java.util.function.Consumer;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
@@ -72,7 +71,7 @@ public final class BytecodeRunner {
   public void run(ChainConfig chainConfig, TestInfo testInfo) {
     this.run(
         Wei.fromEth(1),
-        (long) Trace.LINEA_BLOCK_GAS_LIMIT,
+        DEFAULT_GAS_LIMIT,
         List.of(),
         Bytes.EMPTY,
         List.of(),
@@ -84,7 +83,7 @@ public final class BytecodeRunner {
   public void run(Wei senderBalance, ChainConfig chainConfig, TestInfo testInfo) {
     this.run(
         senderBalance,
-        (long) Trace.LINEA_BLOCK_GAS_LIMIT,
+        DEFAULT_GAS_LIMIT,
         List.of(),
         Bytes.EMPTY,
         List.of(),
@@ -106,7 +105,7 @@ public final class BytecodeRunner {
   public void run(List<ToyAccount> additionalAccounts, ChainConfig chainConfig, TestInfo testInfo) {
     this.run(
         Wei.fromEth(1),
-        (long) Trace.LINEA_BLOCK_GAS_LIMIT,
+        DEFAULT_GAS_LIMIT,
         additionalAccounts,
         Bytes.EMPTY,
         List.of(),
@@ -134,7 +133,7 @@ public final class BytecodeRunner {
   }
 
   public void run (Bytes payload, List<AccessListEntry> accessList, ChainConfig chainConfig, TestInfo testInfo) {
-    this.run(Wei.fromEth(1), (long) Trace.LINEA_BLOCK_GAS_LIMIT, List.of(), payload, accessList, chainConfig, testInfo);
+    this.run(Wei.fromEth(1), DEFAULT_GAS_LIMIT, List.of(), payload, accessList, chainConfig, testInfo);
   }
 
   public void run(
@@ -208,8 +207,8 @@ public final class BytecodeRunner {
     toyExecutionEnvironmentV2.run();
   }
 
-  public void runInitcode(ChainConfig chainConfig, TestInfo testInfo) {
-    checkArgument(byteCode != null, "initcode cannot be empty");
+  public void runInitCode(ChainConfig chainConfig, TestInfo testInfo) {
+    checkArgument(byteCode != null, "init code cannot be empty");
 
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =

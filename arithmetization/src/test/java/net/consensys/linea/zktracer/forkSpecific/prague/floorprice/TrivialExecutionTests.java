@@ -40,13 +40,30 @@ import org.junit.jupiter.params.provider.MethodSource;
 @ExtendWith(UnitTestWatcher.class)
 public class TrivialExecutionTests extends TracerTestBase {
 
-  @Test
-  void trivialCalleeTest(TestInfo testInfo) {}
+  /** The 'to' address has empty byte code. The transaction does TX_SKIP */
+  @ParameterizedTest
+  @MethodSource("testSource")
+  void txSkipTest(
+      Bytes callData,
+      boolean provideAccessList,
+      DominantCost dominantCostPrediction,
+      TestInfo testInfo) {
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(Bytes.EMPTY);
+    AccessListEntry accessListEntry =
+        new AccessListEntry(Address.fromHexString("0xABCD"), List.of());
+    List<AccessListEntry> accessList = provideAccessList ? List.of(accessListEntry) : List.of();
+    bytecodeRunner.run(callData, accessList, chainConfig, testInfo);
+    // Test blocks contain 4 transactions: 2 system transactions, 1 user transaction (the one we
+    // created) and 1 noop transaction.
+    UserTransaction userTransaction =
+        (UserTransaction) bytecodeRunner.getHub().txnData().operations().get(2);
+    Preconditions.checkArgument(userTransaction.getDominantCost() == dominantCostPrediction);
+  }
 
   /** The 'to' address has byte code equal to 0x00. The transaction does immediately stop. */
   @ParameterizedTest
-  @MethodSource("txSkipTestSource")
-  void txSkipTest(
+  @MethodSource("testSource")
+  void trivialCalleeTest(
       Bytes callData,
       boolean provideAccessList,
       DominantCost dominantCostPrediction,
@@ -65,7 +82,7 @@ public class TrivialExecutionTests extends TracerTestBase {
     Preconditions.checkArgument(userTransaction.getDominantCost() == dominantCostPrediction);
   }
 
-  static Stream<Arguments> txSkipTestSource() {
+  static Stream<Arguments> testSource() {
     /*
     Here we change the callData (specifically the length and the CallDataSetting) to make comparingEffectiveRefundsVsFloorCost.result()
     become true in UserTransaction.comparingEffectiveRefundToFloorCostComputationRow.

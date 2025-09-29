@@ -15,6 +15,9 @@
 
 package net.consensys.linea.replaytests;
 
+import static net.consensys.linea.zktracer.ChainConfig.SEPOLIA_TESTCONFIG;
+import static net.consensys.linea.zktracer.Trace.LINEA_SEPOLIA_CHAIN_ID;
+
 import java.math.BigInteger;
 import java.util.List;
 
@@ -31,7 +34,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
-public class SepoliaForkSwitchTests extends TracerTestBase {
+public class SepoliaIncidentShanghai20250929 extends TracerTestBase {
 
   @Test
   void sepoliaBroken(TestInfo testInfo) {
@@ -49,9 +52,6 @@ public class SepoliaForkSwitchTests extends TracerTestBase {
     final Bytes payload =
         Bytes.fromHexString(
             "0x6080604052348015600e575f80fd5b50603e80601a5f395ff3fe60806040525f80fdfea2646970667358221220efe79e1e7d531be5f170d451c358bcde343b2b7a8bc35b84f0e8e0cbb00765a564736f6c634300081a0033");
-
-    final BigInteger chainId = BigInteger.valueOf(59141);
-
     // "hash": "0x6ff06bf055274bcbe7750d84ce96a34a0687119b0324857763a3bc3cd7941b4c",
 
     final ToyAccount senderAccount =
@@ -67,6 +67,7 @@ public class SepoliaForkSwitchTests extends TracerTestBase {
             .payload(payload)
             .transactionType(TransactionType.EIP1559)
             .accessList(List.of())
+            .chainId(BigInteger.valueOf(LINEA_SEPOLIA_CHAIN_ID))
             .signature(
                 Bytes.concatenate(
                     Bytes32.leftPad(r), // r
@@ -75,7 +76,7 @@ public class SepoliaForkSwitchTests extends TracerTestBase {
                     ))
             .build();
 
-    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+    ToyExecutionEnvironmentV2.builder(SEPOLIA_TESTCONFIG(chainConfig.fork), testInfo)
         .accounts(List.of(senderAccount))
         .transaction(tx)
         .zkTracerValidator(zkTracer -> {})

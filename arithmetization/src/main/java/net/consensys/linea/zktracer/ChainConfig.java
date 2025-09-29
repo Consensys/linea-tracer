@@ -47,6 +47,16 @@ public class ChainConfig {
         LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT);
   }
 
+  public static final ChainConfig SEPOLIA_TESTCONFIG(final Fork fork) {
+    return new ChainConfig(
+        fork,
+        LINEA_SEPOLIA_CHAIN_ID,
+        true,
+        BigInteger.valueOf(LINEA_GAS_LIMIT_MINIMUM),
+        BigInteger.valueOf(LINEA_GAS_LIMIT_MAXIMUM),
+        LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT);
+  }
+
   /**
    * Represents Linea mainnet prior to the block gas limit being enforced for the purposes of
    * running existing replay tests. As the name suggest, this is only intended for testing purposes.

@@ -168,7 +168,7 @@ public class ZkCounter implements LineCountingTracer {
   final CountingOnlyModule rlpUtils =
       new CountingOnlyModule(RLP_UTILS, trace.rlputils().spillage());
   final CountingOnlyModule rom = new CountingOnlyModule(ROM, trace.rom().spillage());
-  final CountingOnlyModule rolex = new CountingOnlyModule(ROM_LEX, trace.romlex().spillage());
+  final CountingOnlyModule romlex = new CountingOnlyModule(ROM_LEX, trace.romlex().spillage());
   final CountingOnlyModule shakiradata =
       new CountingOnlyModule(SHAKIRA_DATA, trace.shakiradata().spillage());
   final Shf shf = new Shf();
@@ -195,6 +195,8 @@ public class ZkCounter implements LineCountingTracer {
   //  related to Modexp
   private final IncrementAndDetectModule modexpEffectiveCall =
       new IncrementAndDetectModule(PRECOMPILE_MODEXP_EFFECTIVE_CALLS);
+  private final IncrementingModule modexpLargeCall =
+      new IncrementingModule(PRECOMPILE_LARGE_MODEXP_EFFECTIVE_CALLS);
 
   // related to Blake
   private final IncrementAndDetectModule blakeEffectiveCall =
@@ -258,7 +260,7 @@ public class ZkCounter implements LineCountingTracer {
         rlpTxn, // need a refacto to have rlpTxn using not only TransactionProcessingMetadata
         rlpUtils, // need RLP_TXN
         rom, // not trivial
-        rolex,
+        romlex,
         trm, // not trivial
         wcp, // need MMU/TxnData/Oob etc ... to be counted
         // traceless modules
@@ -304,6 +306,7 @@ public class ZkCounter implements LineCountingTracer {
         blockTransactions,
         keccak,
         modexpEffectiveCall,
+        modexpLargeCall,
         blakeEffectiveCall,
         bls,
         pointEval,
@@ -731,6 +734,7 @@ public class ZkCounter implements LineCountingTracer {
         }
         blakemodexp.updateTally(NB_ROWS_BLAKEMODEXP_MODEXP);
         modexpEffectiveCall.updateTally(prcSuccess);
+        modexpLargeCall.updateTally(modexpMetadata.largeModexp());
         if (modexpMetadata.loadRawLeadingWord()) {
           final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modexpMetadata);
           exp.call(modexpLogCallToExp);

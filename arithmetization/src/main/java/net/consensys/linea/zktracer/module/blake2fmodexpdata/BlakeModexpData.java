@@ -37,6 +37,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 public class BlakeModexpData implements OperationListModule<BlakeModexpDataOperation> {
   private final Wcp wcp;
   private final IncrementAndDetectModule modexpEffectiveCall;
+  private final IncrementingModule modexpLargeCall;
   private final IncrementingModule blakeEffectiveCall;
   private final BlakeRounds blakeRounds;
 
@@ -53,6 +54,7 @@ public class BlakeModexpData implements OperationListModule<BlakeModexpDataOpera
   public void callModexp(final ModexpMetadata modexpMetaData, final int operationID) {
     operations.add(new BlakeModexpDataOperation(modexpMetaData, operationID));
     modexpEffectiveCall.updateTally(1);
+    modexpLargeCall.updateTally(modexpMetaData.largeModexp());
     callWcpForIdCheck(operationID);
   }
 

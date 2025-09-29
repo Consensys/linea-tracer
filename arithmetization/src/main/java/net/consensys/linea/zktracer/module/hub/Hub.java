@@ -260,6 +260,8 @@ public abstract class Hub implements Module {
   //  related to Modexp
   private final IncrementAndDetectModule modexpEffectiveCall =
       new IncrementAndDetectModule(PRECOMPILE_MODEXP_EFFECTIVE_CALLS);
+  private final IncrementingModule modexpLargeCall =
+      new IncrementingModule(PRECOMPILE_LARGE_MODEXP_EFFECTIVE_CALLS);
 
   // related to Rip
   private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
@@ -316,6 +318,7 @@ public abstract class Hub implements Module {
         ecPairingMillerLoops,
         ecPairingFinalExponentiations,
         modexpEffectiveCall,
+            modexpLargeCall,
         ripemdBlocks,
         blakeEffectiveCall,
         blakeRounds,
@@ -345,7 +348,8 @@ public abstract class Hub implements Module {
    */
   private final ShakiraData shakiraData;
   private final BlakeModexpData blakeModexpData =
-      new BlakeModexpData(wcp, modexpEffectiveCall, blakeEffectiveCall, blakeRounds);
+      new BlakeModexpData(
+          wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
   public final EcData ecData =
       new EcData(
           wcp,

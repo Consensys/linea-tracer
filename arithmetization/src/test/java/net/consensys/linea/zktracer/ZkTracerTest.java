@@ -38,27 +38,27 @@ public class ZkTracerTest extends TracerTestBase {
   @Test
   void tracedModuleForFork() {
     final ZkTracer zkTracer = new ZkTracer(chainConfig);
-    final int allModule =
+    final int totalNumberOfModules =
         new ArrayList<>(
                 Stream.concat(
                         zkTracer.getHub().realModule().stream(),
                         zkTracer.getHub().refTableModules().stream())
                     .toList())
             .size();
-    final int tracedModule = zkTracer.getHub().getModulesToTrace().size();
+    final int numberOfTracedModules = zkTracer.getHub().getModulesToTrace().size();
 
     switch (fork) {
       case LONDON, PARIS, SHANGHAI -> {
         checkArgument(
-            allModule == tracedModule + 2,
+            totalNumberOfModules == numberOfTracedModules + 2,
             "rlpUtils, blsData expected to be missing before Cancun");
       }
       case CANCUN -> {
-        checkArgument(allModule == tracedModule, "no missing modules expected");
+        checkArgument(totalNumberOfModules == numberOfTracedModules, "no missing modules expected");
         // note: when RLP_AUTH will be implemented, we'll expoect a difference of 1
       }
       case PRAGUE -> {
-        checkArgument(allModule == tracedModule, "no missing modules expected");
+        checkArgument(totalNumberOfModules == numberOfTracedModules, "no missing modules expected");
       }
       default -> throw new IllegalArgumentException("Unknown fork: " + fork);
     }

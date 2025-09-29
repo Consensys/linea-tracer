@@ -88,6 +88,7 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignoreAll();
     }
     // ignore for v1.0 Prague release
+    PARAMS.ignore("/cancun/eip4844_blobs/");
     PARAMS.ignore("/prague/eip6110_deposits/");
     PARAMS.ignore("/prague/eip7002_el_triggerable_withdrawals/");
     PARAMS.ignore("/prague/eip7251_consolidations/");

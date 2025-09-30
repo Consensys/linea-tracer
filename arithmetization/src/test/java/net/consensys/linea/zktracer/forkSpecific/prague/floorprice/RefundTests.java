@@ -65,7 +65,7 @@ public class RefundTests extends TracerTestBase {
     BytecodeCompiler.newProgram(chainConfig)
       .push(0xff) // value
       .push(1) // key
-      .op(OpCode.SSTORE) // the contract is initialised with a storage slot 1 set to 1
+      .op(OpCode.SSTORE) // the contract is initialised with a storage slot 1 set to 0xff
       .push(runtimeCode) // value
       .push(0) // offset
       .op(OpCode.MSTORE)

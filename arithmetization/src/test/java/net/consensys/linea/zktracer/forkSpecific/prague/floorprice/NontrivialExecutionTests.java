@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.forkSpecific.prague.floorprice;
 
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -58,9 +60,15 @@ public class NontrivialExecutionTests extends TracerTestBase {
     bytecodeRunner.run(callData, accessList, chainConfig, testInfo);
     // Test blocks contain 4 transactions: 2 system transactions, 1 user transaction (the one we
     // created) and 1 noop transaction.
-    UserTransaction userTransaction =
-        (UserTransaction) bytecodeRunner.getHub().txnData().operations().get(2);
-    Preconditions.checkArgument(userTransaction.getDominantCost() == dominantCostPrediction);
+    if (isPostCancun(fork)) {
+      UserTransaction userTransaction =
+          (UserTransaction)
+              bytecodeRunner.getHub().txnData().operations().stream()
+                  .filter(tx -> tx instanceof UserTransaction)
+                  .toList()
+                  .getFirst();
+      Preconditions.checkArgument(userTransaction.getDominantCost() == dominantCostPrediction);
+    }
   }
 
   static Stream<Arguments> adjustableByteCodeTestSource() {
@@ -110,9 +118,15 @@ public class NontrivialExecutionTests extends TracerTestBase {
     bytecodeRunner.runInitCode(chainConfig, testInfo);
     // Test blocks contain 4 transactions: 2 system transactions, 1 user transaction (the one we
     // created) and 1 noop transaction.
-    UserTransaction userTransaction =
-        (UserTransaction) bytecodeRunner.getHub().txnData().operations().get(2);
-    Preconditions.checkArgument(userTransaction.getDominantCost() == dominantCostPrediction);
+    if (isPostCancun(fork)) {
+      UserTransaction userTransaction =
+          (UserTransaction)
+              bytecodeRunner.getHub().txnData().operations().stream()
+                  .filter(tx -> tx instanceof UserTransaction)
+                  .toList()
+                  .getFirst();
+      Preconditions.checkArgument(userTransaction.getDominantCost() == dominantCostPrediction);
+    }
   }
 
   static Stream<Arguments> adjustableInitCodeTestSource() {

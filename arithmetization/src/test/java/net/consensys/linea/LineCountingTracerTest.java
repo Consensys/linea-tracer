@@ -108,6 +108,7 @@ public class LineCountingTracerTest extends TracerTestBase {
             .timestamp(DEFAULT_TIME_STAMP)
             .parentHash(DEFAULT_HASH)
             .baseFee(DEFAULT_BASE_FEE)
+            .parentBeaconBlockRoot(DEFAULT_BEACON_ROOT)
             .buildBlockHeader();
 
     final ZkTracer tracer = new ZkTracer(chainConfig);

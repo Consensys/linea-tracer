@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.forkSpecific.prague.floorprice;
 
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,13 +60,9 @@ public class NontrivialExecutionTests extends TracerTestBase {
     bytecodeRunner.run(callData, accessList, chainConfig, testInfo);
     // Test blocks contain 4 transactions: 2 system transactions, 1 user transaction (the one we
     // created) and 1 noop transaction.
-    if (isPostCancun(fork)) {
+    if (isPostPrague(fork)) {
       UserTransaction userTransaction =
-          (UserTransaction)
-              bytecodeRunner.getHub().txnData().operations().stream()
-                  .filter(tx -> tx instanceof UserTransaction)
-                  .toList()
-                  .getFirst();
+          (UserTransaction) bytecodeRunner.getHub().txnData().operations().get(2);
       Preconditions.checkArgument(userTransaction.getDominantCost() == dominantCostPrediction);
     }
   }
@@ -118,13 +114,9 @@ public class NontrivialExecutionTests extends TracerTestBase {
     bytecodeRunner.runInitCode(chainConfig, testInfo);
     // Test blocks contain 4 transactions: 2 system transactions, 1 user transaction (the one we
     // created) and 1 noop transaction.
-    if (isPostCancun(fork)) {
+    if (isPostPrague(fork)) {
       UserTransaction userTransaction =
-          (UserTransaction)
-              bytecodeRunner.getHub().txnData().operations().stream()
-                  .filter(tx -> tx instanceof UserTransaction)
-                  .toList()
-                  .getFirst();
+          (UserTransaction) bytecodeRunner.getHub().txnData().operations().get(2);
       Preconditions.checkArgument(userTransaction.getDominantCost() == dominantCostPrediction);
     }
   }

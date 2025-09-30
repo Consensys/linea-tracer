@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.forkSpecific.prague.floorprice;
 
 import static net.consensys.linea.testing.BytecodeRunner.DEFAULT_GAS_LIMIT;
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,18 +120,27 @@ public class RefundTests extends TracerTestBase {
     // Test blocks contain 5 transactions: 2 system transactions, 2 user transaction (the deployment
     // transaction and the one we
     // created) and 1 noop transaction.
-    if (isPostCancun(fork)) {
+    if (isPostPrague(fork)) {
       UserTransaction userTransaction =
-          (UserTransaction)
-              toyExecutionEnvironmentV2.getHub().txnData().operations().stream()
-                  .filter(tx -> tx instanceof UserTransaction)
-                  .toList()
-                  .get(1);
+          (UserTransaction) toyExecutionEnvironmentV2.getHub().txnData().operations().get(3);
       Preconditions.checkArgument(userTransaction.getDominantCost() == dominantCostPrediction);
     }
   }
 
   static Stream<Arguments> refundTestSource() {
+    /*
+    SSTORE cost: 2_100 + 2_900 = 5_000
+    execution cost: 21_000 + 3 + 3 + 5_000 + 10*1 + 16*cds = 26_016 + 16*cds
+    refund: 4800
+    refund bound: execution cost / 5 ≥ 5_203 + 5*cds > 4_800
+    we get full refund
+
+    execution cost after refunds: 26_016 + 16*cds - 4_800 = 21_216 + 16*cds
+
+    floor price: 21_000 + 40*cds
+
+    threshold: 21_000 + 40*cds > 21_216 + 16*cds <=> 24*cds > 216 <=> cds > 9
+     */
     List<Arguments> arguments = new ArrayList<>();
     arguments.add(
         Arguments.of(Bytes.fromHexString("11".repeat(9)), DominantCost.EXECUTION_COST_DOMINATES));

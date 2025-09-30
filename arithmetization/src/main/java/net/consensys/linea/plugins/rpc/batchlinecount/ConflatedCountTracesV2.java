@@ -119,6 +119,7 @@ public class ConflatedCountTracesV2 {
     return tracerSharedConfiguration.isLimitless()
         ? new ZkCounter(l1L2BridgeSharedConfiguration)
         : new ZkTracer(
+            null,
             fork,
             l1L2BridgeSharedConfiguration,
             BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)

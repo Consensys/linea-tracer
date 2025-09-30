@@ -132,6 +132,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 
 @Slf4j
 @Accessors(fluent = true)
@@ -206,7 +207,7 @@ public abstract class Hub implements Module {
 
   private final Add add = new Add();
   private final Bin bin = new Bin();
-  private final Blockhash blockhash = new Blockhash(this, wcp);
+  private final Blockhash blockhash;
   private final Euc euc = new Euc(wcp);
   private final Ext ext = new Ext();
   private final Gas gas = new Gas();
@@ -433,15 +434,14 @@ public abstract class Hub implements Module {
     return Stream.concat(realModule().stream(), getTracelessModules().stream()).toList();
   }
 
-  public Hub(final ChainConfig chain) {
+  public Hub(final ChainConfig chain, BlockchainService blockchain) {
     fork = chain.fork;
     gasCalculator = getGasCalculatorFromFork(fork);
     opCodes = OpCodes.load(fork);
     gasProjector = new GasProjector(fork, gasCalculator);
     checkState(chain.id.signum() >= 0);
-    Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
+    final Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
     final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
-    //
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
       log.info("WARN: Using default testing L2L1 contract address");
     }
@@ -457,6 +457,7 @@ public abstract class Hub implements Module {
     blockdata = setBlockData(this, wcp, euc, chain);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
+    blockhash = new Blockhash(this, wcp, blockchain);
 
     refTableModules =
         Stream.of(new BinRt(), setBlsRt(), setInstructionDecoder(), setPower())

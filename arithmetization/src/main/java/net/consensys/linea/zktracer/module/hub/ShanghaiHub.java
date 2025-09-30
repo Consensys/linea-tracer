@@ -27,10 +27,11 @@ import net.consensys.linea.zktracer.module.txndata.shanghai.ShanghaiTxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 
 public class ShanghaiHub extends ParisHub {
-  public ShanghaiHub(ChainConfig chain) {
-    super(chain);
+  public ShanghaiHub(ChainConfig chain, BlockchainService blockchain) {
+    super(chain, blockchain);
   }
 
   @Override

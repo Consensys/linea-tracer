@@ -20,10 +20,11 @@ import net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935
 import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 
 public class PragueHub extends CancunHub {
-  public PragueHub(ChainConfig chain) {
-    super(chain);
+  public PragueHub(ChainConfig chain, BlockchainService blockchain) {
+    super(chain, blockchain);
   }
 
   @Override

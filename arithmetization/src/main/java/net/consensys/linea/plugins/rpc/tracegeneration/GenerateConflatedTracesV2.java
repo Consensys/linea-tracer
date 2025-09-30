@@ -112,6 +112,8 @@ public class GenerateConflatedTracesV2 {
     if (cachedTraceFileAvailable(path)) {
       log.info("[TRACING] cached trace for {}-{} detected as {}", fromBlock, toBlock, path);
     } else {
+      final BlockchainService blockchain =
+          BesuServiceProvider.getBesuService(besuContext, BlockchainService.class);
       // Retrieve fork from Besu plugin API with block number
       final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock, toBlock);
 
@@ -119,6 +121,7 @@ public class GenerateConflatedTracesV2 {
 
       final ZkTracer tracer =
           new ZkTracer(
+              blockchain,
               fork,
               l1L2BridgeSharedConfiguration,
               BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)

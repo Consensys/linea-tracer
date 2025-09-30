@@ -65,7 +65,7 @@ public class MultiBlockExecutionEnvironment {
   public static MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder(
       ChainConfig chainConfig, TestInfo testInfo) {
     return new MultiBlockExecutionEnvironmentBuilder()
-        .tracer(new ZkTracer(chainConfig))
+        .tracer(new ZkTracer(chainConfig, null))
         .testsChain(chainConfig)
         .testInfo(testInfo);
   }
@@ -76,7 +76,7 @@ public class MultiBlockExecutionEnvironment {
       boolean systemContractDeployedPriorConflation,
       long firstBlockNumber) {
     return new MultiBlockExecutionEnvironmentBuilder()
-        .tracer(new ZkTracer(chainConfig))
+        .tracer(new ZkTracer(chainConfig, null))
         .testsChain(chainConfig)
         .testInfo(testInfo)
         .systemContractDeployedPriorToConflation(systemContractDeployedPriorConflation)

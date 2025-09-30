@@ -47,6 +47,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 
 @Slf4j
 public class ZkTracer implements LineCountingTracer {
@@ -67,14 +68,16 @@ public class ZkTracer implements LineCountingTracer {
    * Construct a ZkTracer for a given bridge configuration and chainId. This is used, for example,
    * by the sequencer for tracing in production, such as on mainnet and/or sepolia.
    *
+   * @param blockchain
    * @param bridgeConfiguration Configuration for the L1L2 bridge.
    * @param chainId Identifies the chain being traced.
    */
   public ZkTracer(
+      BlockchainService blockchain,
       final Fork fork,
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
       BigInteger chainId) {
-    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId));
+    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId), blockchain);
   }
 
   /**
@@ -82,16 +85,17 @@ public class ZkTracer implements LineCountingTracer {
    * environment or a test environment.
    *
    * @param chain
+   * @param blockchain
    */
-  public ZkTracer(ChainConfig chain) {
+  public ZkTracer(ChainConfig chain, BlockchainService blockchain) {
     this.chain = chain;
     this.hub =
         switch (chain.fork) {
-          case LONDON -> new LondonHub(chain);
-          case PARIS -> new ParisHub(chain);
-          case SHANGHAI -> new ShanghaiHub(chain);
-          case CANCUN -> new CancunHub(chain);
-          case PRAGUE -> new PragueHub(chain);
+          case LONDON -> new LondonHub(chain, blockchain);
+          case PARIS -> new ParisHub(chain, blockchain);
+          case SHANGHAI -> new ShanghaiHub(chain, blockchain);
+          case CANCUN -> new CancunHub(chain, blockchain);
+          case PRAGUE -> new PragueHub(chain, blockchain);
           default -> throw new IllegalArgumentException("Unknown fork: " + chain.fork);
         };
     this.trace = getTraceFromFork(chain.fork);

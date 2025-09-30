@@ -27,6 +27,7 @@ import java.util.Map;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
@@ -36,18 +37,23 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 
+@Slf4j
 @Getter
 @Accessors(fluent = true)
 public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOpcodeDefer {
   private final Hub hub;
   private final Wcp wcp;
+  // WARN: do not change my name, or modify the error string in the try catch
+  private final BlockchainService blockchain;
   private final ModuleOperationStackedSet<BlockhashOperation> operations =
       new ModuleOperationStackedSet<>();
 
@@ -62,9 +68,10 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
   private Bytes32 blockhashArg;
 
-  public Blockhash(Hub hub, Wcp wcp) {
+  public Blockhash(Hub hub, Wcp wcp, BlockchainService blockchain) {
     this.hub = hub;
     this.wcp = wcp;
+    this.blockchain = blockchain;
     this.relBlock = 0;
   }
 
@@ -119,24 +126,29 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   @Override
   public void traceEndConflation(WorldView state) {
     // fill blockhash to have hashes of blocks STARTBLOCK-256 to ENDBLOCK -1
-    final long lastBlockNumberToFill = absBlock;
-    final long firstBlockToInclude = lastBlockNumberToFill - relBlock - BLOCKHASH_MAX_HISTORY;
+    final long lastBlockNumberToFill = absBlock - 1;
+    final long firstBlockNumberToFill =
+        lastBlockNumberToFill - (relBlock - 1) - BLOCKHASH_MAX_HISTORY;
 
-    for (long blockNumber = lastBlockNumberToFill;
-        blockNumber >= firstBlockToInclude;
-        blockNumber--) {
+    for (long block = lastBlockNumberToFill; block >= firstBlockNumberToFill; block--) {
 
-      final Bytes32 hash = header.getParentHash();
-      // TODO header = header.getParentHeader().orElseThrow();
-      final Bytes32 blockNumberKey = longToBytes32(blockNumber);
-      final boolean isPresent = blockHashMap.containsKey(blockNumberKey);
-      if (!isPresent) {
-        blockHashMap.put(blockNumberKey, hash);
+      final Hash parentHash = header.getParentHash();
+      try {
+        // update header to be the previous block header
+        header = blockchain.getBlockHeaderByHash(parentHash).get();
+      } catch (Exception e) {
+        assert e.getMessage().contains("because \"this.blockchain\" is null") : e;
+        log.info(
+            "No blockchain service provided to trace BlockHash module, shouldn't happen in prod, assuming tests");
       }
-      //   operations.add(new BlockhashOperation(blockNumber, Math.max(blockNumber+1,
-      // absBlock-relBlock), 1, hash, wcp));
-      else {
-        assert blockHashMap.get(blockNumberKey) == hash : "Not consistent blockhashes";
+      final Bytes32 blockB32 = longToBytes32(block);
+      final boolean isPresent = blockHashMap.containsKey(blockB32);
+      if (!isPresent) {
+        // it's present only if a BLOCKHASH opcode was called for this block number
+        blockHashMap.put(blockB32, parentHash);
+        operations.add(new BlockhashOperation((short) 1, block + 1, blockB32, parentHash, wcp));
+      } else {
+        assert blockHashMap.get(blockB32) == parentHash : "Not consistent blockhashes";
       }
     }
 

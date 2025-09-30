@@ -48,10 +48,11 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 
 public class LondonHub extends Hub {
-  public LondonHub(ChainConfig chain) {
-    super(chain);
+  public LondonHub(ChainConfig chain, BlockchainService blockchain) {
+    super(chain, blockchain);
   }
 
   @Override

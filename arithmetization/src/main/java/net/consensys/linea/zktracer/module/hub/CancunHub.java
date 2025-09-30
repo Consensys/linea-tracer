@@ -50,10 +50,11 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 
 public class CancunHub extends ShanghaiHub {
-  public CancunHub(ChainConfig chain) {
-    super(chain);
+  public CancunHub(ChainConfig chain, BlockchainService blockchain) {
+    super(chain, blockchain);
   }
 
   @Override

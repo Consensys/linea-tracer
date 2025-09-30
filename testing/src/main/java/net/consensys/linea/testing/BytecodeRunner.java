@@ -225,7 +225,7 @@ public final class BytecodeRunner {
     final Transaction tx =
         ToyTransaction.builder()
             .payload(byteCode)
-            .gasLimit((long) LINEA_BLOCK_GAS_LIMIT)
+            .gasLimit(DEFAULT_GAS_LIMIT)
             .sender(senderAccount)
             .value(Wei.of(272)) // 256 + 16, easier for debugging
             .keyPair(keyPair)

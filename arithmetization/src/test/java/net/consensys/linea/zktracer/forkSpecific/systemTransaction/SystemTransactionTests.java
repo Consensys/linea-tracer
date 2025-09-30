@@ -73,6 +73,8 @@ public class SystemTransactionTests extends TracerTestBase {
   private final Address deployerOf4788address =
       Address.fromHexString("0x0B799C86a49DEeb90402691F1041aa3AF2d3C875");
 
+  // Note: these computations are USELESS as the synthetic transactions prescribe a gas limit. We can't set it ourselves in the same transaction.
+  //
   // EIP-4788 init code:
   // 0x60618060095f395ff33373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762001fff810690815414603c575f5ffd5b62001fff01545f5260205ff35b5f5ffd5b62001fff42064281555f359062001fff015500
   //

@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
@@ -48,7 +47,7 @@ public class CodeCopy extends MmuCall {
     final Bytes size = currentFrame.frame().getStackItem(2);
 
     // the MMU module only deals with nontrivial CODECOPY instructions
-    checkArgument(!size.isZero());
+    assert !size.isZero() : "CODECOPY with size 0 should not call the MMU module";
 
     this.exoBytes(Optional.of(currentFrame.code().bytecode()))
         .targetId(currentFrame.contextNumber())

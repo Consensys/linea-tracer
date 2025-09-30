@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___DOM_SUB_STAMPS;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.types.AddressUtils.*;
@@ -118,7 +118,7 @@ public abstract class AccountFragment
       Optional<Bytes> addressToTrim,
       DomSubStampsSubFragment domSubStampsSubFragment,
       TransactionProcessingType txProcessingType) {
-    checkArgument(oldState.address().equals(newState.address()));
+    assert oldState.address().equals(newState.address()) : "Address mismatch in ACC fragment";
 
     transactionProcessingMetadata = txProcessingType == USER ? hub.txStack().current() : null;
     hubStamp = hub.stamp();
@@ -231,7 +231,7 @@ public abstract class AccountFragment
               newState.address(), newState.deploymentNumber(), newState.deploymentStatus());
     } catch (RuntimeException e) {
       // getCfi should NEVER throw en exception when requiresRomLex ≡ true
-      checkState(!requiresRomlex);
+      checkState(!requiresRomlex, "Can't get an exception to get CFI when RomLex is required");
       codeFragmentIndex = 0;
     }
   }

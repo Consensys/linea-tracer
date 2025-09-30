@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
-import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall.forModexpExtractBase;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall.forModexpExtractBbs;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall.forModexpExtractEbs;
@@ -122,7 +121,7 @@ public class ModexpSubsection extends PrecompileSubsection {
     super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity check
-    checkArgument(callSuccess == sixthOobCall.isRamSuccess());
+    assert callSuccess == sixthOobCall.isRamSuccess() : "Inconsistent Modexp success status";
 
     if (!callSuccess) {
       precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_RAM);

@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.common;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.EVM_INST_PUSH0;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
@@ -133,7 +132,7 @@ public class CommonFragmentValues {
     }
 
     if (Exceptions.staticFault(exceptions)) {
-      checkArgument(opCode.mayTriggerStaticException());
+      assert opCode.mayTriggerStaticException() : "Static exception on non static opcode" + opCode;
       setTracedException(TracedException.STATIC_FAULT);
       return;
     }
@@ -160,13 +159,14 @@ public class CommonFragmentValues {
     if (maxCodeSizeException(exceptions))
     // the MaxCodeSize exceptions for return is already dealt before
     {
-      checkArgument(opCode.isCreate());
+      assert opCode.isCreate() : "MaxCodeSize exception on non CREATE opcode" + opCode;
       setTracedException(MAX_CODE_SIZE_EXCEPTION);
       return;
     }
 
     if (Exceptions.memoryExpansionException(exceptions)) {
-      checkArgument(opCode.mayTriggerMemoryExpansionException(hub.fork));
+      assert opCode.mayTriggerMemoryExpansionException(hub.fork)
+          : "MXP on non memory opcode" + opCode;
       setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
@@ -183,7 +183,7 @@ public class CommonFragmentValues {
   }
 
   public void setTracedException(TracedException tracedException) {
-    checkArgument(this.tracedException == UNDEFINED);
+    assert tracedException == UNDEFINED : "Traced exception already set to " + this.tracedException;
     this.tracedException = tracedException;
   }
 

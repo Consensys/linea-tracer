@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.opcode.InstructionFamily.INVALID;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -33,19 +32,20 @@ public class EarlyExceptionSection extends TraceSection {
 
     final OpCodeData opCode = hub.opCodeData();
     if (Exceptions.stackUnderflow(exceptions)) {
-      checkArgument(opCode.mayTriggerStackUnderflow());
+      assert opCode.mayTriggerStackUnderflow() : "SUX was detected but can't happen for " + opCode;
       commonValues.setTracedException(TracedException.STACK_UNDERFLOW);
       return;
     }
 
     if (Exceptions.stackOverflow(exceptions)) {
-      checkArgument(opCode.mayTriggerStackOverflow());
+      assert opCode.mayTriggerStackOverflow() : "SOX was detected but can't happen for " + opCode;
       commonValues.setTracedException(TracedException.STACK_OVERFLOW);
       return;
     }
 
     if (hub.opCodeData().instructionFamily() == INVALID) {
-      checkArgument(Exceptions.invalidOpcode(exceptions));
+      assert Exceptions.invalidOpcode(exceptions)
+          : "INVALID opcode detected but no INVALID exception";
       commonValues.setTracedException(TracedException.INVALID_OPCODE);
     }
   }

@@ -635,7 +635,6 @@ public abstract class Hub implements Module {
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
       if (state.processingPhase() == TX_SKIP) {
-        checkState(currentTraceSection() instanceof TxSkipSection);
         ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);
       }
       final TransactionProcessingMetadata currentTransaction = transients().tx();
@@ -644,15 +643,20 @@ public abstract class Hub implements Module {
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
       final Wei value = frame.getValue();
       final long initiallyAvailableGas = frame.getRemainingGas();
+      final Transaction tx = currentTransaction.getBesuTransaction();
 
+      assert recipientAddress.equals(effectiveToAddress(tx))
+          : "Mismatch between frame and transaction recipient";
+      assert senderAddress.equals(tx.getSender()) : "Mismatch between frame and transaction sender";
+      assert isDeployment == tx.getTo().isEmpty()
+          : "Mismatch between frame and transaction deployment info";
+      assert value.equals(Wei.of(tx.getValue().getAsBigInteger()))
+          : "Mismatch between frame and transaction value";
       checkArgument(
-          recipientAddress.equals(effectiveToAddress(currentTransaction.getBesuTransaction())));
-      checkArgument(senderAddress.equals(currentTransaction.getBesuTransaction().getSender()));
-      checkArgument(isDeployment == currentTransaction.getBesuTransaction().getTo().isEmpty());
-      checkArgument(
-          value.equals(
-              Wei.of(currentTransaction.getBesuTransaction().getValue().getAsBigInteger())));
-      checkArgument(frame.getRemainingGas() == currentTransaction.getInitiallyAvailableGas());
+          frame.getRemainingGas() == currentTransaction.getInitiallyAvailableGas(),
+          "Frame gas available at the beginning of the tx %s != transaction initially available gas %s",
+          frame.getRemainingGas(),
+          currentTransaction.getInitiallyAvailableGas());
 
       final boolean copyTransactionCallData = currentTransaction.copyTransactionCallData();
       if (copyTransactionCallData) {
@@ -774,10 +778,8 @@ public abstract class Hub implements Module {
   }
 
   public void tracePreExecution(final MessageFrame frame) {
-    checkArgument(
-        this.state().processingPhase() == TX_EXEC,
-        "There can't be any execution if the HUB is not in execution phase");
-
+    assert state().processingPhase() == TX_EXEC
+        : "There can't be any execution if the HUB is not in execution phase";
     this.processStateExec(frame);
   }
 
@@ -792,9 +794,8 @@ public abstract class Hub implements Module {
    * (i.e. empty initialization code) ?
    */
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-    checkArgument(
-        state().processingPhase() == TX_EXEC,
-        "There can't be any execution if the HUB is not in execution phase");
+    assert state().processingPhase() == TX_EXEC
+        : "There can't be any execution if the HUB is not in execution phase";
 
     final TraceSection currentSection = state.currentTransactionHubSections().currentSection();
 
@@ -829,11 +830,9 @@ public abstract class Hub implements Module {
    * deployment in the sense that it updates the relevant deployment information.
    */
   private void exitDeploymentFromDeploymentInfoPov(MessageFrame frame) {
-
-    // sanity check
-    final Address bytecodeAddress = this.currentFrame().byteCodeAddress();
-    checkArgument(bytecodeAddress.equals(frame.getContractAddress()));
-    checkArgument(bytecodeAddress.equals(this.bytecodeAddress()));
+    final Address bytecodeAddress = currentFrame().byteCodeAddress();
+    assert bytecodeAddress.equals(bytecodeAddress())
+        : "bytecode and contract address mismatch when exit from deployment";
 
     /**
      * Explanation: if the current address isn't under deployment there is nothing to do.
@@ -842,7 +841,8 @@ public abstract class Hub implements Module {
      * immediately set to the deployed state
      */
     if (state.processingPhase() == TX_SKIP) {
-      checkArgument(!deploymentStatusOfBytecodeAddress());
+      assert !deploymentStatusOfBytecodeAddress()
+          : "In TX_SKIP phase all deployments must be empty code";
       return;
     }
     /**
@@ -875,9 +875,8 @@ public abstract class Hub implements Module {
 
     final boolean emptyDeployment = messageFrame().getCode().getBytes().isEmpty();
 
-    // empty deployments are immediately considered as 'deployed' i.e.
-    // deploymentStatus = false
-    checkArgument(deploymentStatusOfBytecodeAddress() == !emptyDeployment);
+    assert deploymentStatusOfBytecodeAddress() == !emptyDeployment
+        : "empty deployments are immediately considered as 'deployed'";
 
     if (emptyDeployment) return;
     // from here on out nonempty deployments

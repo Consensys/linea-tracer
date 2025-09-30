@@ -86,30 +86,32 @@ public class NontrivialExecutionTests extends TracerTestBase {
 
   /**
    * The 'init code' is a sequence of JUMPDEST. Every byte contributes
+   *
    * <ul>
    *   <li>40 to the floor cost
    *   <li>16 to the upfront gas cost
    *   <li>1 to the execution cost
    * </ul>
+   *
    * Furthermore, every word of the init code contributes 2 to the upfront gas cost.
    *
-   * The threshold is given by the following equation (ics = init_code_size):
-   * <pre><b>21_000 + 40*ics > 21_000 + 32_000 + 16*ics + 2*⌈ics/32⌉ + 1*ics</b></pre> which puts the threshold somewhere
-   * around 1390-1400 bytes.
-   * This allows us to aim for the threshold where the floor price is overtaken by the execution cost.
+   * <p>The threshold is given by the following equation (ics = init_code_size):
+   *
+   * <pre><b>21_000 + 40*ics > 21_000 + 32_000 + 16*ics + 2*⌈ics/32⌉ + 1*ics</b></pre>
+   *
+   * which puts the threshold somewhere around 1390-1400 bytes. This allows us to aim for the
+   * threshold where the floor price is overtaken by the execution cost.
    */
   @ParameterizedTest
   @MethodSource("adjustableInitCodeTestSource")
   void adjustableInitCodeTest(
-    Bytes initCode,
-    UserTransaction.DominantCost dominantCostPrediction,
-    TestInfo testInfo) {
+      Bytes initCode, UserTransaction.DominantCost dominantCostPrediction, TestInfo testInfo) {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(initCode);
     bytecodeRunner.runInitCode(chainConfig, testInfo);
     // Test blocks contain 4 transactions: 2 system transactions, 1 user transaction (the one we
     // created) and 1 noop transaction.
     UserTransaction userTransaction =
-      (UserTransaction) bytecodeRunner.getHub().txnData().operations().get(2);
+        (UserTransaction) bytecodeRunner.getHub().txnData().operations().get(2);
     Preconditions.checkArgument(userTransaction.getDominantCost() == dominantCostPrediction);
   }
 
@@ -117,17 +119,16 @@ public class NontrivialExecutionTests extends TracerTestBase {
     List<Arguments> arguments = new ArrayList<>();
 
     arguments.add(
-      Arguments.of(
-        buildProgram(
-          TransactionCategory.DEPLOYMENT,
-          UserTransaction.DominantCost.FLOOR_COST_DOMINATES),
-        UserTransaction.DominantCost.FLOOR_COST_DOMINATES));
+        Arguments.of(
+            buildProgram(
+                TransactionCategory.DEPLOYMENT, UserTransaction.DominantCost.FLOOR_COST_DOMINATES),
+            UserTransaction.DominantCost.FLOOR_COST_DOMINATES));
     arguments.add(
-      Arguments.of(
-        buildProgram(
-          TransactionCategory.DEPLOYMENT,
-          UserTransaction.DominantCost.EXECUTION_COST_DOMINATES),
-        UserTransaction.DominantCost.EXECUTION_COST_DOMINATES));
+        Arguments.of(
+            buildProgram(
+                TransactionCategory.DEPLOYMENT,
+                UserTransaction.DominantCost.EXECUTION_COST_DOMINATES),
+            UserTransaction.DominantCost.EXECUTION_COST_DOMINATES));
 
     return arguments.stream();
   }
@@ -149,8 +150,8 @@ public class NontrivialExecutionTests extends TracerTestBase {
          */
         BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
         program.op(
-          OpCode.JUMPDEST,
-          dominantCost == UserTransaction.DominantCost.EXECUTION_COST_DOMINATES ? 12 : 11);
+            OpCode.JUMPDEST,
+            dominantCost == UserTransaction.DominantCost.EXECUTION_COST_DOMINATES ? 12 : 11);
         yield program.compile();
       }
       case DEPLOYMENT -> {

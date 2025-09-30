@@ -82,13 +82,7 @@ public final class BytecodeRunner {
   // Ad-hoc senderBalance
   public void run(Wei senderBalance, ChainConfig chainConfig, TestInfo testInfo) {
     this.run(
-        senderBalance,
-        DEFAULT_GAS_LIMIT,
-        List.of(),
-        Bytes.EMPTY,
-        List.of(),
-        chainConfig,
-        testInfo);
+        senderBalance, DEFAULT_GAS_LIMIT, List.of(), Bytes.EMPTY, List.of(), chainConfig, testInfo);
   }
 
   // Ad-hoc gasLimit
@@ -119,7 +113,14 @@ public final class BytecodeRunner {
       List<ToyAccount> additionalAccounts,
       ChainConfig chainConfig,
       TestInfo testInfo) {
-    this.run(Wei.fromEth(1), gasLimit, additionalAccounts, Bytes.EMPTY, List.of(), chainConfig, testInfo);
+    this.run(
+        Wei.fromEth(1),
+        gasLimit,
+        additionalAccounts,
+        Bytes.EMPTY,
+        List.of(),
+        chainConfig,
+        testInfo);
   }
 
   // Ad-hoc senderBalance, gasLimit and accounts
@@ -129,21 +130,25 @@ public final class BytecodeRunner {
       List<ToyAccount> additionalAccounts,
       ChainConfig chainConfig,
       TestInfo testInfo) {
-    this.run(senderBalance, gasLimit, additionalAccounts, Bytes.EMPTY, List.of(), chainConfig, testInfo);
-  }
-
-  public void run (Bytes payload, List<AccessListEntry> accessList, ChainConfig chainConfig, TestInfo testInfo) {
-    this.run(Wei.fromEth(1), DEFAULT_GAS_LIMIT, List.of(), payload, accessList, chainConfig, testInfo);
+    this.run(
+        senderBalance, gasLimit, additionalAccounts, Bytes.EMPTY, List.of(), chainConfig, testInfo);
   }
 
   public void run(
-    Wei senderBalance,
-    Long gasLimit,
-    List<ToyAccount> additionalAccounts,
-    Bytes payload,
-    ChainConfig chainConfig,
-    TestInfo testInfo) {
-    this.run(senderBalance, gasLimit, additionalAccounts, payload, List.of(), chainConfig, testInfo);
+      Bytes payload, List<AccessListEntry> accessList, ChainConfig chainConfig, TestInfo testInfo) {
+    this.run(
+        Wei.fromEth(1), DEFAULT_GAS_LIMIT, List.of(), payload, accessList, chainConfig, testInfo);
+  }
+
+  public void run(
+      Wei senderBalance,
+      Long gasLimit,
+      List<ToyAccount> additionalAccounts,
+      Bytes payload,
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
+    this.run(
+        senderBalance, gasLimit, additionalAccounts, payload, List.of(), chainConfig, testInfo);
   }
 
   // Ad-hoc senderBalance, gasLimit, accounts and payload

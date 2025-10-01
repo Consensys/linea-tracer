@@ -593,7 +593,7 @@ public class BlockchainReferenceTestTools {
     addSystemAccountsIfRequired(worldState.updater(), chain.fork);
 
     final CorsetValidator corsetValidator = new CorsetValidator(chain);
-    final ZkTracer zkTracer = new ZkTracer(chain, );
+    final ZkTracer zkTracer = new ZkTracer(chain, null);
     zkTracer.traceStartConflation(spec.getCandidateBlocks().length);
 
     for (var candidateBlock : spec.getCandidateBlocks()) {

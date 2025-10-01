@@ -475,7 +475,9 @@ public class CallSection extends TraceSection
   /** Resolution happens as the child context is about to terminate. */
   @Override
   public void resolveUponContextExit(Hub hub, CallFrame frame) {
-    checkArgument(scenarioFragment.getScenario() == CALL_SMC_UNDEFINED, "Illegal CALL scenario at context exit");
+    checkArgument(
+        scenarioFragment.getScenario() == CALL_SMC_UNDEFINED,
+        "Illegal CALL scenario at context exit");
   }
 
   @Override

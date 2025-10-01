@@ -116,9 +116,15 @@ public class PrecompileSubsection
 
   public void sanityCheck() {
     if (callSuccess) {
-      checkArgument(precompileScenarioFragment.scenario.isSuccess());
+      checkArgument(
+          precompileScenarioFragment.scenario.isSuccess(),
+          "precompile scenario %s not success scenario",
+          precompileScenarioFragment.scenario());
     } else {
-      checkArgument(precompileScenarioFragment.scenario.isFailure());
+      checkArgument(
+          precompileScenarioFragment.scenario.isFailure(),
+          "precompile scenario %s not failure scenario",
+          precompileScenarioFragment.scenario());
     }
   }
 
@@ -126,7 +132,8 @@ public class PrecompileSubsection
   public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
     // only successful PRC calls should enter here
-    checkArgument(precompileScenarioFragment.scenario() == PRC_SUCCESS_WONT_REVERT);
+    checkArgument(precompileScenarioFragment.scenario() == PRC_SUCCESS_WONT_REVERT,
+            "precompile scenario %s incompatible with being rolled back");
 
     precompileScenarioFragment.scenario(PRC_SUCCESS_WILL_REVERT);
   }

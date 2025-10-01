@@ -46,7 +46,6 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
-import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 public class ZkTracer implements LineCountingTracer {
@@ -161,19 +160,6 @@ public class ZkTracer implements LineCountingTracer {
 
     if (!this.tracingExceptions.isEmpty()) {
       throw new TracingExceptions(this.tracingExceptions);
-    }
-  }
-
-  @Override
-  public void traceStartBlock(
-      WorldView world,
-      final ProcessableBlockHeader processableBlockHeader,
-      final Address miningBeneficiary) {
-    try {
-      this.hub.traceStartBlock(world, processableBlockHeader, miningBeneficiary);
-      this.debugMode.ifPresent(DebugMode::traceEndConflation);
-    } catch (final Exception e) {
-      this.tracingExceptions.add(e);
     }
   }
 

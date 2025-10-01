@@ -135,13 +135,15 @@ public class EcDataOperation extends ModuleOperation {
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       Bytes callData,
       Bytes returnData) {
-    checkArgument(precompileFlag.isEcdataPrecompile(), "EcDataOperation: precompile %s isn't of EC_DATA type", precompileFlag);
+    checkArgument(
+        precompileFlag.isEcdataPrecompile(),
+        "EcDataOperation: precompile %s isn't of EC_DATA type",
+        precompileFlag);
 
     this.precompileFlag = precompileFlag;
     final int callDataSize = callData.size();
     checkArgument(
-        callDataSize > 0,
-        "EcDataOperation should only be called with nonempty call data");
+        callDataSize > 0, "EcDataOperation should only be called with nonempty call data");
     final int paddedCallDataLength =
         switch (precompileFlag) {
           case PRC_ECRECOVER -> TOTAL_SIZE_ECRECOVER_DATA;

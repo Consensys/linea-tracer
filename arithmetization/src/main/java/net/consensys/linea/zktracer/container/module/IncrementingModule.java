@@ -29,7 +29,8 @@ public class IncrementingModule extends CountingOnlyModule {
   public void updateTally(final int numberEffectiveCall) {
     checkArgument(
         numberEffectiveCall == 0 || numberEffectiveCall == 1,
-        "IncrementingModule: updateTally can only update the tally by 0 or 1, here it's by %s", numberEffectiveCall);
+        "IncrementingModule: updateTally can only update the tally by 0 or 1, here it's by %s",
+        numberEffectiveCall);
     counts.add(numberEffectiveCall);
   }
 

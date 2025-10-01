@@ -232,7 +232,10 @@ public class AccountSnapshot {
   }
 
   public AccountSnapshot decrementNonceByOne() {
-    checkState(nonce > 0, "AccountSnapshot: attempting to decrement nonce by one when nonce is %s ≤ 0", nonce);
+    checkState(
+        nonce > 0,
+        "AccountSnapshot: attempting to decrement nonce by one when nonce is %s ≤ 0",
+        nonce);
     return this.nonce(nonce - 1);
   }
 

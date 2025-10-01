@@ -636,7 +636,9 @@ public abstract class Hub implements Module {
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
       if (state.processingPhase() == TX_SKIP) {
-        checkState(currentTraceSection() instanceof TxSkipSection, "traceContextEnter of Hub: expected a skip section");
+        checkState(
+            currentTraceSection() instanceof TxSkipSection,
+            "traceContextEnter of Hub: expected a skip section");
         ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);
       }
       final TransactionProcessingMetadata currentTransaction = transients().tx();
@@ -856,8 +858,7 @@ public abstract class Hub implements Module {
      */
     if (state.processingPhase() == TX_SKIP) {
       checkArgument(
-          !deploymentStatusOfBytecodeAddress(),
-          "TX_SKIP: deployments must have empty code");
+          !deploymentStatusOfBytecodeAddress(), "TX_SKIP: deployments must have empty code");
       return;
     }
     /**

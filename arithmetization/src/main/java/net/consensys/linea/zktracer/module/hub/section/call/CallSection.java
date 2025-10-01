@@ -425,7 +425,8 @@ public class CallSection extends TraceSection
     checkState(
         scenario == CALL_SMC_UNDEFINED | scenario == CALL_PRC_UNDEFINED,
         String.format(
-            "CallSection: call scenario %s should be undefined at context entry resolution", scenario));
+            "CallSection: call scenario %s should be undefined at context entry resolution",
+            scenario));
 
     callerFirstNew = callerFirst.deepCopy();
     calleeFirstNew = calleeFirst.deepCopy().turnOnWarmth();

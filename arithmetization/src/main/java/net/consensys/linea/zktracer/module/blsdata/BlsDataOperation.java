@@ -129,7 +129,10 @@ public class BlsDataOperation extends ModuleOperation {
       Bytes callData,
       Bytes returnData,
       boolean successBit) {
-    checkArgument(precompileFlag.isBlsPrecompile(), "BlsDataOperation: precompile %s isn't of BLS type", precompileFlag);
+    checkArgument(
+        precompileFlag.isBlsPrecompile(),
+        "BlsDataOperation: precompile %s isn't of BLS type",
+        precompileFlag);
 
     this.precompileFlag = precompileFlag;
     this.callData = callData;

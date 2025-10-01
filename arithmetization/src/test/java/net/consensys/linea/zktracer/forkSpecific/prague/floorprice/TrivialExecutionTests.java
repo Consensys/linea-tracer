@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.forkSpecific.prague.floorprice;
 
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Fork.isPostPrague;
 
 import java.util.ArrayList;

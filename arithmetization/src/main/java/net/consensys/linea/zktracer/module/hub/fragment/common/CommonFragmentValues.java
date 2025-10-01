@@ -102,7 +102,7 @@ public class CommonFragmentValues {
     this.callFrame = hub.currentFrame();
     this.exceptions = exceptions;
     this.pc = isExec ? callFrame.pc() : 0;
-    this.pcNew = computePcNew(hub, callFrame, opCode, pc, stackException, isExec);
+    this.pcNew = computePcNew(callFrame, opCode, pc, stackException, isExec);
     this.height = callFrame.stack().getHeight();
     this.heightNew = callFrame.stack().getHeightNew();
 
@@ -186,12 +186,12 @@ public class CommonFragmentValues {
 
   public void setTracedException(TracedException tracedException) {
     checkArgument(
-        tracedException == UNDEFINED, "Traced exception already set to " + this.tracedException);
+        this.tracedException == UNDEFINED,
+        "Traced exception already set to " + this.tracedException);
     this.tracedException = tracedException;
   }
 
   static int computePcNew(
-      final Hub hub,
       final CallFrame callFrame,
       OpCodeData opCode,
       final int pc,

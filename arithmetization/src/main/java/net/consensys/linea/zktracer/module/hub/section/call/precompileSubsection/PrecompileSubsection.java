@@ -151,8 +151,12 @@ public class PrecompileSubsection
     // successful PRC_CALL to MODEXP
     final int mbs = ((ModexpSubsection) this).modexpMetaData.mbsInt();
     final Bytes returnData = frame.getReturnData();
-    checkState(0 <= mbs && mbs <= MODEXP_COMPONENT_BYTE_SIZE);
-    checkState(returnData.size() == mbs);
+    checkState(
+        0 <= mbs && mbs <= MODEXP_COMPONENT_BYTE_SIZE,
+        "MODEXP: invalid mbs: %s not in range [0,%s]",
+        mbs,
+        MODEXP_COMPONENT_BYTE_SIZE);
+    checkState(returnData.size() == mbs, "invalid MODEXP return data size");
     final Bytes leftPaddedReturnData = leftPadTo(returnData, MODEXP_COMPONENT_BYTE_SIZE);
 
     returnDataRange =

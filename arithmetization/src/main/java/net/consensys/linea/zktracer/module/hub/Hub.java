@@ -438,7 +438,7 @@ public abstract class Hub implements Module {
     gasCalculator = getGasCalculatorFromFork(fork);
     opCodes = OpCodes.load(fork);
     gasProjector = new GasProjector(fork, gasCalculator);
-    checkState(chain.id.signum() >= 0);
+    checkState(chain.id.signum() >= 0, "chain id must be non negative");
     Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
     final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
     //
@@ -635,6 +635,7 @@ public abstract class Hub implements Module {
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
       if (state.processingPhase() == TX_SKIP) {
+        checkState(currentTraceSection() instanceof TxSkipSection, "expected a skip section");
         ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);
       }
       final TransactionProcessingMetadata currentTransaction = transients().tx();
@@ -694,11 +695,16 @@ public abstract class Hub implements Module {
       final OpCodeData currentOpCode = opCodes.of(callStack.currentCallFrame().opCode());
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
 
-      checkState(currentOpCode.isCall() || currentOpCode.isCreate());
+      checkState(
+          currentOpCode.isCall() || currentOpCode.isCreate(),
+          "trace context enter at positive depth must be call or create");
       checkState(
           currentTraceSection() instanceof CallSection
-              || currentTraceSection() instanceof CreateSection);
-      checkState(currentTraceSection() instanceof CreateSection == isDeployment);
+              || currentTraceSection() instanceof CreateSection,
+          "trace context enter at positive depth must have in call or create section as most recent trace section");
+      checkState(
+          currentTraceSection() instanceof CreateSection == isDeployment,
+          "trace context enter at positive depth must have a create section as most recent trace section iff it is a deployment");
 
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;

@@ -264,8 +264,18 @@ public abstract class CreateSection extends TraceSection
 
     switch (scenario) {
       case CREATE_FAILURE_CONDITION_WONT_REVERT, CREATE_EMPTY_INIT_CODE_WONT_REVERT -> {
-        if (scenario == CREATE_FAILURE_CONDITION_WONT_REVERT) checkState(!success);
-        if (scenario == CREATE_EMPTY_INIT_CODE_WONT_REVERT) checkState(success);
+        if (scenario == CREATE_FAILURE_CONDITION_WONT_REVERT)
+          checkState(
+              !success,
+              "%s scenario requires CREATE failure, yet success = %s",
+              CREATE_FAILURE_CONDITION_WONT_REVERT,
+              success);
+        if (scenario == CREATE_EMPTY_INIT_CODE_WONT_REVERT)
+          checkState(
+              success,
+              "%s scenario requires CREATE success, yet success = %s",
+              CREATE_EMPTY_INIT_CODE_WONT_REVERT,
+              success);
 
         firstCreatorNew =
             AccountSnapshot.canonical(hub, frame.frame().getWorldUpdater(), creatorAddress);
@@ -337,7 +347,9 @@ public abstract class CreateSection extends TraceSection
                 CREATE_FAILURE_CONDITION_WONT_REVERT,
                 CREATE_EMPTY_INIT_CODE_WONT_REVERT,
                 CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT,
-                CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT));
+                CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT),
+        "%s CREATE-scenario not allowed when resolving upon rollback",
+        scenarioFragment.getScenario());
 
     final int revertStamp = callFrame.revertStamp();
 
@@ -502,7 +514,10 @@ public abstract class CreateSection extends TraceSection
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
-    checkState(scenarioFragment.isAbortedCreate());
+    checkState(
+        scenarioFragment.isAbortedCreate(),
+        "We resolve a CREATE(2) post execution only if it's an aborted CREATE(2), yet scenario = %s",
+        scenarioFragment.getScenario());
     hub.unlatchStack(frame, this);
   }
 

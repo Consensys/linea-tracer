@@ -142,7 +142,7 @@ public abstract class StackFragment implements TraceFragment {
   }
 
   private Bytes getPushValue(Hub hub) {
-    checkState(hub.opCodeData().isNonTrivialPush());
+    checkState(hub.opCodeData().isNonTrivialPush(), "getPushValue called for non-PUSH opcode");
 
     final int pc = hub.messageFrame().getPC();
     if (pc + 1 >= hub.messageFrame().getCode().getSize()) {

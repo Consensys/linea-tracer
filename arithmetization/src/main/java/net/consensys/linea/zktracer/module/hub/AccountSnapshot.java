@@ -232,7 +232,7 @@ public class AccountSnapshot {
   }
 
   public AccountSnapshot decrementNonceByOne() {
-    checkState(nonce > 0);
+    checkState(nonce > 0, "Attempting to decrement nonce by one when nonce is %s ≤ 0", nonce);
     return this.nonce(nonce - 1);
   }
 
@@ -245,7 +245,10 @@ public class AccountSnapshot {
   }
 
   public void decrementDeploymentNumberByOne() {
-    checkState(deploymentNumber > 0);
+    checkState(
+        deploymentNumber > 0,
+        "Attempting to decrement deployment number by one when deployment number is %s ≤ 0",
+        deploymentNumber);
     this.deploymentNumber(deploymentNumber - 1);
   }
 

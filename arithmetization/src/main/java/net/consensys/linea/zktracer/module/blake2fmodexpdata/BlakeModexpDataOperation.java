@@ -47,7 +47,7 @@ import org.hyperledger.besu.crypto.Hash;
 @Accessors(fluent = true)
 public class BlakeModexpDataOperation extends ModuleOperation {
   public static final int MODEXP_COMPONENT_BYTE_SIZE = LLARGE * (INDEX_MAX_MODEXP + 1);
-  private static final int MODEXP_COMPONENTS_LINE_COUNT =
+  public static final int NB_ROWS_BLAKEMODEXP_MODEXP =
       (INDEX_MAX_MODEXP_BASE + 1)
           + (INDEX_MAX_MODEXP_EXPONENT + 1)
           + (INDEX_MAX_MODEXP_MODULUS + 1)
@@ -78,30 +78,28 @@ public class BlakeModexpDataOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return modexpMetaData.isPresent()
-        ? MODEXP_COMPONENTS_LINE_COUNT
-        : BLAKE2f_COMPONENTS_LINE_COUNT;
+    return modexpMetaData.isPresent() ? NB_ROWS_BLAKEMODEXP_MODEXP : BLAKE2f_COMPONENTS_LINE_COUNT;
   }
 
   void trace(Trace.Blake2fmodexpdata trace, final int stamp) {
     final UnsignedByte stampByte = UnsignedByte.of(stamp);
 
     if (modexpMetaData.isPresent()) {
-      traceBase(trace, stampByte);
-      traceExponent(trace, stampByte);
-      traceModulus(trace, stampByte);
-      traceModexpResult(trace, stampByte);
+      traceBase(trace, stamp);
+      traceExponent(trace, stamp);
+      traceModulus(trace, stamp);
+      traceModexpResult(trace, stamp);
       return;
     }
 
     if (blake2fComponents.isPresent()) {
-      traceData(trace, stampByte);
-      traceParameter(trace, stampByte);
-      traceBlakeResult(trace, stampByte);
+      traceData(trace, stamp);
+      traceParameter(trace, stamp);
+      traceBlakeResult(trace, stamp);
     }
   }
 
-  private void traceData(Trace.Blake2fmodexpdata trace, UnsignedByte stamp) {
+  private void traceData(Trace.Blake2fmodexpdata trace, int stamp) {
     final Bytes input = blake2fComponents.get().getHashInput();
     for (int index = 0; index <= INDEX_MAX_BLAKE_DATA; index++) {
       commonTrace(trace, stamp, index, input, INDEX_MAX_BLAKE_DATA);
@@ -109,7 +107,7 @@ public class BlakeModexpDataOperation extends ModuleOperation {
     }
   }
 
-  private void traceParameter(Trace.Blake2fmodexpdata trace, UnsignedByte stamp) {
+  private void traceParameter(Trace.Blake2fmodexpdata trace, int stamp) {
     // r
     commonTrace(
         trace, stamp, 0, leftPadTo(blake2fComponents.get().r(), LLARGE), INDEX_MAX_BLAKE_PARAMS);
@@ -125,7 +123,7 @@ public class BlakeModexpDataOperation extends ModuleOperation {
     trace.phase(UnsignedByte.of(PHASE_BLAKE_PARAMS)).isBlakeParams(true).fillAndValidateRow();
   }
 
-  private void traceBlakeResult(Trace.Blake2fmodexpdata trace, UnsignedByte stamp) {
+  private void traceBlakeResult(Trace.Blake2fmodexpdata trace, int stamp) {
     final Bytes hash = computeBlake2fResult();
     for (int index = 0; index <= INDEX_MAX_BLAKE_RESULT; index++) {
       commonTrace(trace, stamp, index, hash, INDEX_MAX_BLAKE_RESULT);
@@ -133,7 +131,7 @@ public class BlakeModexpDataOperation extends ModuleOperation {
     }
   }
 
-  private void traceBase(Trace.Blake2fmodexpdata trace, final UnsignedByte stamp) {
+  private void traceBase(Trace.Blake2fmodexpdata trace, final int stamp) {
     final Bytes input = leftPadTo(modexpMetaData.get().base(), MODEXP_COMPONENT_BYTE_SIZE);
     for (int index = 0; index <= INDEX_MAX_MODEXP_BASE; index++) {
       commonTrace(trace, stamp, index, input, INDEX_MAX_MODEXP_BASE);
@@ -141,7 +139,7 @@ public class BlakeModexpDataOperation extends ModuleOperation {
     }
   }
 
-  private void traceExponent(Trace.Blake2fmodexpdata trace, final UnsignedByte stamp) {
+  private void traceExponent(Trace.Blake2fmodexpdata trace, final int stamp) {
     final Bytes input = leftPadTo(modexpMetaData.get().exp(), MODEXP_COMPONENT_BYTE_SIZE);
     for (int index = 0; index <= INDEX_MAX_MODEXP_EXPONENT; index++) {
       commonTrace(trace, stamp, index, input, INDEX_MAX_MODEXP_EXPONENT);
@@ -152,7 +150,7 @@ public class BlakeModexpDataOperation extends ModuleOperation {
     }
   }
 
-  private void traceModulus(Trace.Blake2fmodexpdata trace, final UnsignedByte stamp) {
+  private void traceModulus(Trace.Blake2fmodexpdata trace, final int stamp) {
     final Bytes input = leftPadTo(modexpMetaData.get().mod(), MODEXP_COMPONENT_BYTE_SIZE);
     for (int index = 0; index <= INDEX_MAX_MODEXP_MODULUS; index++) {
       commonTrace(trace, stamp, index, input, INDEX_MAX_MODEXP_MODULUS);
@@ -160,7 +158,7 @@ public class BlakeModexpDataOperation extends ModuleOperation {
     }
   }
 
-  private void traceModexpResult(Trace.Blake2fmodexpdata trace, final UnsignedByte stamp) {
+  private void traceModexpResult(Trace.Blake2fmodexpdata trace, final int stamp) {
     final Bytes input = leftPadTo(modexpMetaData.get().rawResult(), MODEXP_COMPONENT_BYTE_SIZE);
     for (int index = 0; index <= INDEX_MAX_MODEXP_RESULT; index++) {
       commonTrace(trace, stamp, index, input, INDEX_MAX_MODEXP_RESULT);
@@ -169,9 +167,9 @@ public class BlakeModexpDataOperation extends ModuleOperation {
   }
 
   private void commonTrace(
-      Trace.Blake2fmodexpdata trace, UnsignedByte stamp, int index, Bytes input, int indexMax) {
+      Trace.Blake2fmodexpdata trace, int stamp, int index, Bytes input, int indexMax) {
     trace
-        .stamp(stamp.toInteger())
+        .stamp(stamp)
         .id(id)
         .index(UnsignedByte.of(index))
         .indexMax(UnsignedByte.of(indexMax))

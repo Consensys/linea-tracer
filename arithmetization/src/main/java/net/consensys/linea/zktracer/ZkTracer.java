@@ -98,6 +98,8 @@ public class ZkTracer implements LineCountingTracer {
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
+
+    log.info("[ZkTracer] Created ZkTracer for fork {}", chain.fork);
   }
 
   public void writeToFile(final Path filename, long startBlock, long endBlock) {
@@ -119,7 +121,7 @@ public class ZkTracer implements LineCountingTracer {
     // include line counts
     final Map<String, String> lineCounts = new HashMap<>();
     for (Module m : hub.getTracelessModules()) {
-      lineCounts.put(m.moduleKey(), Integer.toString(m.lineCount()));
+      lineCounts.put(m.moduleKey().toString(), Integer.toString(m.lineCount()));
     }
     trace.addMetadata("lineCounts", lineCounts);
     //
@@ -328,7 +330,7 @@ public class ZkTracer implements LineCountingTracer {
     final HashMap<String, Integer> modulesLineCount = new HashMap<>();
 
     for (Module m : hub.getModulesToCount()) {
-      modulesLineCount.put(m.moduleKey(), m.lineCount() + m.spillage(this.trace));
+      modulesLineCount.put(m.moduleKey().toString(), m.lineCount() + m.spillage(this.trace));
     }
     //
     return modulesLineCount;

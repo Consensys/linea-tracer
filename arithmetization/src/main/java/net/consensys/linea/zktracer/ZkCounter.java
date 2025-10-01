@@ -788,14 +788,14 @@ public class ZkCounter implements LineCountingTracer {
   /** When called, erase all tracing related to the bundle of all transactions since the last. */
   @Override
   public void popTransactionBundle() {
-    for (Module m : moduleToCount) {
+    for (Module m : checkedModules()) {
       m.popTransactionBundle();
     }
   }
 
   @Override
   public void commitTransactionBundle() {
-    for (Module m : moduleToCount) {
+    for (Module m : checkedModules()) {
       m.commitTransactionBundle();
     }
   }
@@ -804,8 +804,11 @@ public class ZkCounter implements LineCountingTracer {
   public Map<String, Integer> getModulesLineCount() {
     final HashMap<String, Integer> modulesLineCount = HashMap.newHashMap(moduleToCount.size());
 
-    for (Module m : moduleToCount) {
+    for (Module m : checkedModules()) {
       modulesLineCount.put(m.moduleKey(), m.lineCount() + m.spillage(trace));
+    }
+    for (Module m : uncheckedModules()) {
+      modulesLineCount.put(m.moduleKey(), 0);
     }
     return modulesLineCount;
   }

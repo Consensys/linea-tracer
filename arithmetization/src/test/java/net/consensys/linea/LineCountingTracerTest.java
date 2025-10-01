@@ -131,7 +131,9 @@ public class LineCountingTracerTest extends TracerTestBase {
     for (String module : sizeBeforeCounter.keySet()) {
       checkArgument(
           Objects.equals(sizeAfterCounter.get(module), sizeBeforeCounter.get(module)),
-          "Counter: some block stuff has been removed in Module " + module);
+          "Counter: some block stuff has been removed in Module " + module +
+      "line count is dropping from " + sizeBeforeCounter.get(module) + " to "
+              + sizeAfterCounter.get(module));
     }
   }
 }

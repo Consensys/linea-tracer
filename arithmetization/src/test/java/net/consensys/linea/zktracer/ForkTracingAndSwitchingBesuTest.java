@@ -55,7 +55,7 @@ public class ForkTracingAndSwitchingBesuTest extends TracerTestBase {
         BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
 
     switch (fork) {
-      case LONDON -> {}
+      case LONDON -> compiler.op(OpCode.DIFFICULTY);
       case PARIS -> compiler.op(OpCode.PREVRANDAO);
       case SHANGHAI -> compiler.op(OpCode.PUSH0);
         // Same opcode for Cancun and Prague, as no new opcode was introduced in Prague

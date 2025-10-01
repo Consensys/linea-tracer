@@ -114,7 +114,10 @@ public abstract class SelfdestructSection extends TraceSection
 
     // OOGX case
     if (Exceptions.any(exceptions)) {
-      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      checkArgument(
+          exceptions == OUT_OF_GAS_EXCEPTION,
+          "SELFDESTRUCT: lowest priority exception should be %s",
+          OUT_OF_GAS_EXCEPTION);
 
       recipient =
           selfdestructTargetsItself()
@@ -287,7 +290,9 @@ public abstract class SelfdestructSection extends TraceSection
     final EphemeralAccount ephemeralAccount =
         new EphemeralAccount(selfdestructor.address(), selfdestructorNew.deploymentNumber());
 
-    checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
+    checkArgument(
+        effectiveSelfDestructMap.containsKey(ephemeralAccount),
+        "If SELFDESTRUCT was not reverted, the effectiveSelfDestructMap should contain the selfdestructor");
 
     if (accountFragmentWiping()) {
       // This grabs the accounts right after the coinbase and sender got their gas money back
@@ -301,7 +306,9 @@ public abstract class SelfdestructSection extends TraceSection
       // We modify the account fragment to reflect the self-destruct time
       final int hubStampOfTheActionableSelfDestruct =
           effectiveSelfDestructMap.get(ephemeralAccount);
-      checkArgument(hubStamp >= hubStampOfTheActionableSelfDestruct);
+      checkArgument(
+          hubStamp >= hubStampOfTheActionableSelfDestruct,
+          "The hub stamp of any SELFDESTRUCT in need of resolving at transaction end should be >= the stamp of the actionable SELFDESTRUCT");
 
       if (hubStamp == hubStampOfTheActionableSelfDestruct) {
         selfdestructScenarioFragment.setScenario(SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);

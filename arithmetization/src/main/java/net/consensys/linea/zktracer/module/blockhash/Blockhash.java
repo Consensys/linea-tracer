@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -77,8 +78,8 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   }
 
   @Override
-  public String moduleKey() {
-    return BLOCK_HASH.toString();
+  public ModuleName moduleKey() {
+    return BLOCK_HASH;
   }
 
   @Override

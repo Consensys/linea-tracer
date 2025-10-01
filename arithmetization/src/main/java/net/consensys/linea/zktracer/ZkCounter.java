@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
-import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 import static net.consensys.linea.zktracer.Trace.Ecdata.TOTAL_SIZE_ECPAIRING_DATA_MIN;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
@@ -374,9 +373,7 @@ public class ZkCounter implements LineCountingTracer {
   }
 
   @Override
-  public void traceStartConflation(long numBlocksInConflation) {
-    blockHash.updateTally(BLOCKHASH_MAX_HISTORY * NB_ROWS_BLOCKHASH);
-  }
+  public void traceStartConflation(long numBlocksInConflation) {}
 
   @Override
   public void traceEndConflation(WorldView state) {}
@@ -395,7 +392,6 @@ public class ZkCounter implements LineCountingTracer {
     txnData.updateTally(NB_ROWS_TXN_DATA_SYSI_EIP2935);
     hub.updateTally(NB_ROWS_HUB_SYSF_NOOP);
     txnData.updateTally(NB_ROWS_TXN_DATA_SYSF_NOOP);
-    blockHash.updateTally(NB_ROWS_BLOCKHASH);
 
     commitTransactionBundle();
   }
@@ -805,10 +801,10 @@ public class ZkCounter implements LineCountingTracer {
     final HashMap<String, Integer> modulesLineCount = HashMap.newHashMap(moduleToCount.size());
 
     for (Module m : checkedModules()) {
-      modulesLineCount.put(m.moduleKey(), m.lineCount() + m.spillage(trace));
+      modulesLineCount.put(m.moduleKey().toString(), m.lineCount() + m.spillage(trace));
     }
     for (Module m : uncheckedModules()) {
-      modulesLineCount.put(m.moduleKey(), 0);
+      modulesLineCount.put(m.moduleKey().toString(), 0);
     }
     return modulesLineCount;
   }

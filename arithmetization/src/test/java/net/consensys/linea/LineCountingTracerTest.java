@@ -32,7 +32,6 @@ import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.container.module.Module;
 import org.hyperledger.besu.ethereum.core.BlockHeader;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.junit.jupiter.api.Test;
@@ -43,11 +42,15 @@ public class LineCountingTracerTest extends TracerTestBase {
   void noDuplicateNamesInModules() {
     final ZkTracer tracer = new ZkTracer(chainConfig, null);
     final List<String> tracerToCount =
-        tracer.getModulesToCount().stream().map(Module::moduleKey).toList();
+        tracer.getModulesToCount().stream().map(module -> module.moduleKey().toString()).toList();
     final List<String> tracedModules =
-        tracer.getHub().getModulesToTrace().stream().map(Module::moduleKey).toList();
+        tracer.getHub().getModulesToTrace().stream()
+            .map(module -> module.moduleKey().toString())
+            .toList();
     final List<String> refTables =
-        tracer.getHub().refTableModules().stream().map(Module::moduleKey).toList();
+        tracer.getHub().refTableModules().stream()
+            .map(module -> module.moduleKey().toString())
+            .toList();
 
     // Check that all traced modules are counted or reference tables
     checkArgument(
@@ -62,7 +65,7 @@ public class LineCountingTracerTest extends TracerTestBase {
         "Duplicate has been found");
     final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration);
     final List<String> counterToCount =
-        counter.getModulesToCount().stream().map(Module::moduleKey).toList();
+        counter.getModulesToCount().stream().map(module -> module.moduleKey().toString()).toList();
     checkArgument(
         counterToCount.size() == counterToCount.stream().distinct().toList().size(),
         "Duplicate has been found");
@@ -72,7 +75,7 @@ public class LineCountingTracerTest extends TracerTestBase {
   void sameModuleAcrossAllForkWithZkCounterAndTracer() {
     final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration);
     final List<String> counterModules =
-        counter.getModulesToCount().stream().map(Module::moduleKey).toList();
+        counter.getModulesToCount().stream().map(module -> module.moduleKey().toString()).toList();
 
     for (Fork fork : Fork.values()) {
       if (forkNotSupported(fork)) {
@@ -81,7 +84,7 @@ public class LineCountingTracerTest extends TracerTestBase {
       final ChainConfig config = MAINNET_TESTCONFIG(fork);
       final ZkTracer tracer = new ZkTracer(config, null);
       final List<String> tracerModules =
-          tracer.getModulesToCount().stream().map(Module::moduleKey).toList();
+          tracer.getModulesToCount().stream().map(module -> module.moduleKey().toString()).toList();
 
       // check that counter ⊆ tracer(fork)
       for (String module : counterModules) {
@@ -131,8 +134,11 @@ public class LineCountingTracerTest extends TracerTestBase {
     for (String module : sizeBeforeCounter.keySet()) {
       checkArgument(
           Objects.equals(sizeAfterCounter.get(module), sizeBeforeCounter.get(module)),
-          "Counter: some block stuff has been removed in Module " + module +
-      "line count is dropping from " + sizeBeforeCounter.get(module) + " to "
+          "Counter: some block stuff has been removed in Module "
+              + module
+              + "line count is dropping from "
+              + sizeBeforeCounter.get(module)
+              + " to "
               + sizeAfterCounter.get(module));
     }
   }

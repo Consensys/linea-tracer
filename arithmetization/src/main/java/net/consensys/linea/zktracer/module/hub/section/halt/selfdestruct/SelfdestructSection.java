@@ -197,9 +197,15 @@ public abstract class SelfdestructSection extends TraceSection
     if (!selfdestructorNew.balance().isZero()) {
 
       // sanity checks
-      checkState(selfdestructTargetsItself(), "If post SELFDESTRUCT the seldestructor's balance is nonzero then SELFDESTRUCT targets self");
-      checkState(softAccountWiping(), "If post SELFDESTRUCT the seldestructor's balance is nonzero then it is a soft account wipe");
-      checkState(selfdestructorNew.balance().equals(selfdestructor.balance()), "If post SELFDESTRUCT the seldestructor's balance is nonzero then the balance should not have changed");
+      checkState(
+          selfdestructTargetsItself(),
+          "If post SELFDESTRUCT the seldestructor's balance is nonzero then SELFDESTRUCT targets self");
+      checkState(
+          softAccountWiping(),
+          "If post SELFDESTRUCT the seldestructor's balance is nonzero then it is a soft account wipe");
+      checkState(
+          selfdestructorNew.balance().equals(selfdestructor.balance()),
+          "If post SELFDESTRUCT the seldestructor's balance is nonzero then the balance should not have changed");
 
       selfdestructorNew.setBalanceToZero();
     }

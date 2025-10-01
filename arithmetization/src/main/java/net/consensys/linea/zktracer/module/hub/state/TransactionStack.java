@@ -62,7 +62,10 @@ public class TransactionStack {
     transactions.popTransactionBundle();
     currentAbsNumber -= numberOfTransactionToPop;
     relativeTransactionNumber -= numberOfTransactionToPop;
-    checkState(relativeTransactionNumber >= 0, "relativeTransactionNumber = %s < 0", relativeTransactionNumber);
+    checkState(
+        relativeTransactionNumber >= 0,
+        "relativeTransactionNumber = %s < 0",
+        relativeTransactionNumber);
   }
 
   public void resetBlock() {

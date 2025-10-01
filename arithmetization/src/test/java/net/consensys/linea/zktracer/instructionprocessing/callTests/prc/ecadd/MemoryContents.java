@@ -101,7 +101,6 @@ public enum MemoryContents implements PrecompileCallMemoryContents {
           case MAX -> MAX_WORD.repeat(4);
         };
 
-
     checkState(pointData.length() == 4 * WORD_HEX_SIZE, "bad point data length");
 
     String memoryContentsString = pointData + MAX_WORD;

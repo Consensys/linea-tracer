@@ -85,7 +85,8 @@ public class MemoryContents implements PrecompileCallMemoryContents {
         Bytes.fromHexString(leftPairs() + CenterPair() + rightPairs() + RETURN_DATA_STRIP);
     checkState(
         memoryContentsBytes.size()
-            == TOTAL_NUMBER_OF_PAIRS_OF_POINTS * SIZE_OF_PAIR_OF_POINTS + WORD_SIZE, "ECPAIRING memory contents size is incorrect");
+            == TOTAL_NUMBER_OF_PAIRS_OF_POINTS * SIZE_OF_PAIR_OF_POINTS + WORD_SIZE,
+        "ECPAIRING memory contents size is incorrect");
 
     BytecodeCompiler memoryContents = BytecodeCompiler.newProgram(chainConfig);
     return memoryContents.immediate(memoryContentsBytes);

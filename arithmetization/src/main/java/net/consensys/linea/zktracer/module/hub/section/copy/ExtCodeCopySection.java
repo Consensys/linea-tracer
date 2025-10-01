@@ -70,7 +70,9 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     imcFragment.callMxp(mxpCall);
 
     final short exceptions = hub.pch().exceptions();
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions), "EXTCODECOPY: mxp and hub disagree on MXPX");
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "EXTCODECOPY: mxp and hub disagree on MXPX");
 
     // The MXPX case
     if (mxpCall.mxpx) {

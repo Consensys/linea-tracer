@@ -48,7 +48,9 @@ public class CodeCopySection extends TraceSection {
     imcFragment.callMxp(mxpCall);
 
     final short exceptions = hub.pch().exceptions();
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions), "CODECOPY: mxp and hub disagree on MXPX");
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "CODECOPY: mxp and hub disagree on MXPX");
 
     // The MXPX case
     if (mxpCall.mxpx) {

@@ -138,8 +138,9 @@ public abstract class CreateSection extends TraceSection
     // MXPX case
     final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     imcFragment.callMxp(mxpCall);
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
-            "CREATE(2): mxp and hub disagree on MXPX");
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "CREATE(2): mxp and hub disagree on MXPX");
     if (mxpCall.mxpx) {
       return;
     }
@@ -147,8 +148,9 @@ public abstract class CreateSection extends TraceSection
     // OOGX case
     final StpCall stpCall = new StpCall(hub, frame, mxpCall.getGasMxp());
     imcFragment.callStp(stpCall);
-    checkArgument(stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions),
-            "CREATE(2): stp and hub disagree on OOGX");
+    checkArgument(
+        stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions),
+        "CREATE(2): stp and hub disagree on OOGX");
     if (Exceptions.outOfGasException(exceptions)) {
       return;
     }
@@ -167,7 +169,8 @@ public abstract class CreateSection extends TraceSection
     final boolean emptyInitCode =
         scenarioFragment.getScenario() == CREATE_EMPTY_INIT_CODE_WONT_REVERT;
 
-    checkArgument(oobCall.isAbortingCondition() == aborts, "CREATE(2): oob and hub disagree on ABORT");
+    checkArgument(
+        oobCall.isAbortingCondition() == aborts, "CREATE(2): oob and hub disagree on ABORT");
     if (aborts) {
       this.traceAbort(hub);
       return;

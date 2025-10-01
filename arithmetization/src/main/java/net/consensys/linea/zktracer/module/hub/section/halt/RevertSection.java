@@ -50,7 +50,9 @@ public class RevertSection extends TraceSection {
     // triggerMxp = true
     final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     imcFragment.callMxp(mxpCall);
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions), "REVERT: mxp and hub disagree on MXPX");
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "REVERT: mxp and hub disagree on MXPX");
 
     if (Exceptions.memoryExpansionException(exceptions)) {
       return;

@@ -132,8 +132,9 @@ public class PrecompileSubsection
   public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
     // only successful PRC calls should enter here
-    checkArgument(precompileScenarioFragment.scenario() == PRC_SUCCESS_WONT_REVERT,
-            "precompile scenario %s incompatible with being rolled back");
+    checkArgument(
+        precompileScenarioFragment.scenario() == PRC_SUCCESS_WONT_REVERT,
+        "precompile scenario %s incompatible with being rolled back");
 
     precompileScenarioFragment.scenario(PRC_SUCCESS_WILL_REVERT);
   }

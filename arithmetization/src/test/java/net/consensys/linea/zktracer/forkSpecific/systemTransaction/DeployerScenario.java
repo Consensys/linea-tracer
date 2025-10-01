@@ -15,16 +15,16 @@
 package net.consensys.linea.zktracer.forkSpecific.systemTransaction;
 
 enum DeployerScenario {
-    PREFUNDED___DEPLOYMENT_SUCCESS,
-    PREFUNDED___DEPLOYMENT_FAILURE,
-    FUNDED_IN_BLOCK___DEPLOYMENT_SUCCESS,
-    FUNDED_IN_BLOCK___DEPLOYMENT_FAILURE;
+  PREFUNDED___DEPLOYMENT_SUCCESS,
+  PREFUNDED___DEPLOYMENT_FAILURE,
+  FUNDED_IN_BLOCK___DEPLOYMENT_SUCCESS,
+  FUNDED_IN_BLOCK___DEPLOYMENT_FAILURE;
 
-    public boolean isPrefunded() {
-        return this == PREFUNDED___DEPLOYMENT_SUCCESS || this == PREFUNDED___DEPLOYMENT_FAILURE;
-    }
+  public boolean isPrefunded() {
+    return this == PREFUNDED___DEPLOYMENT_SUCCESS || this == PREFUNDED___DEPLOYMENT_FAILURE;
+  }
 
-    public boolean deploymentSucceeds() {
-        return this == PREFUNDED___DEPLOYMENT_SUCCESS || this == FUNDED_IN_BLOCK___DEPLOYMENT_SUCCESS;
-    }
+  public boolean deploymentSucceeds() {
+    return this == PREFUNDED___DEPLOYMENT_SUCCESS || this == FUNDED_IN_BLOCK___DEPLOYMENT_SUCCESS;
+  }
 }

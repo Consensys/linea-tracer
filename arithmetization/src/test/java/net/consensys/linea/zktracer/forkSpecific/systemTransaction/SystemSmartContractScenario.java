@@ -15,7 +15,7 @@
 package net.consensys.linea.zktracer.forkSpecific.systemTransaction;
 
 enum SystemSmartContractScenario {
-    EXISTS_PRIOR_TO_CONFLATION,
-    DEPLOY_IN_GENESIS_BLOCK,
-    DEPLOY_IN_FIRST_BLOCK,
+  EXISTS_PRIOR_TO_CONFLATION,
+  DEPLOY_IN_GENESIS_BLOCK,
+  DEPLOY_IN_FIRST_BLOCK,
 }

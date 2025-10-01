@@ -21,7 +21,6 @@ import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOC
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_TIME_STAMP;
 import static net.consensys.linea.zktracer.Fork.isPostShanghai;
 import static net.consensys.linea.zktracer.forkSpecific.systemTransaction.DeployerScenario.*;
-import static net.consensys.linea.zktracer.forkSpecific.systemTransaction.SystemSmartContractScenario.DEPLOY_IN_GENESIS_BLOCK;
 import static net.consensys.linea.zktracer.forkSpecific.systemTransaction.SystemSmartContractScenario.EXISTS_PRIOR_TO_CONFLATION;
 import static net.consensys.linea.zktracer.forkSpecific.systemTransaction.SystemTransactionTestUtils.byteCodeCallingSystemSmartContract;
 import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.SYSI_EIP_2935_HISTORICAL_HASH;
@@ -73,7 +72,8 @@ public class SystemTransactionTests extends TracerTestBase {
   private final Address deployerOf4788address =
       Address.fromHexString("0x0B799C86a49DEeb90402691F1041aa3AF2d3C875");
 
-  // Note: these computations are USELESS as the synthetic transactions prescribe a gas limit. We can't set it ourselves in the same transaction.
+  // Note: these computations are USELESS as the synthetic transactions prescribe a gas limit. We
+  // can't set it ourselves in the same transaction.
   //
   // EIP-4788 init code:
   // 0x60618060095f395ff33373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762001fff810690815414603c575f5ffd5b62001fff01545f5260205ff35b5f5ffd5b62001fff42064281555f359062001fff015500
@@ -90,7 +90,10 @@ public class SystemTransactionTests extends TracerTestBase {
   // floor   cost: 21_000 + 10 * weighted_byte_count = 21_000 + 10 * 365 = 24_650
 
   // both of these upfront gas costs leave no gas for execution
-    final long extra = 1_000_000L;
+  // TODO: system transactions CAN'T FAIL because the gas limit is part of the signed transaction,
+  //   so this is useless ... the deployment would fail at the transaction validation step, before
+  //   even being executed, if not given enough balance by the funder transfer
+  final long extra = 1_000_000L;
   final long upfrontGasCost4788 = 54_636L + extra;
   final long upfrontGasCost2935 = 54_460L + extra;
 
@@ -206,7 +209,7 @@ public class SystemTransactionTests extends TracerTestBase {
   private static final ToyAccount callerOf2935 =
       ToyAccount.builder()
           .address(Address.wrap(leftPadTo(Bytes.fromHexString("0x2935"), Address.SIZE)))
-              .balance(Wei.fromEth(1))
+          .balance(Wei.fromEth(1))
           .code(
               Bytes.concatenate(
                   byteCodeCallingSystemSmartContract(
@@ -222,7 +225,7 @@ public class SystemTransactionTests extends TracerTestBase {
   private static final ToyAccount callerOf4788 =
       ToyAccount.builder()
           .address(Address.wrap(leftPadTo(Bytes.fromHexString("0x4788"), Address.SIZE)))
-            .balance(Wei.fromEth(1))
+          .balance(Wei.fromEth(1))
           .code(
               Bytes.concatenate(
                   byteCodeCallingSystemSmartContract(
@@ -363,7 +366,14 @@ public class SystemTransactionTests extends TracerTestBase {
             0);
     builder
         .accounts(
-            List.of(senderAccount, deployerOf2935, deployerOf4788, callerOf2935, callerOf4788, funderOf2935deployer, funderOf4788deployer))
+            List.of(
+                senderAccount,
+                deployerOf2935,
+                deployerOf4788,
+                callerOf2935,
+                callerOf4788,
+                funderOf2935deployer,
+                funderOf4788deployer))
         .addBlock(transactionsInGenesisBlock)
         .addBlock(transactionsInBlock1)
         .addBlock(transactionsInBlock2)
@@ -380,17 +390,16 @@ public class SystemTransactionTests extends TracerTestBase {
         .build();
   }
 
-    private Transaction check4788Tx(long nonce) {
-        return ToyTransaction.builder()
-                .sender(senderAccount)
-                .to(callerOf4788)
-                .nonce(nonce)
-                .keyPair(senderKeyPair)
-                .build();
-    }
+  private Transaction check4788Tx(long nonce) {
+    return ToyTransaction.builder()
+        .sender(senderAccount)
+        .to(callerOf4788)
+        .nonce(nonce)
+        .keyPair(senderKeyPair)
+        .build();
+  }
 
-
-    private Transaction transferValueTo2935Tx(long nonce) {
+  private Transaction transferValueTo2935Tx(long nonce) {
     return ToyTransaction.builder()
         .sender(senderAccount)
         .toAddress(EIP2935_HISTORY_STORAGE_ADDRESS)
@@ -445,17 +454,17 @@ public class SystemTransactionTests extends TracerTestBase {
   private Wei initialDeployerBalance(SystemTransactionType type, DeployerScenario scenario) {
     checkArgument(type == SYSI_EIP_4788_BEACON_BLOCK_ROOT || type == SYSI_EIP_2935_HISTORICAL_HASH);
 
-      if (!scenario.isPrefunded()) {
-          return Wei.ZERO;
-      }
-      if (scenario.deploymentSucceeds()) {
-          return Wei.fromEth(3);
-      }
+    if (!scenario.isPrefunded()) {
+      return Wei.ZERO;
+    }
+    if (scenario.deploymentSucceeds()) {
+      return Wei.fromEth(3);
+    }
 
     return switch (type) {
-        case SYSI_EIP_4788_BEACON_BLOCK_ROOT -> Wei.of(insufficientBalanceFor4788Deployment);
-        case SYSI_EIP_2935_HISTORICAL_HASH -> Wei.of(insufficientBalanceFor2935Deployment);
-        default -> throw new IllegalStateException("Unexpected value: " + type);
+      case SYSI_EIP_4788_BEACON_BLOCK_ROOT -> Wei.of(insufficientBalanceFor4788Deployment);
+      case SYSI_EIP_2935_HISTORICAL_HASH -> Wei.of(insufficientBalanceFor2935Deployment);
+      default -> throw new IllegalStateException("Unexpected value: " + type);
     };
   }
 
@@ -463,10 +472,10 @@ public class SystemTransactionTests extends TracerTestBase {
     checkArgument(type == SYSI_EIP_4788_BEACON_BLOCK_ROOT || type == SYSI_EIP_2935_HISTORICAL_HASH);
     checkArgument(!scenario.isPrefunded());
 
-      return switch (type) {
-          case SYSI_EIP_4788_BEACON_BLOCK_ROOT -> Wei.of(insufficientBalanceFor4788Deployment);
-          case SYSI_EIP_2935_HISTORICAL_HASH -> Wei.of(insufficientBalanceFor2935Deployment);
-          default -> throw new IllegalStateException("Unexpected value: " + type);
-      };
+    return switch (type) {
+      case SYSI_EIP_4788_BEACON_BLOCK_ROOT -> Wei.of(insufficientBalanceFor4788Deployment);
+      case SYSI_EIP_2935_HISTORICAL_HASH -> Wei.of(insufficientBalanceFor2935Deployment);
+      default -> throw new IllegalStateException("Unexpected value: " + type);
+    };
   }
 }

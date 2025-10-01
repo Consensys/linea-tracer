@@ -645,13 +645,17 @@ public abstract class Hub implements Module {
       final long initiallyAvailableGas = frame.getRemainingGas();
       final Transaction tx = currentTransaction.getBesuTransaction();
 
-      assert recipientAddress.equals(effectiveToAddress(tx))
-          : "Mismatch between frame and transaction recipient";
-      assert senderAddress.equals(tx.getSender()) : "Mismatch between frame and transaction sender";
-      assert isDeployment == tx.getTo().isEmpty()
-          : "Mismatch between frame and transaction deployment info";
-      assert value.equals(Wei.of(tx.getValue().getAsBigInteger()))
-          : "Mismatch between frame and transaction value";
+      checkArgument(
+          recipientAddress.equals(effectiveToAddress(tx)),
+          "Mismatch between frame and transaction recipient");
+      checkArgument(
+          senderAddress.equals(tx.getSender()), "Mismatch between frame and transaction sender");
+      checkArgument(
+          isDeployment == tx.getTo().isEmpty(),
+          "Mismatch between frame and transaction deployment info");
+      checkArgument(
+          value.equals(Wei.of(tx.getValue().getAsBigInteger())),
+          "Mismatch between frame and transaction value");
       checkArgument(
           frame.getRemainingGas() == currentTransaction.getInitiallyAvailableGas(),
           "Frame gas available at the beginning of the tx %s != transaction initially available gas %s",
@@ -778,8 +782,9 @@ public abstract class Hub implements Module {
   }
 
   public void tracePreExecution(final MessageFrame frame) {
-    assert state().processingPhase() == TX_EXEC
-        : "There can't be any execution if the HUB is not in execution phase";
+    checkArgument(
+        state().processingPhase() == TX_EXEC,
+        "There can't be any execution if the HUB is not in execution phase");
     this.processStateExec(frame);
   }
 
@@ -794,8 +799,9 @@ public abstract class Hub implements Module {
    * (i.e. empty initialization code) ?
    */
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-    assert state().processingPhase() == TX_EXEC
-        : "There can't be any execution if the HUB is not in execution phase";
+    checkArgument(
+        state().processingPhase() == TX_EXEC,
+        "There can't be any execution if the HUB is not in execution phase");
 
     final TraceSection currentSection = state.currentTransactionHubSections().currentSection();
 
@@ -831,8 +837,9 @@ public abstract class Hub implements Module {
    */
   private void exitDeploymentFromDeploymentInfoPov(MessageFrame frame) {
     final Address bytecodeAddress = currentFrame().byteCodeAddress();
-    assert bytecodeAddress.equals(bytecodeAddress())
-        : "bytecode and contract address mismatch when exit from deployment";
+    checkArgument(
+        bytecodeAddress.equals(bytecodeAddress()),
+        "bytecode and contract address mismatch when exit from deployment");
 
     /**
      * Explanation: if the current address isn't under deployment there is nothing to do.
@@ -841,8 +848,9 @@ public abstract class Hub implements Module {
      * immediately set to the deployed state
      */
     if (state.processingPhase() == TX_SKIP) {
-      assert !deploymentStatusOfBytecodeAddress()
-          : "In TX_SKIP phase all deployments must be empty code";
+      checkArgument(
+          !deploymentStatusOfBytecodeAddress(),
+          "In TX_SKIP phase all deployments must be empty code");
       return;
     }
     /**
@@ -875,8 +883,9 @@ public abstract class Hub implements Module {
 
     final boolean emptyDeployment = messageFrame().getCode().getBytes().isEmpty();
 
-    assert deploymentStatusOfBytecodeAddress() == !emptyDeployment
-        : "empty deployments are immediately considered as 'deployed'";
+    checkArgument(
+        deploymentStatusOfBytecodeAddress() == !emptyDeployment,
+        "empty deployments are immediately considered as 'deployed'");
 
     if (emptyDeployment) return;
     // from here on out nonempty deployments

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
@@ -116,7 +117,7 @@ public class Util {
    * @return The UInt256 sum of the products of the elements in the two input ranges.
    */
   public static UInt256 multiplyRange(Bytes[] range1, Bytes[] range2) {
-    assert range1.length == range2.length : "Ranges must be of the same length";
+    checkArgument(range1.length == range2.length, "Ranges must be of the same length");
     UInt256 sum = UInt256.ZERO;
     for (int i = 0; i < range1.length; i++) {
       UInt256 prod =
@@ -177,8 +178,8 @@ public class Util {
    */
   public static Bytes rightPaddedSlice(Bytes data, int offset, int size) {
 
-    assert offset >= 0 : "Offset must be non-negative";
-    assert size >= 0 : "Size must be non-negative";
+    checkArgument(offset >= 0, "Offset must be non-negative");
+    checkArgument(size >= 0, "Size must be non-negative");
 
     final int dataSize = data.size();
 

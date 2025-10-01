@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 
@@ -157,7 +158,7 @@ public class AccountSnapshot {
 
   public void wipe(DeploymentInfo deploymentInfo) {
     final boolean deploymentStatus = deploymentInfo.getDeploymentStatus(address);
-    assert !deploymentStatus : "Cannot wipe an account that is under deployment";
+    checkArgument(!deploymentStatus, "Cannot wipe an account that is under deployment");
     this.nonce(0).balance(Wei.ZERO).code(Bytecode.EMPTY).setDeploymentInfo(deploymentInfo);
   }
 

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___DOM_SUB_STAMPS;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
@@ -118,7 +119,8 @@ public abstract class AccountFragment
       Optional<Bytes> addressToTrim,
       DomSubStampsSubFragment domSubStampsSubFragment,
       TransactionProcessingType txProcessingType) {
-    assert oldState.address().equals(newState.address()) : "Address mismatch in ACC fragment";
+    checkArgument(
+        oldState.address().equals(newState.address()), "Address mismatch in ACC fragment");
 
     transactionProcessingMetadata = txProcessingType == USER ? hub.txStack().current() : null;
     hubStamp = hub.stamp();

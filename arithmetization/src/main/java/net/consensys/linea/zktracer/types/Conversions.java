@@ -110,13 +110,13 @@ public class Conversions {
 
   public static long bytesToLong(final Bytes input) {
     final Bytes trimmedBytes = input.trimLeadingZeros();
-    assert trimmedBytes.size() <= 8 : "Input bytes must be at most 8 bytes long";
+    checkArgument(trimmedBytes.size() <= 8, "Input bytes must be at most 8 bytes long");
     return trimmedBytes.toLong();
   }
 
   public static short bytesToShort(final Bytes input) {
     final Bytes trimmedBytes = input.trimLeadingZeros();
-    assert trimmedBytes.size() <= 2 : "Input bytes must be at most 2 bytes long";
+    checkArgument(trimmedBytes.size() <= 2, "Input bytes must be at most 2 bytes long");
     return (short) trimmedBytes.toInt();
   }
 

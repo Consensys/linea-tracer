@@ -374,12 +374,12 @@ public class ZkCounter implements LineCountingTracer {
   }
 
   @Override
-  public void traceStartConflation(long numBlocksInConflation) {}
+  public void traceStartConflation(long numBlocksInConflation) {
+    blockHash.updateTally(BLOCKHASH_MAX_HISTORY * NB_ROWS_BLOCKHASH);
+  }
 
   @Override
-  public void traceEndConflation(WorldView state) {
-    blockHash.updateTally((BLOCKHASH_MAX_HISTORY - 1) * NB_ROWS_BLOCKHASH);
-  }
+  public void traceEndConflation(WorldView state) {}
 
   @Override
   public void traceStartBlock(

@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_HASH;
+import static net.consensys.linea.zktracer.module.blockhash.BlockhashOperation.NB_ROWS_BLOCKHASH;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.types.Conversions.longToBytes32;
 
@@ -53,7 +54,6 @@ import org.hyperledger.besu.plugin.services.BlockchainService;
 public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOpcodeDefer {
   private final Hub hub;
   private final Wcp wcp;
-  // WARN: do not change my name, or modify the error string in the try catch
   private final BlockchainService blockchain;
   private final ModuleOperationStackedSet<BlockhashOperation> operations =
       new ModuleOperationStackedSet<>();
@@ -148,7 +148,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
       }
     } else {
       log.info(
-          "No blockchain service provided to trace BlockHash module, shouldn't happen in prod, assuming tests");
+          "No blockchain service provided to trace BlockHash module, shouldn't happen when tracing, assuming counting or testing mode");
     }
 
     // end the conflation normally
@@ -181,5 +181,13 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
       op.traceMacro(trace.blockhash(), blockhashVal);
       op.tracePreprocessing(trace.blockhash());
     }
+  }
+
+  @Override
+  public int lineCount() {
+    return operations().lineCount()
+        + (operations.conflationFinished()
+            ? 0
+            : (BLOCKHASH_MAX_HISTORY + relBlock) * NB_ROWS_BLOCKHASH);
   }
 }

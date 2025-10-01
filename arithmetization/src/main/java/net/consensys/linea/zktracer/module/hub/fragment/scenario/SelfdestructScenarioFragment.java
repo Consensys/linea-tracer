@@ -42,7 +42,7 @@ public class SelfdestructScenarioFragment implements TraceFragment {
   public Trace.Hub trace(Trace.Hub trace) {
     checkArgument(
         !scenario.equals(UNDEFINED),
-        "SELFDESTRUCT scenario %s is UNDEFINED at trace time",
+        "SELFDESTRUCT: scenario %s is UNDEFINED at trace time",
         scenario);
     return trace
         .peekAtScenario(true)

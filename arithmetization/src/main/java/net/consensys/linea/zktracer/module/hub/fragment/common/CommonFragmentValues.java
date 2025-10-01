@@ -134,7 +134,7 @@ public class CommonFragmentValues {
 
     if (Exceptions.staticFault(exceptions)) {
       checkArgument(
-          opCode.mayTriggerStaticException(), "Static exception on non static opcode" + opCode);
+          opCode.mayTriggerStaticException(), "CommonFragmentValues: opCode %s throws impossible static exception", opCode);
       setTracedException(TracedException.STATIC_FAULT);
       return;
     }

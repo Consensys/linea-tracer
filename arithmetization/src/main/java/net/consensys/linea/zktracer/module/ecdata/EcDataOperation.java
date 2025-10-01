@@ -135,13 +135,13 @@ public class EcDataOperation extends ModuleOperation {
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       Bytes callData,
       Bytes returnData) {
-    checkArgument(precompileFlag.isEcdataPrecompile(), "invalid EC type");
+    checkArgument(precompileFlag.isEcdataPrecompile(), "EcDataOperation: precompile %s isn't of EC_DATA type", precompileFlag);
 
     this.precompileFlag = precompileFlag;
     final int callDataSize = callData.size();
     checkArgument(
         callDataSize > 0,
-        "EcDataOperation should only be called with nonempty call rightPaddedCallData");
+        "EcDataOperation should only be called with nonempty call data");
     final int paddedCallDataLength =
         switch (precompileFlag) {
           case PRC_ECRECOVER -> TOTAL_SIZE_ECRECOVER_DATA;
@@ -150,7 +150,7 @@ public class EcDataOperation extends ModuleOperation {
           case PRC_ECPAIRING -> {
             checkArgument(
                 callDataSize % TOTAL_SIZE_ECPAIRING_DATA_MIN == 0,
-                "ECPAIRING call data size expected to be multiple of %s, but remainder is %s",
+                "ECPAIRING: call data size expected to be multiple of %s, but remainder is %s ≠ 0",
                 TOTAL_SIZE_ECPAIRING_DATA_MIN,
                 callDataSize % TOTAL_SIZE_ECPAIRING_DATA_MIN);
             yield callDataSize;
@@ -431,7 +431,7 @@ public class EcDataOperation extends ModuleOperation {
     if (internalChecksPassed && returnData.toArray().length != 0) {
       checkArgument(
           returnData.toArray().length == 64,
-          "ECADD return data size %s should be 64",
+          "ECADD: return data size %s should be 64",
           returnData.toArray().length);
       resX = EWord.of(returnData.slice(0, 32));
       resY = EWord.of(returnData.slice(32, 32));
@@ -702,14 +702,14 @@ public class EcDataOperation extends ModuleOperation {
       if (precompileFlag != PRC_ECPAIRING || !isData) {
         checkArgument(
             ct == 0,
-            "ct should be 0 except for ECPAIRING data row, yet prc = %s, isData = %s, ct = %s",
+            "EcDataOperation's trace method: ct should be 0 except for ECPAIRING data rows, yet prc = %s, isData = %s, ct = %s",
             precompileFlag,
             isData,
             ct);
       }
       checkArgument(
           !(isSmallPoint && isLargePoint),
-          "ECPAIRING: data simultaneously categorized as small and large point");
+          "EcDataOperation's trace: ECPAIRING data simultaneously categorized as small and large point");
 
       trace
           .stamp(stamp)

@@ -121,7 +121,7 @@ public abstract class AccountFragment
       TransactionProcessingType txProcessingType) {
     checkArgument(
         oldState.address().equals(newState.address()),
-        "Address mismatch in AccountFragment constructor");
+        "AccountFragment: address mismatch in constructor");
 
     transactionProcessingMetadata = txProcessingType == USER ? hub.txStack().current() : null;
     hubStamp = hub.stamp();

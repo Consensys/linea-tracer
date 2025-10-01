@@ -66,7 +66,7 @@ public class StpCall implements TraceSubFragment {
     this.opCodeData = hub.opCodeData();
 
     checkArgument(
-        opCodeData.isCall() || opCodeData.isCreate(), opCode + " is not a CALL or CREATE opcode");
+        opCodeData.isCall() || opCodeData.isCreate(), "STP: opCode %s is not a CALL or CREATE opcode", opCode);
 
     this.memoryExpansionGas = memoryExpansionGas;
     this.gasActual = frame.getRemainingGas();

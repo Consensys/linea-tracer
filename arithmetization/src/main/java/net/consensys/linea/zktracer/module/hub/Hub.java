@@ -846,7 +846,7 @@ public abstract class Hub implements Module {
     final Address bytecodeAddress = currentFrame().byteCodeAddress();
     checkArgument(
         bytecodeAddress.equals(bytecodeAddress()),
-        "bytecode and contract address mismatch when exit from deployment");
+        "bytecode address mismatch between frame / callFrame at exit from deployment");
 
     /**
      * Explanation: if the current address isn't under deployment there is nothing to do.
@@ -857,7 +857,7 @@ public abstract class Hub implements Module {
     if (state.processingPhase() == TX_SKIP) {
       checkArgument(
           !deploymentStatusOfBytecodeAddress(),
-          "In TX_SKIP phase all deployments must be empty code");
+          "TX_SKIP: deployments must have empty code");
       return;
     }
     /**

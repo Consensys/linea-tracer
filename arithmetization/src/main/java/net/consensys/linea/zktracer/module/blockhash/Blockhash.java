@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.blockhash;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_HASH;
@@ -126,30 +127,28 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   @Override
   public void traceEndConflation(WorldView state) {
     // fill blockhash to have hashes of blocks STARTBLOCK-256 to ENDBLOCK -1
-    final long lastBlockNumberToFill = absBlock - 1;
-    final long firstBlockNumberToFill =
-        lastBlockNumberToFill - (relBlock - 1) - BLOCKHASH_MAX_HISTORY;
+    if (blockchain != null) {
+      final long lastBlockNumberToFill = Math.max(absBlock - 1, 0);
+      final long firstBlockNumberToFill =
+          Math.max(lastBlockNumberToFill - (relBlock - 1) - BLOCKHASH_MAX_HISTORY, 0);
 
-    for (long block = lastBlockNumberToFill; block >= firstBlockNumberToFill; block--) {
-
-      final Hash parentHash = header.getParentHash();
-      try {
+      for (long block = lastBlockNumberToFill; block >= firstBlockNumberToFill; block--) {
+        final Hash parentHash = header.getParentHash();
         // update header to be the previous block header
         header = blockchain.getBlockHeaderByHash(parentHash).get();
-      } catch (Exception e) {
-        assert e.getMessage().contains("because \"this.blockchain\" is null") : e;
-        log.info(
-            "No blockchain service provided to trace BlockHash module, shouldn't happen in prod, assuming tests");
+        final Bytes32 blockB32 = longToBytes32(block);
+        final boolean isPresent = blockHashMap.containsKey(blockB32);
+        if (!isPresent) {
+          // it's present only if a BLOCKHASH opcode was called for this block number
+          blockHashMap.put(blockB32, parentHash);
+          operations.add(new BlockhashOperation((short) 1, block + 1, blockB32, parentHash, wcp));
+        } else {
+          checkArgument(blockHashMap.get(blockB32) == parentHash, "Not consistent blockhashes");
+        }
       }
-      final Bytes32 blockB32 = longToBytes32(block);
-      final boolean isPresent = blockHashMap.containsKey(blockB32);
-      if (!isPresent) {
-        // it's present only if a BLOCKHASH opcode was called for this block number
-        blockHashMap.put(blockB32, parentHash);
-        operations.add(new BlockhashOperation((short) 1, block + 1, blockB32, parentHash, wcp));
-      } else {
-        assert blockHashMap.get(blockB32) == parentHash : "Not consistent blockhashes";
-      }
+    } else {
+      log.info(
+          "No blockchain service provided to trace BlockHash module, shouldn't happen in prod, assuming tests");
     }
 
     // end the conflation normally
@@ -177,7 +176,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
     for (BlockhashOperation op : sortedOperations) {
       final Bytes32 blockhashVal =
           op.blockhashRes() == Bytes32.ZERO
-              ? this.blockHashMap.getOrDefault(op.blockhashArg(), Bytes32.ZERO)
+              ? blockHashMap.getOrDefault(op.blockhashArg(), Bytes32.ZERO)
               : op.blockhashRes();
       op.traceMacro(trace.blockhash(), blockhashVal);
       op.tracePreprocessing(trace.blockhash());

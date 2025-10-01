@@ -89,20 +89,7 @@ public class SystemTransactionTests extends TracerTestBase {
   // upfront cost: 21_000 + 32_000 + 4 * weighted_byte_count = 53000 + 4 * 365 = 54_460
   // floor   cost: 21_000 + 10 * weighted_byte_count = 21_000 + 10 * 365 = 24_650
 
-  // both of these upfront gas costs leave no gas for execution
-  // TODO: system transactions CAN'T FAIL because the gas limit is part of the signed transaction,
-  //   so this is useless ... the deployment would fail at the transaction validation step, before
-  //   even being executed, if not given enough balance by the funder transfer
-  final long extra = 1_000_000L;
-  final long upfrontGasCost4788 = 54_636L + extra;
-  final long upfrontGasCost2935 = 54_460L + extra;
-
   final BigInteger gasPrice = new BigInteger("e8d4a51000", 16);
-
-  final BigInteger insufficientBalanceFor2935Deployment =
-      BigInteger.valueOf(upfrontGasCost2935).multiply(gasPrice);
-  final BigInteger insufficientBalanceFor4788Deployment =
-      BigInteger.valueOf(upfrontGasCost4788).multiply(gasPrice);
 
   // This test checks the consistency of system account by calling the system account eip-2935 in
   // happy path: not genesis block, system smart contract has code
@@ -130,10 +117,10 @@ public class SystemTransactionTests extends TracerTestBase {
     scenarios.add(
         Arguments.of(
             EXISTS_PRIOR_TO_CONFLATION,
-            PREFUNDED___DEPLOYMENT_SUCCESS,
+            PREFUNDED,
             false,
             EXISTS_PRIOR_TO_CONFLATION,
-            PREFUNDED___DEPLOYMENT_SUCCESS,
+            PREFUNDED,
             false));
     for (SystemSmartContractScenario scenario2935 : SystemSmartContractScenario.values()) {
       if (scenario2935 == EXISTS_PRIOR_TO_CONFLATION) {
@@ -446,7 +433,6 @@ public class SystemTransactionTests extends TracerTestBase {
   /**
    * Returns the appropriate initial balance for the deployer of the relevant {@code type} of system
    * transaction. This is 0 if the {@code scenario} is NOT {@link DeployerScenario#isPrefunded()}.
-   * Otherwise, the value depends on the {@link DeployerScenario#deploymentSucceeds()}.
    *
    * @param scenario
    * @return
@@ -454,17 +440,9 @@ public class SystemTransactionTests extends TracerTestBase {
   private Wei initialDeployerBalance(SystemTransactionType type, DeployerScenario scenario) {
     checkArgument(type == SYSI_EIP_4788_BEACON_BLOCK_ROOT || type == SYSI_EIP_2935_HISTORICAL_HASH);
 
-    if (!scenario.isPrefunded()) {
-      return Wei.ZERO;
-    }
-    if (scenario.deploymentSucceeds()) {
-      return Wei.fromEth(3);
-    }
-
-    return switch (type) {
-      case SYSI_EIP_4788_BEACON_BLOCK_ROOT -> Wei.of(insufficientBalanceFor4788Deployment);
-      case SYSI_EIP_2935_HISTORICAL_HASH -> Wei.of(insufficientBalanceFor2935Deployment);
-      default -> throw new IllegalStateException("Unexpected value: " + type);
+    return switch (scenario) {
+      case PREFUNDED -> Wei.fromEth(3);
+      case FUNDED_IN_BLOCK -> Wei.ZERO;
     };
   }
 
@@ -472,10 +450,6 @@ public class SystemTransactionTests extends TracerTestBase {
     checkArgument(type == SYSI_EIP_4788_BEACON_BLOCK_ROOT || type == SYSI_EIP_2935_HISTORICAL_HASH);
     checkArgument(!scenario.isPrefunded());
 
-    return switch (type) {
-      case SYSI_EIP_4788_BEACON_BLOCK_ROOT -> Wei.of(insufficientBalanceFor4788Deployment);
-      case SYSI_EIP_2935_HISTORICAL_HASH -> Wei.of(insufficientBalanceFor2935Deployment);
-      default -> throw new IllegalStateException("Unexpected value: " + type);
-    };
+    return Wei.fromEth(2);
   }
 }

@@ -148,16 +148,6 @@ public class SystemTransactionTests extends TracerTestBase {
         }
       }
     }
-
-    // scenarios.clear();
-    // scenarios.add(Arguments.of(
-    // DEPLOY_IN_GENESIS_BLOCK,
-    // PREFUNDED___DEPLOYMENT_FAILURE,
-    // true,
-    // DEPLOY_IN_GENESIS_BLOCK,
-    // FUNDED_IN_BLOCK___DEPLOYMENT_FAILURE,
-    // false));
-
     return scenarios.stream();
   }
 

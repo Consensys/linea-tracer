@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.statemanager;
 
 import static net.consensys.linea.testing.BytecodeCompiler.newProgram;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.EIP4788_BEACONROOT_ADDRESS;
 
 import java.util.List;
 import java.util.Map;
@@ -127,7 +129,12 @@ public class HubShomeiTests extends TracerTestBase {
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
     final Map<Address, Set<Bytes32>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
 
-    assert (addressSeen.size() == 4);
+    if (isPostCancun(fork)) {
+      assert (addressSeen.size() == 5);
+      assert (addressSeen.contains(EIP4788_BEACONROOT_ADDRESS));
+    } else {
+      assert (addressSeen.size() == 4);
+    }
     assert (addressSeen.contains(senderAddress));
     assert (addressSeen.contains(recipientAccount.getAddress()));
     assert (addressSeen.contains(DEFAULT_COINBASE_ADDRESS));
@@ -182,7 +189,12 @@ public class HubShomeiTests extends TracerTestBase {
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
     final Map<Address, Set<Bytes32>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
 
-    assert (addressSeen.size() == 3);
+    if (isPostCancun(fork)) {
+      assert (addressSeen.size() == 4);
+      assert (addressSeen.contains(EIP4788_BEACONROOT_ADDRESS));
+    } else {
+      assert (addressSeen.size() == 3);
+    }
     assert (addressSeen.contains(senderAddress));
     assert (addressSeen.contains(recipientAccount.getAddress()));
     assert (addressSeen.contains(DEFAULT_COINBASE_ADDRESS));

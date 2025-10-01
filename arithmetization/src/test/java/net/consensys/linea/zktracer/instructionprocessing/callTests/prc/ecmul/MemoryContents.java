@@ -80,7 +80,7 @@ public enum MemoryContents implements PrecompileCallMemoryContents {
           case RANDOM -> RND.substring(36, 36 + 3 * WORD_HEX_SIZE);
         };
 
-    checkState(pointData.length() == 3 * WORD_HEX_SIZE);
+    checkState(pointData.length() == 3 * WORD_HEX_SIZE, "Bad point data length");
 
     String memoryContentsString = pointData + MAX_WORD;
 

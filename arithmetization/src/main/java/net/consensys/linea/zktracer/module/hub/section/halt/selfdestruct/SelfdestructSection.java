@@ -182,7 +182,11 @@ public abstract class SelfdestructSection extends TraceSection
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
 
     final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
-    checkState(isDeployment == selfdestructor.deploymentStatus());
+    checkState(
+        isDeployment == selfdestructor.deploymentStatus(),
+        "SELFDESTRUCT inconsistency: frame deployment = %s but selfdestructor's deployment status = %s",
+        isDeployment,
+        selfdestructor.deploymentStatus());
 
     selfdestructorNew = AccountSnapshot.canonical(hub, selfdestructor.address());
     if (isDeployment) {
@@ -193,9 +197,9 @@ public abstract class SelfdestructSection extends TraceSection
     if (!selfdestructorNew.balance().isZero()) {
 
       // sanity checks
-      checkState(selfdestructTargetsItself());
-      checkState(softAccountWiping());
-      checkState(selfdestructorNew.balance().equals(selfdestructor.balance()));
+      checkState(selfdestructTargetsItself(), "If post SELFDESTRUCT the seldestructor's balance is nonzero then SELFDESTRUCT targets self");
+      checkState(softAccountWiping(), "If post SELFDESTRUCT the seldestructor's balance is nonzero then it is a soft account wipe");
+      checkState(selfdestructorNew.balance().equals(selfdestructor.balance()), "If post SELFDESTRUCT the seldestructor's balance is nonzero then the balance should not have changed");
 
       selfdestructorNew.setBalanceToZero();
     }

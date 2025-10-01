@@ -254,7 +254,9 @@ public class ReturnSection extends TraceSection
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
 
-    checkState(returnFromDeployment);
+    checkState(
+        returnFromDeployment,
+        "RETURN requires resolution at context re-entry only for deployments");
 
     firstCreateeNew = AccountSnapshot.canonical(hub, deploymentAddress);
     final AccountFragment deploymentAccountFragment =
@@ -308,7 +310,9 @@ public class ReturnSection extends TraceSection
 
   private void addDeploymentAccountFragmentIfRoot(Hub hub, MxpCall mxpCall) {
 
-    checkState(returnFromDeployment);
+    checkState(
+        returnFromDeployment,
+        "RETURN associated addDeploymentAccountFragmentIfRoot should be called only for deployments");
 
     firstCreateeNew = AccountSnapshot.canonical(hub, deploymentAddress);
     firstCreateeNew.code(

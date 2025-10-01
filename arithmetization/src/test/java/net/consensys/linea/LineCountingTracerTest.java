@@ -32,6 +32,7 @@ import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
+import org.hyperledger.besu.ethereum.core.BlockBody;
 import org.hyperledger.besu.ethereum.core.BlockHeader;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.junit.jupiter.api.Test;
@@ -112,10 +113,11 @@ public class LineCountingTracerTest extends TracerTestBase {
             .parentHash(DEFAULT_HASH)
             .baseFee(DEFAULT_BASE_FEE)
             .buildBlockHeader();
+    final BlockBody blockBody = BlockBody.empty();
 
     final ZkTracer tracer = new ZkTracer(chainConfig, null);
     tracer.traceStartConflation(1);
-    tracer.traceStartBlock(world, blockHeader, DEFAULT_COINBASE_ADDRESS);
+    tracer.traceStartBlock(world, blockHeader, blockBody, DEFAULT_COINBASE_ADDRESS);
     final Map<String, Integer> sizeBeforeTracer = tracer.getModulesLineCount();
     tracer.popTransactionBundle();
     final Map<String, Integer> sizeAfterTracer = tracer.getModulesLineCount();
@@ -127,7 +129,7 @@ public class LineCountingTracerTest extends TracerTestBase {
 
     final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration);
     counter.traceStartConflation(1);
-    counter.traceStartBlock(world, blockHeader, DEFAULT_COINBASE_ADDRESS);
+    counter.traceStartBlock(world, blockHeader, blockBody, DEFAULT_COINBASE_ADDRESS);
     final Map<String, Integer> sizeBeforeCounter = counter.getModulesLineCount();
     counter.popTransactionBundle();
     final Map<String, Integer> sizeAfterCounter = counter.getModulesLineCount();

@@ -234,7 +234,7 @@ public abstract class AccountFragment
               newState.address(), newState.deploymentNumber(), newState.deploymentStatus());
     } catch (RuntimeException e) {
       // getCfi should NEVER throw en exception when requiresRomLex ≡ true
-      checkState(!requiresRomlex, "Can't get an exception to get CFI when RomLex is required");
+      checkState(!requiresRomlex, "AccountFragment: can't get an exception to get CFI when RomLex is required");
       codeFragmentIndex = 0;
     }
   }

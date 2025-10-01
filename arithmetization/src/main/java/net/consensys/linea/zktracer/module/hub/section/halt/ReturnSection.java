@@ -281,7 +281,7 @@ public class ReturnSection extends TraceSection
 
     checkState(
         returnFromDeployment,
-        "RETURN requires resolution at context re-entry only for deployments");
+        "ReturnSection: a RETURN requires resolution at context re-entry only for deployments");
 
     firstCreateeNew = AccountSnapshot.canonical(hub, deploymentAddress);
     final AccountFragment deploymentAccountFragment =

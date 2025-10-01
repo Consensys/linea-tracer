@@ -439,7 +439,7 @@ public abstract class Hub implements Module {
     gasCalculator = getGasCalculatorFromFork(fork);
     opCodes = OpCodes.load(fork);
     gasProjector = new GasProjector(fork, gasCalculator);
-    checkState(chain.id.signum() >= 0, "chain id must be non negative");
+    checkState(chain.id.signum() >= 0, "Hub constructor: chain id must be nonnegative");
     Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
     final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
     //
@@ -636,7 +636,7 @@ public abstract class Hub implements Module {
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
       if (state.processingPhase() == TX_SKIP) {
-        checkState(currentTraceSection() instanceof TxSkipSection, "expected a skip section");
+        checkState(currentTraceSection() instanceof TxSkipSection, "traceContextEnter of Hub: expected a skip section");
         ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);
       }
       final TransactionProcessingMetadata currentTransaction = transients().tx();

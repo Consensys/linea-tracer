@@ -161,10 +161,10 @@ public class PrecompileSubsection
     final Bytes returnData = frame.getReturnData();
     checkState(
         0 <= mbs && mbs <= MODEXP_COMPONENT_BYTE_SIZE,
-        "MODEXP: invalid mbs: %s not in range [0,%s]",
+        "MODEXP PrecompileSubsection: invalid mbs: %s not in range [0,%s]",
         mbs,
         MODEXP_COMPONENT_BYTE_SIZE);
-    checkState(returnData.size() == mbs, "invalid MODEXP return data size");
+    checkState(returnData.size() == mbs, "MODEXP PrecompileSubsection: return data size %s does not agree with mbs %s", returnData.size(), mbs);
     final Bytes leftPaddedReturnData = leftPadTo(returnData, MODEXP_COMPONENT_BYTE_SIZE);
 
     returnDataRange =

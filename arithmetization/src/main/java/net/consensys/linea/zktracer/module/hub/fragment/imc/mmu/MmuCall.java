@@ -327,7 +327,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     checkState(
         subsection.returnDataRange.getRange().size() == TOTAL_SIZE_ECRECOVER_RESULT,
         String.format(
-            "Ecrecover return data size is %d but is expected to be %d",
+            "MmuCall: Ecrecover return data size is %d but is expected to be %d",
             subsection.returnDataRange.getRange().size(), TOTAL_SIZE_ECRECOVER_RESULT));
 
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
@@ -458,10 +458,10 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
     checkState(
         subsection.callDataSize() == subsection.returnDataSize(),
-        "The IDENTITY precompile should have <call data size> == <return data size>");
+        "MmuCall: the IDENTITY precompile should have <call data size> == <return data size>");
     checkState(
         subsection.returnDataOffset() == 0,
-        "The IDENTITY precompile store its <return data> starting at offset 0");
+        "MmuCall: the IDENTITY precompile store its <return data> starting at offset 0");
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(subsection.exoModuleOperationId())

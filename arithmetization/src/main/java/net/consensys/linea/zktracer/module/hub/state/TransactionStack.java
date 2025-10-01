@@ -64,7 +64,7 @@ public class TransactionStack {
     relativeTransactionNumber -= numberOfTransactionToPop;
     checkState(
         relativeTransactionNumber >= 0,
-        "relativeTransactionNumber = %s < 0",
+        "TransactionStack: relativeTransactionNumber = %s < 0",
         relativeTransactionNumber);
   }
 

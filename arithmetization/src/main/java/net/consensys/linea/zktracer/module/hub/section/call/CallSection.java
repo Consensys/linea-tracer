@@ -425,7 +425,7 @@ public class CallSection extends TraceSection
     checkState(
         scenario == CALL_SMC_UNDEFINED | scenario == CALL_PRC_UNDEFINED,
         String.format(
-            "Call scenario %s should be undefined at context entry resolution", scenario));
+            "CallSection: call scenario %s should be undefined at context entry resolution", scenario));
 
     callerFirstNew = callerFirst.deepCopy();
     calleeFirstNew = calleeFirst.deepCopy().turnOnWarmth();
@@ -443,7 +443,7 @@ public class CallSection extends TraceSection
     if (isNonzeroValueSelfCall()) {
       checkState(
           scenarioFragment.getScenario() == CALL_SMC_UNDEFINED,
-          "Self-calls cannot involve precompiles");
+          "CallSection: self-calls cannot involve precompiles");
       calleeFirst = callerFirstNew.deepCopy();
       calleeFirstNew = callerFirst.deepCopy();
     }

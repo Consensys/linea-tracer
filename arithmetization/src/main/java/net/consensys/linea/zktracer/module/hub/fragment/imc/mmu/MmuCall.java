@@ -362,7 +362,12 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
     final PrecompileScenarioFragment.PrecompileFlag flag =
         subsection.precompileScenarioFragment().flag;
-    checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
+    checkArgument(
+        flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160),
+        "Unexpected precompile %s, only accept %s and %s",
+        flag,
+        PRC_SHA2_256,
+        PRC_RIPEMD_160);
 
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
@@ -381,7 +386,12 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
     final PrecompileScenarioFragment.PrecompileFlag flag =
         subsection.precompileScenarioFragment().flag;
-    checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
+    checkArgument(
+        flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160),
+        "Unexpected precompile %s, only accept %s and %s",
+        flag,
+        PRC_SHA2_256,
+        PRC_RIPEMD_160);
 
     final boolean isShaTwo = flag == PRC_SHA2_256;
 
@@ -409,8 +419,15 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     final PrecompileScenarioFragment.PrecompileFlag flag =
         subsection.precompileScenarioFragment().flag;
 
-    checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
-    checkArgument(!subsection.getReturnAtRange().isEmpty());
+    checkArgument(
+        flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160),
+        "Unexpected precompile %s, only accept %s and %s",
+        flag,
+        PRC_SHA2_256,
+        PRC_RIPEMD_160);
+    checkArgument(
+        !subsection.getReturnAtRange().isEmpty(),
+        "Partial copy of return data cannot be done if the `returnAtRange` is empty");
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(subsection.returnDataContextNumber())

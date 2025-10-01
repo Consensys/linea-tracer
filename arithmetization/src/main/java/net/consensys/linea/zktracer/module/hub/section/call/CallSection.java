@@ -184,7 +184,9 @@ public class CallSection extends TraceSection
 
     final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     firstImcFragment.callMxp(mxpCall);
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "mxp module MXPX does not match the hub's MXPX");
 
     // MXPX case
     if (Exceptions.memoryExpansionException(exceptions)) {
@@ -222,7 +224,7 @@ public class CallSection extends TraceSection
     }
 
     // The CALL is now unexceptional
-    checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions), "Unexpected exception in CallSection");
     currentFrame.childSpanningSection(this);
 
     // the call data span and ``return at'' spans are only required once the CALL is unexceptional
@@ -239,7 +241,9 @@ public class CallSection extends TraceSection
     final CallOobCall oobCall = (CallOobCall) firstImcFragment.callOob(new CallOobCall());
 
     final boolean aborts = hub.pch().abortingConditions().any();
-    checkArgument(oobCall.isAbortingCondition() == aborts);
+    checkArgument(
+        oobCall.isAbortingCondition() == aborts,
+        "oob module ABORT prediction and hub module ABORT prediction mismatch");
 
     hub.defers().scheduleForPostRollback(this, currentFrame);
     hub.defers().scheduleForEndTransaction(this);
@@ -471,7 +475,7 @@ public class CallSection extends TraceSection
   /** Resolution happens as the child context is about to terminate. */
   @Override
   public void resolveUponContextExit(Hub hub, CallFrame frame) {
-    checkArgument(scenarioFragment.getScenario() == CALL_SMC_UNDEFINED);
+    checkArgument(scenarioFragment.getScenario() == CALL_SMC_UNDEFINED, "Illegal CALL scenario at context exit");
   }
 
   @Override

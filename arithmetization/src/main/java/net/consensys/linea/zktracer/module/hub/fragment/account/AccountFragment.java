@@ -119,7 +119,9 @@ public abstract class AccountFragment
       Optional<Bytes> addressToTrim,
       DomSubStampsSubFragment domSubStampsSubFragment,
       TransactionProcessingType txProcessingType) {
-    checkArgument(oldState.address().equals(newState.address()));
+    checkArgument(
+        oldState.address().equals(newState.address()),
+        "Address mismatch in AccountFragment constructor");
 
     transactionProcessingMetadata = txProcessingType == USER ? hub.txStack().current() : null;
     hubStamp = hub.stamp();

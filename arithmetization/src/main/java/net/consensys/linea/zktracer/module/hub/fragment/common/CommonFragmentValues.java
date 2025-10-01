@@ -168,7 +168,8 @@ public class CommonFragmentValues {
 
     if (Exceptions.memoryExpansionException(exceptions)) {
       checkArgument(
-          opCode.mayTriggerMemoryExpansionException(hub.fork), "MXP on non memory opcode" + opCode);
+          opCode.mayTriggerMemoryExpansionException(hub.fork),
+          "MXP triggered by non MXP opcode" + opCode);
       setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }

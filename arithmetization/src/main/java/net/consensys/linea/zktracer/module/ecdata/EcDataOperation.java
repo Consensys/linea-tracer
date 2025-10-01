@@ -148,7 +148,11 @@ public class EcDataOperation extends ModuleOperation {
           case PRC_ECADD -> TOTAL_SIZE_ECADD_DATA;
           case PRC_ECMUL -> TOTAL_SIZE_ECMUL_DATA;
           case PRC_ECPAIRING -> {
-            checkArgument(callDataSize % TOTAL_SIZE_ECPAIRING_DATA_MIN == 0);
+            checkArgument(
+                callDataSize % TOTAL_SIZE_ECPAIRING_DATA_MIN == 0,
+                "ECPAIRING call data size expected to be multiple of %s, but remainder is %s",
+                TOTAL_SIZE_ECPAIRING_DATA_MIN,
+                callDataSize % TOTAL_SIZE_ECPAIRING_DATA_MIN);
             yield callDataSize;
           }
           default -> throw new IllegalArgumentException(
@@ -425,7 +429,10 @@ public class EcDataOperation extends ModuleOperation {
 
     // Extract output
     if (internalChecksPassed && returnData.toArray().length != 0) {
-      checkArgument(returnData.toArray().length == 64);
+      checkArgument(
+          returnData.toArray().length == 64,
+          "ECADD return data size %s should be 64",
+          returnData.toArray().length);
       resX = EWord.of(returnData.slice(0, 32));
       resY = EWord.of(returnData.slice(32, 32));
     }
@@ -473,7 +480,10 @@ public class EcDataOperation extends ModuleOperation {
 
     // Extract output
     if (internalChecksPassed && returnData.toArray().length != 0) {
-      checkArgument(returnData.toArray().length == 64);
+      checkArgument(
+          returnData.toArray().length == 64,
+          "ECMUL: return data size %s should be 64",
+          returnData.toArray().length);
       resX = EWord.of(returnData.slice(0, 32));
       resY = EWord.of(returnData.slice(32, 32));
     }
@@ -690,9 +700,16 @@ public class EcDataOperation extends ModuleOperation {
       }
 
       if (precompileFlag != PRC_ECPAIRING || !isData) {
-        checkArgument(ct == 0);
+        checkArgument(
+            ct == 0,
+            "ct should be 0 except for ECPAIRING data row, yet prc = %s, isData = %s, ct = %s",
+            precompileFlag,
+            isData,
+            ct);
       }
-      checkArgument(!(isSmallPoint && isLargePoint));
+      checkArgument(
+          !(isSmallPoint && isLargePoint),
+          "ECPAIRING: data simultaneously categorized as small and large point");
 
       trace
           .stamp(stamp)

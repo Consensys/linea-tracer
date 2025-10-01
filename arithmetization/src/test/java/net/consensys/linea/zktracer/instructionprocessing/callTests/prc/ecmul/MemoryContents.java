@@ -88,6 +88,9 @@ public enum MemoryContents implements PrecompileCallMemoryContents {
     BytecodeCompiler memoryContents = BytecodeCompiler.newProgram(chainConfig);
     memoryContents.immediate(Bytes.fromHexString(memoryContentsString));
 
+
+    
+
     return memoryContents;
   }
 }

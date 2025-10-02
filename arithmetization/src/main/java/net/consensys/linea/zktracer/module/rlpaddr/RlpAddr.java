@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.Trace.RLP_ADDR_RECIPE_2;
 import static net.consensys.linea.zktracer.Trace.RLP_PREFIX_LIST_SHORT;
 import static net.consensys.linea.zktracer.Trace.Rlpaddr.MAX_CT_CREATE;
 import static net.consensys.linea.zktracer.Trace.Rlpaddr.MAX_CT_CREATE2;
+import static net.consensys.linea.zktracer.module.ModuleName.RLP_ADDR;
 import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES_PREFIX_SHORT_INT;
 import static net.consensys.linea.zktracer.module.rlputilsOld.Pattern.byteCounting;
 import static net.consensys.linea.zktracer.types.AddressUtils.getCreate2RawAddress;
@@ -40,6 +41,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.rlputilsOld.ByteCountAndPowerOutput;
@@ -71,8 +73,8 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
   private final Keccak keccak;
 
   @Override
-  public String moduleKey() {
-    return "RLP_ADDR";
+  public ModuleName moduleKey() {
+    return RLP_ADDR;
   }
 
   @Override

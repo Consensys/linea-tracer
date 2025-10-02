@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.gas;
 
+import static net.consensys.linea.zktracer.module.ModuleName.GAS;
+
 import java.math.BigInteger;
 import java.util.List;
 
@@ -24,6 +26,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
@@ -44,8 +47,8 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
   private GasParameters gasParameters;
 
   @Override
-  public String moduleKey() {
-    return "GAS";
+  public ModuleName moduleKey() {
+    return GAS;
   }
 
   public void call(GasParameters gasParameters, Hub hub, CommonFragmentValues commonValues) {

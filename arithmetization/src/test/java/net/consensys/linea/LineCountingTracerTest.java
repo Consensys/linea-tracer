@@ -16,13 +16,24 @@
 package net.consensys.linea;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.*;
+import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
+import static net.consensys.linea.zktracer.Fork.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import net.consensys.linea.reporting.TracerTestBase;
+import net.consensys.linea.testing.ExecutionEnvironment;
+import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.container.module.Module;
+import org.hyperledger.besu.ethereum.core.BlockHeader;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.junit.jupiter.api.Test;
 
 public class LineCountingTracerTest extends TracerTestBase {
@@ -31,19 +42,99 @@ public class LineCountingTracerTest extends TracerTestBase {
   void noDuplicateNamesInModules() {
     final ZkTracer tracer = new ZkTracer(chainConfig);
     final List<String> tracerToCount =
-        tracer.getModulesToCount().stream().map(Module::moduleKey).toList();
+        tracer.getModulesToCount().stream().map(module -> module.moduleKey().toString()).toList();
     final List<String> tracedModules =
-        tracer.getHub().getModulesToTrace().stream().map(Module::moduleKey).toList();
-    checkArgument(tracerToCount.containsAll(tracedModules), "Some traced modules are not counted");
+        tracer.getHub().getModulesToTrace().stream()
+            .map(module -> module.moduleKey().toString())
+            .toList();
+    final List<String> refTables =
+        tracer.getHub().refTableModules().stream()
+            .map(module -> module.moduleKey().toString())
+            .toList();
+
+    // Check that all traced modules are counted or reference tables
+    checkArgument(
+        Stream.concat(tracerToCount.stream(), refTables.stream())
+            .toList()
+            .containsAll(tracedModules),
+        "Some traced modules are not counted");
+
+    // Search for duplicates
     checkArgument(
         tracerToCount.size() == tracerToCount.stream().distinct().toList().size(),
         "Duplicate has been found");
-
     final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration);
     final List<String> counterToCount =
-        counter.getModulesToCount().stream().map(Module::moduleKey).toList();
+        counter.getModulesToCount().stream().map(module -> module.moduleKey().toString()).toList();
     checkArgument(
         counterToCount.size() == counterToCount.stream().distinct().toList().size(),
         "Duplicate has been found");
+  }
+
+  @Test
+  void sameModuleAcrossAllForkWithZkCounterAndTracer() {
+    final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration);
+    final List<String> counterModules =
+        counter.getModulesToCount().stream().map(module -> module.moduleKey().toString()).toList();
+
+    for (Fork fork : Fork.values()) {
+      if (forkNotSupported(fork)) {
+        continue;
+      }
+      final ChainConfig config = MAINNET_TESTCONFIG(fork);
+      final ZkTracer tracer = new ZkTracer(config);
+      final List<String> tracerModules =
+          tracer.getModulesToCount().stream().map(module -> module.moduleKey().toString()).toList();
+
+      // check that counter ⊆ tracer(fork)
+      for (String module : counterModules) {
+        checkArgument(
+            tracerModules.contains(module),
+            "Module " + module + " is missing in ZkTracer for fork " + fork);
+      }
+      // check that tracer(fork) ⊆ counter
+      for (String module : tracerModules) {
+        checkArgument(
+            counterModules.contains(module),
+            "Module " + module + " is missing in ZkCounter for fork " + fork);
+      }
+    }
+  }
+
+  @Test
+  void startBlockStuffAreNotPopped() {
+    final WorldView world = WorldView.EMPTY;
+    final BlockHeader blockHeader =
+        ExecutionEnvironment.getLineaBlockHeaderBuilder(Optional.empty())
+            .number(DEFAULT_BLOCK_NUMBER)
+            .coinbase(DEFAULT_COINBASE_ADDRESS)
+            .timestamp(DEFAULT_TIME_STAMP)
+            .parentHash(DEFAULT_HASH)
+            .baseFee(DEFAULT_BASE_FEE)
+            .buildBlockHeader();
+
+    final ZkTracer tracer = new ZkTracer(chainConfig);
+    tracer.traceStartConflation(1);
+    tracer.traceStartBlock(world, blockHeader, DEFAULT_COINBASE_ADDRESS);
+    final Map<String, Integer> sizeBeforeTracer = tracer.getModulesLineCount();
+    tracer.popTransactionBundle();
+    final Map<String, Integer> sizeAfterTracer = tracer.getModulesLineCount();
+    for (String module : sizeBeforeTracer.keySet()) {
+      checkArgument(
+          Objects.equals(sizeAfterTracer.get(module), sizeBeforeTracer.get(module)),
+          "Tracer: some block stuff has been removed in Module " + module);
+    }
+
+    final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration);
+    counter.traceStartConflation(1);
+    counter.traceStartBlock(world, blockHeader, DEFAULT_COINBASE_ADDRESS);
+    final Map<String, Integer> sizeBeforeCounter = counter.getModulesLineCount();
+    counter.popTransactionBundle();
+    final Map<String, Integer> sizeAfterCounter = counter.getModulesLineCount();
+    for (String module : sizeBeforeCounter.keySet()) {
+      checkArgument(
+          Objects.equals(sizeAfterCounter.get(module), sizeBeforeCounter.get(module)),
+          "Counter: some block stuff has been removed in Module " + module);
+    }
   }
 }

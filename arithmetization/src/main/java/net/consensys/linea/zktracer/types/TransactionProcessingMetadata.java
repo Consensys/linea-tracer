@@ -195,7 +195,7 @@ public class TransactionProcessingMetadata {
     this.relativeTransactionNumber = relativeTransactionNumber;
 
     isDeployment = transaction.getTo().isEmpty();
-    requiresEvmExecution = computeRequiresEvmExecution(world);
+    requiresEvmExecution = computeRequiresEvmExecution(world, besuTransaction);
     copyTransactionCallData = computeCopyCallData();
 
     initialBalance = getInitialBalance(world);
@@ -234,9 +234,9 @@ public class TransactionProcessingMetadata {
             ? bigIntegerToBytes(besuTransaction.getChainId().get())
             : Bytes.EMPTY;
     gasPrice =
-        besuTransaction.getGasPrice().isPresent()
-            ? bigIntegerToBytes(besuTransaction.getGasPrice().get().getAsBigInteger())
-            : Bytes.EMPTY;
+        besuTransaction.getType().supports1559FeeMarket()
+            ? Bytes.EMPTY
+            : bigIntegerToBytes(besuTransaction.getGasPrice().get().getAsBigInteger());
     maxPriorityFeePerGas =
         besuTransaction.getMaxPriorityFeePerGas().isPresent()
             ? bigIntegerToBytes(besuTransaction.getMaxPriorityFeePerGas().get().getAsBigInteger())
@@ -310,14 +310,14 @@ public class TransactionProcessingMetadata {
     return requiresEvmExecution && !isDeployment && !besuTransaction.getData().get().isEmpty();
   }
 
-  private boolean computeRequiresEvmExecution(WorldView world) {
-    if (!isDeployment) {
-      return Optional.ofNullable(world.get(this.besuTransaction.getTo().get()))
+  public static boolean computeRequiresEvmExecution(WorldView world, Transaction tx) {
+    if (!tx.isContractCreation()) {
+      return Optional.ofNullable(world.get(tx.getTo().get()))
           .map(a -> !a.getCode().isEmpty())
           .orElse(false);
     }
 
-    return !besuTransaction.getInit().get().isEmpty();
+    return !tx.getInit().get().isEmpty();
   }
 
   private BigInteger getInitialBalance(WorldView world) {

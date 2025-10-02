@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.logdata;
 
+import static net.consensys.linea.zktracer.module.ModuleName.LOG_DATA;
+import static net.consensys.linea.zktracer.types.Utils.fromDataSizeToLimbCtMax;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.util.List;
@@ -23,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxnRcpt;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -35,8 +38,8 @@ public class LogData implements Module {
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
 
   @Override
-  public String moduleKey() {
-    return "LOG_DATA";
+  public ModuleName moduleKey() {
+    return LOG_DATA;
   }
 
   @Override
@@ -66,19 +69,23 @@ public class LogData implements Module {
   }
 
   private int lineCountForLogData(RlpTxrcptOperation tx) {
+    return lineCountForLogData(tx.logs());
+  }
+
+  public static int lineCountForLogData(List<Log> logs) {
     int txRowSize = 0;
-    if (tx.logs().isEmpty()) {
+    if (logs.isEmpty()) {
       return 0;
     } else {
-      for (Log log : tx.logs()) {
+      for (Log log : logs) {
         txRowSize += indexMax(log) + 1;
       }
       return txRowSize;
     }
   }
 
-  private int indexMax(Log log) {
-    return log.getData().isEmpty() ? 0 : (log.getData().size() - 1) / 16;
+  private static int indexMax(Log log) {
+    return log.getData().isEmpty() ? 0 : fromDataSizeToLimbCtMax(log.getData().size());
   }
 
   @Override

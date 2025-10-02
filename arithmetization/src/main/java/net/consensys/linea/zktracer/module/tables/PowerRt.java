@@ -16,19 +16,20 @@
 package net.consensys.linea.zktracer.module.tables;
 
 import static net.consensys.linea.zktracer.Trace.LLARGE;
-import static net.consensys.linea.zktracer.module.limits.CountingModuleName.POWER_REFERENCE_TABLE;
+import static net.consensys.linea.zktracer.module.ModuleName.POWER_REFERENCE_TABLE;
 
 import java.util.List;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
 public class PowerRt implements Module {
   @Override
-  public String moduleKey() {
-    return POWER_REFERENCE_TABLE.toString();
+  public ModuleName moduleKey() {
+    return POWER_REFERENCE_TABLE;
   }
 
   @Override

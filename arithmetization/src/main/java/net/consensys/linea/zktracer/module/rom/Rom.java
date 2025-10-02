@@ -15,11 +15,14 @@
 
 package net.consensys.linea.zktracer.module.rom;
 
+import static net.consensys.linea.zktracer.module.ModuleName.ROM;
+
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.module.romlex.RomOperation;
 
@@ -28,8 +31,8 @@ public class Rom implements Module {
   private final RomLex romLex;
 
   @Override
-  public String moduleKey() {
-    return "ROM";
+  public ModuleName moduleKey() {
+    return ROM;
   }
 
   @Override

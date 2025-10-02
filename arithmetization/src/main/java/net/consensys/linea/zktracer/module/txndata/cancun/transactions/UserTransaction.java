@@ -20,9 +20,11 @@ import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.txndata.shanghai.ShanghaiTxndataOperation.MAX_INIT_CODE_SIZE_BYTES;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.TransactionUtils.transactionHasEip1559GasSemantics;
 
 import java.math.BigInteger;
 
+import lombok.Getter;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.module.txndata.cancun.CancunTxnData;
 import net.consensys.linea.zktracer.module.txndata.cancun.CancunTxnDataOperation;
@@ -35,11 +37,19 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class UserTransaction extends CancunTxnDataOperation {
-
+  public static final short NB_ROWS_TXN_DATA_USER_1559_SEMANTIC = 16;
+  public static final short NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC = 14;
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
   public final TransactionProcessingMetadata txn;
   public final ProcessableBlockHeader blockHeader;
   public final Fork fork;
+
+  public enum DominantCost {
+    FLOOR_COST_DOMINATES,
+    EXECUTION_COST_DOMINATES
+  }
+
+  @Getter private DominantCost dominantCost;
 
   public UserTransaction(
       final CancunTxnData txnData, final TransactionProcessingMetadata txnMetadata) {
@@ -81,7 +91,10 @@ public class UserTransaction extends CancunTxnDataOperation {
 
   @Override
   protected int ctMax() {
-    return transactionTypeHasEip1559GasSemantics() ? 15 : 13;
+    return (transactionTypeHasEip1559GasSemantics()
+            ? NB_ROWS_TXN_DATA_USER_1559_SEMANTIC
+            : NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC)
+        - 1;
   }
 
   void hubRow() {
@@ -218,6 +231,10 @@ public class UserTransaction extends CancunTxnDataOperation {
             Bytes.ofUnsignedLong(txn.getFloorCostPrague()));
 
     rows.add(comparingEffectiveRefundsVsFloorCost);
+    dominantCost =
+        comparingEffectiveRefundsVsFloorCost.result()
+            ? DominantCost.FLOOR_COST_DOMINATES
+            : DominantCost.EXECUTION_COST_DOMINATES;
   }
 
   private void detectingEmptyPayloadComputationRow() {
@@ -289,7 +306,7 @@ public class UserTransaction extends CancunTxnDataOperation {
   }
 
   private boolean transactionTypeHasEip1559GasSemantics() {
-    return txn.getBesuTransaction().getType().supports1559FeeMarket();
+    return transactionHasEip1559GasSemantics(txn.getBesuTransaction());
   }
 
   private int initCodeSize() {

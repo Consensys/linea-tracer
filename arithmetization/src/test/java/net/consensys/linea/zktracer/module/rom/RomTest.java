@@ -16,9 +16,11 @@
 package net.consensys.linea.zktracer.module.rom;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
+import kotlin.Pair;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -43,14 +45,15 @@ public class RomTest extends TracerTestBase {
 
   @Tag("nightly")
   @ParameterizedTest
-  @MethodSource("incompletePushRomTestSource")
-  void extensiveIncompletePushRomTest(int j, int k, TestInfo testInfo) {
+  @MethodSource("incompletePushTestSource")
+  void extensiveIncompletePushTest(int j, int k, TestInfo testInfo) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
+    // Bytes taken by a PUSHX do not have a specific purpose here
     program.incompletePush(k, "ff".repeat(j));
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
 
-  private static Stream<Arguments> incompletePushRomTestSource() {
+  private static Stream<Arguments> incompletePushTestSource() {
     List<Arguments> trailingFFRomTestSourceList = new ArrayList<>();
     for (int k = 1; k <= 32; k++) {
       for (int j = 0; j <= k; j++) {
@@ -58,5 +61,30 @@ public class RomTest extends TracerTestBase {
       }
     }
     return trailingFFRomTestSourceList.stream();
+  }
+
+  /**
+   * This test executes a sequence of random incomplete pushes where bytes taken by a PUSHX are made
+   * to look like JUMPDEST's. The purpose is to test ROM's ability to distinguish valid JUMPDEST's
+   * from invalid ones.
+   */
+  @Test
+  void randomConcatenationOfIncompletePushesWithInvalidJumpDestTest(TestInfo testInfo) {
+    List<Pair<Integer, Integer>> permutationOfKAndJPairs = new ArrayList<>();
+    for (int k = 1; k <= 32; k++) {
+      for (int j = 0; j <= k; j++) {
+        permutationOfKAndJPairs.add(new Pair<>(k, j));
+      }
+    }
+    Collections.shuffle(permutationOfKAndJPairs);
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
+    for (Pair<Integer, Integer> kAndJPair : permutationOfKAndJPairs) {
+      int k = kAndJPair.getFirst();
+      int j = kAndJPair.getSecond();
+      program.incompletePush(k, "5b".repeat(j)); // invalid JUMPDEST
+    }
+
+    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
 }

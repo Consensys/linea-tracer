@@ -37,8 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
@@ -59,6 +59,8 @@ public class ToyExecutionEnvironmentV2 {
   public static final long DEFAULT_TIME_STAMP = 1347310;
   public static final Hash DEFAULT_HASH =
       Hash.fromHexStringLenient("0xdeadbeef123123666dead666dead666");
+
+  public static final Bytes32 DEFAULT_BEACON_ROOT = Bytes32.fromHexStringLenient("cc".repeat(32));
 
   @Builder.Default private final List<ToyAccount> accounts = Collections.emptyList();
   @Builder.Default private final Address coinbase = DEFAULT_COINBASE_ADDRESS;
@@ -141,7 +143,9 @@ public class ToyExecutionEnvironmentV2 {
               copyEnvironment.zkCounter.getModulesLineCount();
 
           final List<String> moduleToCheck =
-              copyEnvironment.zkCounter.checkedModules().stream().map(Module::moduleKey).toList();
+              copyEnvironment.zkCounter.checkedModules().stream()
+                  .map(module -> module.moduleKey().toString())
+                  .toList();
 
           // There is no point to check for conflation where an excluded PRC has been triggered:
           if (lightCounterCount.get(POINT_EVAL.toString()) != 0

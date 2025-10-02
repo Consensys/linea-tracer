@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
+import static net.consensys.linea.zktracer.module.ModuleName.OOB;
+
 import java.util.List;
 
 import lombok.Getter;
@@ -24,6 +26,7 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationAdder;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
@@ -45,8 +48,8 @@ public class Oob implements OperationSetModule<OobOperation> {
       new ModuleOperationStackedSet<>();
 
   @Override
-  public String moduleKey() {
-    return "OOB";
+  public ModuleName moduleKey() {
+    return OOB;
   }
 
   public OobCall call(OobCall oobCall) {

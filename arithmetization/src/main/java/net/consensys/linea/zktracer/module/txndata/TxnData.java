@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.txndata;
 
+import static net.consensys.linea.zktracer.module.ModuleName.TXN_DATA;
+
 import java.util.List;
 
 import lombok.Getter;
@@ -23,6 +25,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType;
@@ -40,8 +43,8 @@ public abstract class TxnData<T extends TxnDataOperation> implements OperationLi
   @Getter private final Euc euc;
 
   @Override
-  public String moduleKey() {
-    return "TXN_DATA";
+  public ModuleName moduleKey() {
+    return TXN_DATA;
   }
 
   @Override

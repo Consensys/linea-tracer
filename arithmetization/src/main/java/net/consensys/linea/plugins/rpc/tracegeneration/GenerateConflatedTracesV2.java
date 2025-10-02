@@ -130,7 +130,12 @@ public class GenerateConflatedTracesV2 {
           tracer::traceEndConflation,
           tracer);
 
-      log.info("[TRACING] trace for {}-{} computed in {}", fromBlock, toBlock, sw);
+      log.info(
+          "[TRACING] trace on fork {} for blocks {}-{} computed in {}",
+          fork,
+          fromBlock,
+          toBlock,
+          sw);
       sw.reset().start();
       // Generate trace file
       path =

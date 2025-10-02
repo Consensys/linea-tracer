@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_DATA_SIZE;
 import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_NO_LOG_ENTRY;
 import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_TOPIC_BASE;
 import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_TOPIC_DELTA;
+import static net.consensys.linea.zktracer.module.ModuleName.LOG_INFO;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxnRcpt;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -42,8 +44,8 @@ public class LogInfo implements Module {
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
 
   @Override
-  public String moduleKey() {
-    return "LOG_INFO";
+  public ModuleName moduleKey() {
+    return LOG_INFO;
   }
 
   @Override
@@ -100,11 +102,15 @@ public class LogInfo implements Module {
   }
 
   private int lineCountForLogInfo(RlpTxrcptOperation tx) {
+    return lineCountForLogInfo(tx.logs());
+  }
+
+  public static int lineCountForLogInfo(List<Log> logs) {
     int txRowSize = 0;
-    if (tx.logs().isEmpty()) {
+    if (logs.isEmpty()) {
       return 1;
     } else {
-      for (Log log : tx.logs()) {
+      for (Log log : logs) {
         txRowSize += ctMax(log) + 1;
       }
       return txRowSize;
@@ -232,7 +238,7 @@ public class LogInfo implements Module {
     }
   }
 
-  private int ctMax(Log log) {
+  private static int ctMax(Log log) {
     return log.getTopics().size() + 1;
   }
 }

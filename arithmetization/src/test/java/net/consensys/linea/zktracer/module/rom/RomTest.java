@@ -64,12 +64,17 @@ public class RomTest extends TracerTestBase {
   }
 
   /**
-   * This test executes a sequence of random incomplete pushes where bytes taken by a PUSHX are made
-   * to look like JUMPDEST's. The purpose is to test ROM's ability to distinguish valid JUMPDEST's
-   * from invalid ones.
+   * The bytecode constructed in the following test is obtained as a random concatenation of
+   * incomplete pushes where every "incomplete push" is made up of some PUSHX opcode follwed by 0,
+   * 1, ... through to k bytes with value "5b", i.e. the byte value of JUMPDEST. As such the
+   * execution of this code is a mixture of PUSHX's and JUMPDEST.
+   *
+   * <p>The purpose is to test ROM module's ability to perform "jump destination analysis" i.e. its
+   * ability to distinguish between valid JUMPDEST's and invalid ones, i.e. "5b"'s claimed by some
+   * PUSHX opcode.
    */
   @Test
-  void randomConcatenationOfIncompletePushesWithInvalidJumpDestTest(TestInfo testInfo) {
+  void jumpDestAnalysisTest(TestInfo testInfo) {
     List<Pair<Integer, Integer>> permutationOfKAndJPairs = new ArrayList<>();
     for (int k = 1; k <= 32; k++) {
       for (int j = 0; j <= k; j++) {

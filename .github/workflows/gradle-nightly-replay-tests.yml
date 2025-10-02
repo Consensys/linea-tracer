@@ -37,7 +37,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: nightly-replay-tests-report-${{ inputs.zkevm_fork }}
+          name: nightly-replay-tests-report
           path: arithmetization/build/reports/tests/**/*
 
       - name: Failure Notification

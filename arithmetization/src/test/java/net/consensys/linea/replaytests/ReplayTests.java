@@ -76,6 +76,7 @@ public class ReplayTests extends TracerTestBase {
   }
 
   @Test
+  @Tag("nightly")
   void incident777zkGethMainnet(TestInfo testInfo) {
     replay(OLD_MAINNET_TESTCONFIG, "7461019-7461030.mainnet.json.gz", testInfo);
   }
@@ -162,6 +163,7 @@ public class ReplayTests extends TracerTestBase {
   }
 
   @Test
+  @Tag("nightly")
   void modexpTriggeringNonAlignedFirstLimbSingleSourceMmuModexp(TestInfo testInfo) {
     replay(OLD_MAINNET_TESTCONFIG, "3108622-3108633.mainnet.json.gz", testInfo);
   }

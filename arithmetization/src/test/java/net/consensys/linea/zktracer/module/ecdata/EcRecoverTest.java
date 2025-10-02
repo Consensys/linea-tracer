@@ -42,6 +42,28 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(UnitTestWatcher.class)
 public class EcRecoverTest extends TracerTestBase {
+
+  static final EWord h =
+      EWord.ofHexString("0x456e9aea5e197a1f1af7a3e85a3212fa4049a3ba34c2289b4c860fc0b0c64ef3");
+  static final List<EWord> v =
+      List.of(
+          EWord.of(28),
+          EWord.ZERO,
+          EWord.of(BigInteger.ONE, BigInteger.valueOf(27)),
+          EWord.of(BigInteger.ONE, BigInteger.valueOf(28)));
+  static final List<EWord> r =
+      List.of(
+          EWord.ofHexString("0x9242685bf161793cc25603c231bc2f568eb630ea16aa137d2664ac8038825608"),
+          EWord.ZERO,
+          SECP256K1N,
+          SECP256K1N.add(EWord.of(1)));
+  static final List<EWord> s =
+      List.of(
+          EWord.ofHexString("0x4f8ae3bd7535248d0bd448298cc2e2071e56992d0774dc340c368ae950852ada"),
+          EWord.ZERO,
+          SECP256K1N,
+          SECP256K1N.add(EWord.of(1)));
+
   @Test
   void testEcRecoverWithEmptyExt(TestInfo testInfo) {
     BytecodeRunner.of(
@@ -210,32 +232,18 @@ public class EcRecoverTest extends TracerTestBase {
             true,
             false));
 
+    // Test cases where ICP = successBit = 0
+    arguments.add(
+        Arguments.of("[ICP = 0, successBit = 0]", h, v.get(1), r.get(1), s.get(1), false, false));
+
+    arguments.add(
+        Arguments.of("[ICP = 0, successBit = 0]", h, v.get(2), r.get(2), s.get(2), false, false));
+
     return arguments.stream();
   }
 
   private static Stream<Arguments> ecRecoverSourceNightly() {
     List<Arguments> arguments = new ArrayList<>();
-
-    EWord h =
-        EWord.ofHexString("0x456e9aea5e197a1f1af7a3e85a3212fa4049a3ba34c2289b4c860fc0b0c64ef3");
-    List<EWord> v =
-        List.of(
-            EWord.of(28),
-            EWord.ZERO,
-            EWord.of(BigInteger.ONE, BigInteger.valueOf(27)),
-            EWord.of(BigInteger.ONE, BigInteger.valueOf(28)));
-    List<EWord> r =
-        List.of(
-            EWord.ofHexString("0x9242685bf161793cc25603c231bc2f568eb630ea16aa137d2664ac8038825608"),
-            EWord.ZERO,
-            SECP256K1N,
-            SECP256K1N.add(EWord.of(1)));
-    List<EWord> s =
-        List.of(
-            EWord.ofHexString("0x4f8ae3bd7535248d0bd448298cc2e2071e56992d0774dc340c368ae950852ada"),
-            EWord.ZERO,
-            SECP256K1N,
-            SECP256K1N.add(EWord.of(1)));
 
     // Test cases where ICP = successBit = 1 (first one) or ICP = successBit = 0 (all the others)
     for (int i = 0; i < v.size(); i++) {

@@ -18,7 +18,6 @@ jobs:
     with:
       zkevm_fork: LONDON
       tests-with-ssh: ${{ inputs.tests-with-ssh || false }}
-      with-replays: true
 
   nightly-tests-paris:
     uses: ./.github/workflows/reusable-nightly-tests.yml
@@ -26,7 +25,6 @@ jobs:
     with:
       zkevm_fork: PARIS
       tests-with-ssh: ${{ inputs.tests-with-ssh || false }}
-      with-replays: false
 
   nightly-tests-shanghai:
     uses: ./.github/workflows/reusable-nightly-tests.yml
@@ -34,7 +32,6 @@ jobs:
     with:
       zkevm_fork: SHANGHAI
       tests-with-ssh: ${{ inputs.tests-with-ssh || false }}
-      with-replays: false
 
   nightly-tests-cancun:
     uses: ./.github/workflows/reusable-nightly-tests.yml
@@ -42,7 +39,6 @@ jobs:
     with:
       zkevm_fork: CANCUN
       tests-with-ssh: ${{ inputs.tests-with-ssh || false }}
-      with-replays: false
 
   nightly-tests-prague:
     uses: ./.github/workflows/reusable-nightly-tests.yml
@@ -50,4 +46,3 @@ jobs:
     with:
       zkevm_fork: PRAGUE
       tests-with-ssh: ${{ inputs.tests-with-ssh || false }}
-      with-replays: false

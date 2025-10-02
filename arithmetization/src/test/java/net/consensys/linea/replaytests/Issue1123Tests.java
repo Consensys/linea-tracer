@@ -29,7 +29,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(UnitTestWatcher.class)
 public class Issue1123Tests extends TracerTestBase {
 
-  @Tag("nightly")
   @Test
   void issue_1123_mainnet_block_8043758(TestInfo testInfo) {
     replay(OLD_MAINNET_TESTCONFIG, "8043758.mainnet.json.gz", testInfo);

@@ -46,7 +46,6 @@ public class Issue1216Tests extends TracerTestBase {
    * blowing up with a NPE since the "after" version of the self destructor didn't exist yet in the
    * code. This was solved in issue #1216.
    */
-  @Tag("nightly")
   @Tag("replay")
   @Test
   void issue_1216_sepolia_block_2392659(TestInfo testInfo) {

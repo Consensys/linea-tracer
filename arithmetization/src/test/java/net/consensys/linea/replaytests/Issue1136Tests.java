@@ -42,7 +42,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * <p><a href="https://github.com/Consensys/linea-tracer/issues/1153">Related GitHub issue</a>
  */
 @Tag("replay")
-@Tag("nightly")
 @ExtendWith(UnitTestWatcher.class)
 public class Issue1136Tests extends TracerTestBase {
 

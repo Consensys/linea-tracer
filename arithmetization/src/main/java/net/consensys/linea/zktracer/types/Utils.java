@@ -49,7 +49,9 @@ public class Utils {
   }
 
   public static int fromDataSizeToLimbCtMax(int dataSize) {
-    return (fromDataSizeToLimbNbRows(dataSize) - 1);
+    final int result = (fromDataSizeToLimbNbRows(dataSize) - 1);
+    checkArgument(result >= 0, "LimbCtMax must be non-negative");
+    return result;
   }
 
   /**

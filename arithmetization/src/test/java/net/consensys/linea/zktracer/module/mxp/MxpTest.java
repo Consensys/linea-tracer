@@ -306,7 +306,7 @@ public class MxpTest extends TracerTestBase {
 
   @Tag("nightly")
   @ParameterizedTest
-  @MethodSource({"testMxpxThresholdSource", "testMxpxWithSizePlusOffsetEqualToThresholdSource"})
+  @MethodSource({"testMxpxThresholdSource"})
   void testMxpxThreshold(
       OpCode opCode,
       BigInteger offset1,
@@ -345,8 +345,6 @@ public class MxpTest extends TracerTestBase {
   static final BigInteger LONDON_MXPX_THRESHOLD = (BigInteger.valueOf(256).pow(4));
   static final BigInteger CANCUN_MXPX_THRESHOLD =
       (BigInteger.valueOf(256).pow(4)).subtract(BigInteger.ONE);
-  static final BigInteger LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO =
-      (BigInteger.valueOf(256).pow(4)).divide(BigInteger.TWO);
   static final BigInteger SMALL = BigInteger.valueOf(32);
 
   static final List<OpCode> oneOffsetOpCodes = List.of(OpCode.MSTORE, OpCode.MSTORE8);
@@ -393,52 +391,44 @@ public class MxpTest extends TracerTestBase {
       }
     }
 
-    return arguments.stream();
-  }
-
-  static Stream<Arguments> testMxpxWithSizePlusOffsetEqualToThresholdSource() {
-    List<Arguments> arguments = new ArrayList<>();
+    final BigInteger MXP_THRESHOLD_DIVIDED_BY_TWO = MXPX_THRESHOLD.divide(BigInteger.TWO);
+    final BigInteger MXP_THRESHOLD_MINUS_MXP_THRESHOLD_DIVIDED_BY_TWO =
+        MXPX_THRESHOLD.subtract(MXP_THRESHOLD_DIVIDED_BY_TWO);
 
     for (OpCode opCode : twoOffsetsOneSizeOpCodes) {
-      // offset1 + size1 == LONDON_MXPX_THRESHOLD
-      arguments.add(
-          Arguments.of(opCode, LONDON_MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL, null));
-      arguments.add(
-          Arguments.of(opCode, SMALL, SMALL, LONDON_MXPX_THRESHOLD.subtract(SMALL), null));
+      // offset1 + size1 == MXPX_THRESHOLD
+      arguments.add(Arguments.of(opCode, MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL, null));
+      arguments.add(Arguments.of(opCode, SMALL, SMALL, MXPX_THRESHOLD.subtract(SMALL), null));
       arguments.add(
           Arguments.of(
               opCode,
-              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              MXP_THRESHOLD_DIVIDED_BY_TWO,
               SMALL,
-              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              MXP_THRESHOLD_MINUS_MXP_THRESHOLD_DIVIDED_BY_TWO,
               null));
     }
 
     for (OpCode opCode : twoOffsetSizePairsOpCodes) {
-      // offset1 + size1 == LONDON_MXPX_THRESHOLD
-      arguments.add(
-          Arguments.of(opCode, LONDON_MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL, SMALL));
-      arguments.add(
-          Arguments.of(opCode, SMALL, SMALL, LONDON_MXPX_THRESHOLD.subtract(SMALL), SMALL));
+      // offset1 + size1 == MXPX_THRESHOLD
+      arguments.add(Arguments.of(opCode, MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL, SMALL));
+      arguments.add(Arguments.of(opCode, SMALL, SMALL, MXPX_THRESHOLD.subtract(SMALL), SMALL));
       arguments.add(
           Arguments.of(
               opCode,
-              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              MXP_THRESHOLD_DIVIDED_BY_TWO,
               SMALL,
-              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              MXP_THRESHOLD_MINUS_MXP_THRESHOLD_DIVIDED_BY_TWO,
               SMALL));
-      // offset2 + size2 == LONDON_MXPX_THRESHOLD
-      arguments.add(
-          Arguments.of(opCode, SMALL, LONDON_MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL));
-      arguments.add(
-          Arguments.of(opCode, SMALL, SMALL, SMALL, LONDON_MXPX_THRESHOLD.subtract(SMALL)));
+      // offset2 + size2 == MXPX_THRESHOLD
+      arguments.add(Arguments.of(opCode, SMALL, MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL));
+      arguments.add(Arguments.of(opCode, SMALL, SMALL, SMALL, MXPX_THRESHOLD.subtract(SMALL)));
       arguments.add(
           Arguments.of(
               opCode,
               SMALL,
-              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              MXP_THRESHOLD_DIVIDED_BY_TWO,
               SMALL,
-              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO));
+              MXP_THRESHOLD_MINUS_MXP_THRESHOLD_DIVIDED_BY_TWO));
     }
 
     return arguments.stream();

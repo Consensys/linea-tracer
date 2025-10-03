@@ -371,7 +371,8 @@ public class MxpTest extends TracerTestBase {
   static final BigInteger LONDON_MXPX_THRESHOLD = (BigInteger.valueOf(256).pow(4));
   static final BigInteger CANCUN_MXPX_THRESHOLD =
       (BigInteger.valueOf(256).pow(4)).subtract(BigInteger.ONE);
-  static final BigInteger LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO = (BigInteger.valueOf(256).pow(4));
+  static final BigInteger LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO =
+      (BigInteger.valueOf(256).pow(4)).divide(BigInteger.ZERO);
   static final BigInteger SMALL = BigInteger.valueOf(32);
 
   static Stream<Arguments> testMxpxThresholdSource() {

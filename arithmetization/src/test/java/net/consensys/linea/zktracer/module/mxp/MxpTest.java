@@ -331,11 +331,7 @@ public class MxpTest extends TracerTestBase {
       case RETURN, REVERT -> program.push(size1).push(offset1).op(opCode);
 
         // 2 offsets, 1 size
-      case CODECOPY, MCOPY, RETURNDATACOPY -> program
-          .push(size1)
-          .push(offset2)
-          .push(offset1)
-          .op(opCode);
+      case CODECOPY, RETURNDATACOPY -> program.push(size1).push(offset2).push(offset1).op(opCode);
       case EXTCODECOPY -> program
           .push(size1)
           .push(offset2)
@@ -392,9 +388,7 @@ public class MxpTest extends TracerTestBase {
     final List<OpCode> oneOffsetSizePairOpCodes = List.of(OpCode.RETURN, OpCode.REVERT);
 
     final List<OpCode> twoOffsetsOneSizeOpCodes =
-        isPostCancun(fork)
-            ? List.of(OpCode.CODECOPY, OpCode.MCOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY)
-            : List.of(OpCode.CODECOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY);
+        List.of(OpCode.CODECOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY);
 
     final List<OpCode> twoOffsetSizePairsOpCodes =
         List.of(OpCode.CALL, OpCode.CALLCODE, OpCode.STATICCALL, OpCode.DELEGATECALL);

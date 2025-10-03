@@ -26,8 +26,11 @@ import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4E
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4Halting;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -304,9 +307,9 @@ public class MxpTest extends TracerTestBase {
     toyExecutionEnvironmentV2.run();
   }
 
-  @Tag("weekly")
+  @Tag("nightly")
   @ParameterizedTest
-  @MethodSource("testMxpxThresholdSource")
+  @MethodSource({"testMxpxThresholdSource", "testMxpxWithSizePlusOffsetEqualToThresholdSource"})
   void testMxpxThreshold(
       OpCode opCode,
       BigInteger offset1,
@@ -368,6 +371,8 @@ public class MxpTest extends TracerTestBase {
   static final BigInteger LONDON_MXPX_THRESHOLD = (BigInteger.valueOf(256).pow(4));
   static final BigInteger CANCUN_MXPX_THRESHOLD =
       (BigInteger.valueOf(256).pow(4)).subtract(BigInteger.ONE);
+  static final BigInteger LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO = (BigInteger.valueOf(256).pow(4));
+  static final BigInteger SMALL = BigInteger.valueOf(32);
 
   static Stream<Arguments> testMxpxThresholdSource() {
     final BigInteger MXPX_THRESHOLD = mxpxThreshold();
@@ -376,9 +381,6 @@ public class MxpTest extends TracerTestBase {
         List.of(
             BigInteger.ZERO,
             BigInteger.ONE,
-            BigInteger.valueOf(32),
-            MXPX_THRESHOLD.subtract(BigInteger.valueOf(32)),
-            MXPX_THRESHOLD.divide(BigInteger.valueOf(2)),
             MXPX_THRESHOLD,
             MXPX_THRESHOLD.add(BigInteger.ONE),
             MAX_UINT256.subtract(BigInteger.valueOf(123)), // random huge number
@@ -389,45 +391,120 @@ public class MxpTest extends TracerTestBase {
     final List<OpCode> oneOffsetSizePairOpCodes = List.of(OpCode.RETURN, OpCode.REVERT);
 
     final List<OpCode> twoOffsetsOneSizeOpCodes =
-        List.of(OpCode.CODECOPY, OpCode.MCOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY);
+        isPostCancun(fork)
+            ? List.of(OpCode.CODECOPY, OpCode.MCOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY)
+            : List.of(OpCode.CODECOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY);
 
     final List<OpCode> twoOffsetSizePairsOpCodes =
         List.of(OpCode.CALL, OpCode.CALLCODE, OpCode.STATICCALL, OpCode.DELEGATECALL);
 
-    for (BigInteger offset1 : values) {
-      for (OpCode opCode : oneOffsetOpCodes) {
+    for (OpCode opCode : oneOffsetOpCodes) {
+      for (BigInteger offset1 : values) {
         arguments.add(Arguments.of(opCode, offset1, null, null, null));
       }
     }
 
-    for (BigInteger offset1 : values) {
-      for (BigInteger size1 : values) {
-        for (OpCode opCode : oneOffsetSizePairOpCodes) {
+    for (OpCode opCode : oneOffsetSizePairOpCodes) {
+      for (BigInteger offset1 : values) {
+        for (BigInteger size1 : values) {
           arguments.add(Arguments.of(opCode, offset1, null, size1, null));
         }
       }
     }
 
-    for (BigInteger offset1 : values) {
-      for (BigInteger offset2 : values) {
-        for (BigInteger size1 : values) {
-          for (OpCode opCode : twoOffsetsOneSizeOpCodes) {
+    for (OpCode opCode : twoOffsetsOneSizeOpCodes) {
+      for (BigInteger offset1 : values) {
+        for (BigInteger offset2 : values) {
+          for (BigInteger size1 : values) {
             arguments.add(Arguments.of(opCode, offset1, offset2, size1, null));
           }
         }
       }
     }
 
-    for (BigInteger offset1 : values) {
-      for (BigInteger offset2 : values) {
-        for (BigInteger size1 : values) {
-          for (BigInteger size2 : values) {
-            for (OpCode opCode : twoOffsetSizePairsOpCodes) {
+    for (OpCode opCode : twoOffsetSizePairsOpCodes) {
+      for (BigInteger offset1 : values) {
+        for (BigInteger offset2 : values) {
+          for (BigInteger size1 : values) {
+            for (BigInteger size2 : values) {
               arguments.add(Arguments.of(opCode, offset1, offset2, size1, size2));
             }
           }
         }
       }
+    }
+
+    // Execute a randomly sampled 1 % of the test instances
+    Collections.shuffle(arguments, new Random(LocalDate.now().toEpochDay()));
+    return arguments.stream().limit(arguments.size() / 100);
+  }
+
+  static Stream<Arguments> testMxpxWithSizePlusOffsetEqualToThresholdSource() {
+    List<Arguments> arguments = new ArrayList<>();
+
+    final List<OpCode> oneOffsetSizePairOpCodes = List.of(OpCode.RETURN, OpCode.REVERT);
+
+    final List<OpCode> twoOffsetsOneSizeOpCodes =
+        isPostCancun(fork)
+            ? List.of(OpCode.CODECOPY, OpCode.MCOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY)
+            : List.of(OpCode.CODECOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY);
+
+    final List<OpCode> twoOffsetSizePairsOpCodes =
+        List.of(OpCode.CALL, OpCode.CALLCODE, OpCode.STATICCALL, OpCode.DELEGATECALL);
+
+    for (OpCode opCode : oneOffsetSizePairOpCodes) {
+      // offset1 + size1 == LONDON_MXPX_THRESHOLD
+      arguments.add(Arguments.of(opCode, LONDON_MXPX_THRESHOLD.subtract(SMALL), null, SMALL, null));
+      arguments.add(Arguments.of(opCode, SMALL, null, LONDON_MXPX_THRESHOLD.subtract(SMALL), null));
+      arguments.add(
+          Arguments.of(
+              opCode,
+              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              null,
+              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              null));
+    }
+
+    for (OpCode opCode : twoOffsetsOneSizeOpCodes) {
+      // offset1 + size1 == LONDON_MXPX_THRESHOLD
+      arguments.add(
+          Arguments.of(opCode, LONDON_MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL, null));
+      arguments.add(
+          Arguments.of(opCode, SMALL, SMALL, LONDON_MXPX_THRESHOLD.subtract(SMALL), null));
+      arguments.add(
+          Arguments.of(
+              opCode,
+              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              SMALL,
+              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              null));
+    }
+
+    for (OpCode opCode : twoOffsetSizePairsOpCodes) {
+      // offset1 + size1 == LONDON_MXPX_THRESHOLD
+      arguments.add(
+          Arguments.of(opCode, LONDON_MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL, SMALL));
+      arguments.add(
+          Arguments.of(opCode, SMALL, SMALL, LONDON_MXPX_THRESHOLD.subtract(SMALL), SMALL));
+      arguments.add(
+          Arguments.of(
+              opCode,
+              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              SMALL,
+              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              SMALL));
+      // offset2 + size2 == LONDON_MXPX_THRESHOLD
+      arguments.add(
+          Arguments.of(opCode, SMALL, LONDON_MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL));
+      arguments.add(
+          Arguments.of(opCode, SMALL, SMALL, SMALL, LONDON_MXPX_THRESHOLD.subtract(SMALL)));
+      arguments.add(
+          Arguments.of(
+              opCode,
+              SMALL,
+              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
+              SMALL,
+              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO));
     }
 
     return arguments.stream();

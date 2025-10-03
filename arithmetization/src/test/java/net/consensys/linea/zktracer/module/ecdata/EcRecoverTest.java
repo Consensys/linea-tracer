@@ -269,7 +269,8 @@ public class EcRecoverTest extends TracerTestBase {
 
   /**
    * The test cases generated in this method are meant to explore the corner cases of the 's'
-   * parameter. The other parameters are not relevant.
+   * parameter. We do not require ECRECOVER to succeed, as such the other parameters h and v
+   * are irrelevant, albeit well-formed.
    */
   private static Stream<Arguments> ecRecoverSourceForSLimits() {
     EWord h =

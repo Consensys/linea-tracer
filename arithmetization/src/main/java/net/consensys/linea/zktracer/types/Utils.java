@@ -44,7 +44,10 @@ public class Utils {
   }
 
   public static int fromDataSizeToLimbNbRows(int dataSize) {
-    checkArgument(dataSize > 0, "Data size must be positive");
+    checkArgument(dataSize >= 0, "Data size must be non-negative");
+    if (dataSize == 0) {
+      return 1;
+    }
     final double result = Math.ceil((double) dataSize / LLARGE);
     checkArgument(result <= Integer.MAX_VALUE, "LimbNbRows must fit in an integer");
     return (int) result;

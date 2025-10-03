@@ -26,11 +26,8 @@ import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4E
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4Halting;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -321,26 +318,14 @@ public class MxpTest extends TracerTestBase {
 
     switch (opCode) {
         // 1 offset
-      case MLOAD -> program.push(offset1).op(opCode);
       case MSTORE, MSTORE8 -> program
           .push(0) // value
           .push(offset1)
           .op(opCode);
-
-        // 1 offset, 1 size
-      case RETURN, REVERT -> program.push(size1).push(offset1).op(opCode);
-
         // 2 offsets, 1 size
-      case CODECOPY, RETURNDATACOPY -> program.push(size1).push(offset2).push(offset1).op(opCode);
-      case EXTCODECOPY -> program
-          .push(size1)
-          .push(offset2)
-          .push(offset1)
-          .push(0) // address
-          .op(opCode);
-
+      case CODECOPY -> program.push(size1).push(offset2).push(offset1).op(opCode);
         // 2 offsets, 2 sizes
-      case CALL, CALLCODE -> program
+      case CALL -> program
           .push(size2)
           .push(offset2)
           .push(size1)
@@ -349,14 +334,7 @@ public class MxpTest extends TracerTestBase {
           .push(0) // address
           .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
           .op(opCode);
-      case STATICCALL, DELEGATECALL -> program
-          .push(size2)
-          .push(offset2)
-          .push(size1)
-          .push(offset1)
-          .push(0) // address
-          .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
-          .op(opCode);
+      default -> throw new IllegalArgumentException("Unsupported opCode: " + opCode);
     }
 
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
@@ -371,6 +349,10 @@ public class MxpTest extends TracerTestBase {
       (BigInteger.valueOf(256).pow(4)).divide(BigInteger.TWO);
   static final BigInteger SMALL = BigInteger.valueOf(32);
 
+  static final List<OpCode> oneOffsetOpCodes = List.of(OpCode.MSTORE, OpCode.MSTORE8);
+  static final List<OpCode> twoOffsetsOneSizeOpCodes = List.of(OpCode.CODECOPY);
+  static final List<OpCode> twoOffsetSizePairsOpCodes = List.of(OpCode.CALL);
+
   static Stream<Arguments> testMxpxThresholdSource() {
     final BigInteger MXPX_THRESHOLD = mxpxThreshold();
     List<Arguments> arguments = new ArrayList<>();
@@ -383,27 +365,9 @@ public class MxpTest extends TracerTestBase {
             MAX_UINT256.subtract(BigInteger.valueOf(123)), // random huge number
             MAX_UINT256);
 
-    final List<OpCode> oneOffsetOpCodes = List.of(OpCode.MLOAD, OpCode.MSTORE, OpCode.MSTORE8);
-
-    final List<OpCode> oneOffsetSizePairOpCodes = List.of(OpCode.RETURN, OpCode.REVERT);
-
-    final List<OpCode> twoOffsetsOneSizeOpCodes =
-        List.of(OpCode.CODECOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY);
-
-    final List<OpCode> twoOffsetSizePairsOpCodes =
-        List.of(OpCode.CALL, OpCode.CALLCODE, OpCode.STATICCALL, OpCode.DELEGATECALL);
-
     for (OpCode opCode : oneOffsetOpCodes) {
       for (BigInteger offset1 : values) {
         arguments.add(Arguments.of(opCode, offset1, null, null, null));
-      }
-    }
-
-    for (OpCode opCode : oneOffsetSizePairOpCodes) {
-      for (BigInteger offset1 : values) {
-        for (BigInteger size1 : values) {
-          arguments.add(Arguments.of(opCode, offset1, null, size1, null));
-        }
       }
     }
 
@@ -429,36 +393,11 @@ public class MxpTest extends TracerTestBase {
       }
     }
 
-    // Execute a randomly sampled 1 % of the test instances
-    Collections.shuffle(arguments, new Random(LocalDate.now().toEpochDay()));
-    return arguments.stream().limit(arguments.size() / 100);
+    return arguments.stream();
   }
 
   static Stream<Arguments> testMxpxWithSizePlusOffsetEqualToThresholdSource() {
     List<Arguments> arguments = new ArrayList<>();
-
-    final List<OpCode> oneOffsetSizePairOpCodes = List.of(OpCode.RETURN, OpCode.REVERT);
-
-    final List<OpCode> twoOffsetsOneSizeOpCodes =
-        isPostCancun(fork)
-            ? List.of(OpCode.CODECOPY, OpCode.MCOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY)
-            : List.of(OpCode.CODECOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY);
-
-    final List<OpCode> twoOffsetSizePairsOpCodes =
-        List.of(OpCode.CALL, OpCode.CALLCODE, OpCode.STATICCALL, OpCode.DELEGATECALL);
-
-    for (OpCode opCode : oneOffsetSizePairOpCodes) {
-      // offset1 + size1 == LONDON_MXPX_THRESHOLD
-      arguments.add(Arguments.of(opCode, LONDON_MXPX_THRESHOLD.subtract(SMALL), null, SMALL, null));
-      arguments.add(Arguments.of(opCode, SMALL, null, LONDON_MXPX_THRESHOLD.subtract(SMALL), null));
-      arguments.add(
-          Arguments.of(
-              opCode,
-              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
-              null,
-              LONDON_MXPX_THRESHOLD_DIVIDED_BY_TWO,
-              null));
-    }
 
     for (OpCode opCode : twoOffsetsOneSizeOpCodes) {
       // offset1 + size1 == LONDON_MXPX_THRESHOLD

@@ -21,31 +21,34 @@ import static net.consensys.linea.zktracer.opcode.InstructionFamily.INVALID;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
-import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
 
 public class EarlyExceptionSection extends TraceSection {
   public EarlyExceptionSection(Hub hub) {
-    super(hub, (short) (hub.opCode().getData().stackSettings().twoLineInstruction() ? 2 : 1));
+    super(hub, (short) (hub.opCodeData().stackSettings().twoLineInstruction() ? 2 : 1));
 
     this.addStack(hub);
 
     final short exceptions = hub.pch().exceptions();
 
-    final OpCode opCode = hub.opCode();
+    final OpCodeData opCode = hub.opCodeData();
     if (Exceptions.stackUnderflow(exceptions)) {
-      checkArgument(opCode.mayTriggerStackUnderflow());
+      checkArgument(
+          opCode.mayTriggerStackUnderflow(), "SUX was detected but can't happen for " + opCode);
       commonValues.setTracedException(TracedException.STACK_UNDERFLOW);
       return;
     }
 
     if (Exceptions.stackOverflow(exceptions)) {
-      checkArgument(opCode.mayTriggerStackOverflow());
+      checkArgument(
+          opCode.mayTriggerStackOverflow(), "SOX was detected but can't happen for " + opCode);
       commonValues.setTracedException(TracedException.STACK_OVERFLOW);
       return;
     }
 
-    if (hub.opCode().getData().instructionFamily() == INVALID) {
-      checkArgument(Exceptions.invalidOpcode(exceptions));
+    if (hub.opCodeData().instructionFamily() == INVALID) {
+      checkArgument(
+          Exceptions.invalidOpcode(exceptions), "INVALID opcode detected but no INVALID exception");
       commonValues.setTracedException(TracedException.INVALID_OPCODE);
     }
   }

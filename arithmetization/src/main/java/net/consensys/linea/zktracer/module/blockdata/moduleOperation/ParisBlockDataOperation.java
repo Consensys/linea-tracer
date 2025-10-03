@@ -55,11 +55,13 @@ public class ParisBlockDataOperation extends LondonBlockDataOperation {
 
   @Override
   protected void traceIsDifficulty(Trace.Blockdata trace, OpCode opCode) {
-    // OpCode in London fork only, not in Paris and after.
+    // Note: not a typo: for simplicity, the Paris BlockData has the same columns as the London
+    // BlockData
+    trace.isDifficulty(opCode == PREVRANDAO);
   }
 
   @Override
   protected void traceIsPrevRandao(Trace.Blockdata trace, OpCode opCode) {
-    trace.isPrevrandao(opCode == PREVRANDAO);
+    // prev randao is traced in difficulty columns
   }
 }

@@ -1,3 +1,4 @@
+permissions: read-all
 name: Daily Blockchain Tests
 
 on:
@@ -30,8 +31,20 @@ concurrency:
 jobs:
   blockchain-reference-tests-london:
     uses: ./.github/workflows/reusable-blockchain-tests.yml
+    secrets: inherit
     with:
-      zkevm_fork: London
+      zkevm_fork: LONDON
+      test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
+      failed_module: ${{ inputs.failed_module || '' }}
+      failed_constraint: ${{ inputs.failed_constraint || '' }}
+      commit: ${{ inputs.commit || '' }}
+
+
+  blockchain-reference-tests-paris:
+    uses: ./.github/workflows/reusable-blockchain-tests.yml
+    secrets: inherit
+    with:
+      zkevm_fork: PARIS
       test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
       failed_module: ${{ inputs.failed_module || '' }}
       failed_constraint: ${{ inputs.failed_constraint || '' }}
@@ -39,8 +52,29 @@ jobs:
 
   blockchain-reference-tests-shanghai:
     uses: ./.github/workflows/reusable-blockchain-tests.yml
+    secrets: inherit
     with:
-      zkevm_fork: Shanghai
+      zkevm_fork: SHANGHAI
+      test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
+      failed_module: ${{ inputs.failed_module || '' }}
+      failed_constraint: ${{ inputs.failed_constraint || '' }}
+      commit: ${{ inputs.commit || '' }}
+
+  blockchain-reference-tests-cancun:
+    uses: ./.github/workflows/reusable-blockchain-tests.yml
+    secrets: inherit
+    with:
+      zkevm_fork: CANCUN
+      test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
+      failed_module: ${{ inputs.failed_module || '' }}
+      failed_constraint: ${{ inputs.failed_constraint || '' }}
+      commit: ${{ inputs.commit || '' }}
+
+  blockchain-reference-tests-prague:
+    uses: ./.github/workflows/reusable-blockchain-tests.yml
+    secrets: inherit
+    with:
+      zkevm_fork: PRAGUE
       test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
       failed_module: ${{ inputs.failed_module || '' }}
       failed_constraint: ${{ inputs.failed_constraint || '' }}

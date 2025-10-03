@@ -15,17 +15,18 @@
 
 package net.consensys.linea.zktracer.opcode;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
 
 import java.util.Objects;
 
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.opcode.gas.Billing;
-import net.consensys.linea.zktracer.opcode.gas.BillingRate;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
-import net.consensys.linea.zktracer.opcode.stack.Pattern;
 import net.consensys.linea.zktracer.opcode.stack.StackSettings;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 
 /**
  * Contains the {@link OpCode} and its related metadata.
@@ -49,24 +50,7 @@ public record OpCodeData(
   }
 
   public static OpCodeData forNonOpCodes(int value) {
-    return new OpCodeData(
-        OpCode.INVALID,
-        value,
-        INVALID,
-        new StackSettings(
-            Pattern.ZERO_ZERO,
-            0,
-            0,
-            GasConstants.G_ZERO,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false),
-        new Billing(GasConstants.G_ZERO, BillingRate.NONE, MxpType.NONE));
+    return new OpCodeData(OpCode.INVALID, value, INVALID, StackSettings.DEFAULT, Billing.DEFAULT);
   }
 
   /**
@@ -107,8 +91,16 @@ public record OpCodeData(
     return instructionFamily == CREATE;
   }
 
+  public boolean isCallOrCreate() {
+    return isCall() || isCreate();
+  }
+
   public boolean isLog() {
     return instructionFamily == LOG;
+  }
+
+  public boolean isCopy() {
+    return instructionFamily == COPY;
   }
 
   /**
@@ -120,11 +112,139 @@ public record OpCodeData(
     return instructionFamily == INVALID;
   }
 
-  public boolean isMxp() {
-    return this.billing().type() != MxpType.NONE;
-  }
-
   public int numberOfStackRows() {
     return stackSettings.twoLineInstruction() ? 2 : 1;
+  }
+
+  public boolean isMSize() {
+    return mnemonic == MSIZE;
+  }
+
+  public boolean isFixedSize32() {
+    return mnemonic == OpCode.MLOAD || mnemonic == OpCode.MSTORE;
+  }
+
+  public boolean isFixedSize1() {
+    return mnemonic == OpCode.MSTORE8;
+  }
+
+  public boolean isReturn() {
+    return mnemonic == OpCode.RETURN;
+  }
+
+  public boolean isMCopy() {
+    return instructionFamily == MCOPY;
+  }
+
+  public boolean isSingleOffset() {
+    return mnemonic == OpCode.MLOAD
+        || mnemonic == OpCode.MSTORE
+        || mnemonic == OpCode.MSTORE8
+        || mnemonic == OpCode.REVERT
+        || isReturn()
+        || isLog()
+        || mnemonic == OpCode.SHA3
+        || isCopy()
+        || isCreate();
+  }
+
+  public boolean isDoubleOffset() {
+    return isMCopy() || isCall();
+  }
+
+  public boolean isWordPricing() {
+    return mnemonic == OpCode.SHA3 || isCopy() || isCreate() || mnemonic == OpCode.MCOPY;
+  }
+
+  public boolean isBytePricing() {
+    return mnemonic == MSIZE
+        || mnemonic == OpCode.MLOAD
+        || mnemonic == OpCode.MSTORE
+        || mnemonic == OpCode.MSTORE8
+        || mnemonic == OpCode.REVERT
+        || isReturn()
+        || isLog()
+        || isCall();
+  }
+
+  // Used before Cancun, determined by checking if there is a type
+  public boolean isMxpLondon() {
+    return billing().type() != MxpType.NONE;
+  }
+
+  // Used from Cancun and on, before ixMxp is determined by checking if there is a type
+  public boolean isMxp() {
+    return isMSize() || isSingleOffset() || isDoubleOffset();
+  }
+
+  public boolean callHasValueArgument() {
+    checkArgument(isCall(), "Expected any CALL opcode, got %s", this);
+    return this.mnemonic == OpCode.CALL || this.mnemonic == OpCode.CALLCODE;
+  }
+
+  /**
+   * Returns the {@link OpCode}'s opcode value as a byte.
+   *
+   * @return the {@link OpCode}'s opcode value as a byte
+   */
+  public byte byteValue() {
+    return (byte) this.value;
+  }
+
+  /**
+   * Returns the {@link OpCode}'s long value as an {@link UnsignedByte} type.
+   *
+   * @return the {@link OpCode}'s value as an {@link UnsignedByte}
+   */
+  public UnsignedByte unsignedByteValue() {
+    return UnsignedByte.of(byteValue());
+  }
+
+  public short callCdoStackIndex() {
+    return (short) (callHasValueArgument() ? 3 : 2);
+  }
+
+  public short callCdsStackIndex() {
+    return (short) (callHasValueArgument() ? 4 : 3);
+  }
+
+  public short callReturnAtCapacityStackIndex() {
+    return (short) (callHasValueArgument() ? 6 : 5);
+  }
+
+  public boolean mayTriggerStackUnderflow() {
+    return this.stackSettings().delta() > 0;
+  }
+
+  public boolean mayTriggerStackOverflow() {
+    return this.stackSettings().alpha() > 0;
+  }
+
+  public boolean mayTriggerStaticException() {
+    return this.stackSettings().forbiddenInStatic();
+  }
+
+  public boolean mayTriggerMemoryExpansionException(Fork fork) {
+    return switch (fork) {
+      case LONDON, PARIS, SHANGHAI -> this.mnemonic != MSIZE && this.isMxpLondon();
+      case CANCUN, PRAGUE -> this.mnemonic != MSIZE && this.isMxp();
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    // Instances of this class are not intended to be compared.  Hence, an exception is explicitly
+    // raised to quickly
+    // identify situations where this method is accidentally being used.
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int hashCode() {
+    // Instances of this class are not intended to be used in hashmaps, etc.  Hence, an exception is
+    // explicitly raised
+    // to quickly identify situations where this method is accidentally being used.
+    throw new UnsupportedOperationException();
   }
 }

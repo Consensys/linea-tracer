@@ -24,6 +24,7 @@ import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
@@ -34,7 +35,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.ReturnFromDeploymentMmuCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.DeploymentOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
@@ -82,19 +82,22 @@ public class ReturnSection extends TraceSection
     returnFromMessageCall = frame.getType().equals(MESSAGE_CALL);
     returnFromDeployment = frame.getType().equals(CONTRACT_CREATION);
 
-    checkArgument(callFrame.isDeployment() == (frame.getType().equals(CONTRACT_CREATION)));
+    checkArgument(
+        callFrame.isDeployment() == (frame.getType().equals(CONTRACT_CREATION)),
+        "ReturnSection: CallFrame and MessageFrame inconsistent on whether frame is deployment or not");
 
     checkArgument(
         returnFromDeployment
             == hub.transients()
                 .conflation()
                 .deploymentInfo()
-                .getDeploymentStatus(frame.getContractAddress()));
+                .getDeploymentStatus(frame.getContractAddress()),
+        "ReturnSection: Frame and RomLex disagree whether frame is deployment or not, for RomLex that's via the deployment status of the contract address");
 
     returnScenarioFragment = new ReturnScenarioFragment();
     final ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);
     final ImcFragment firstImcFragment = ImcFragment.empty(hub);
-    final MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     firstImcFragment.callMxp(mxpCall);
 
     this.addStackAndFragments(
@@ -106,7 +109,9 @@ public class ReturnSection extends TraceSection
       returnScenarioFragment.setScenario(RETURN_EXCEPTION);
     }
 
-    checkArgument(mxpCall.mxpx == memoryExpansionException(exceptions));
+    checkArgument(
+        mxpCall.mxpx == memoryExpansionException(exceptions),
+        "RETURN: mxp and hub disagree on MXPX");
 
     if (mxpCall.mxpx) {
       commonValues.setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
@@ -117,20 +122,23 @@ public class ReturnSection extends TraceSection
     // In case of returnFromDeployment, we check for maxCodeSize & invalidCodePrefixException before
     // OOGX.
     if (Exceptions.outOfGasException(exceptions) && returnFromMessageCall) {
-      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      checkArgument(
+          exceptions == OUT_OF_GAS_EXCEPTION,
+          "RETURN from message call: last exception should be OOGX");
       commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 
     if (Exceptions.any(exceptions)) {
-      checkArgument(returnFromDeployment);
+      checkArgument(
+          returnFromDeployment,
+          "RETURN from message call: exceptions should have already been handled");
     }
 
     // maxCodeSizeException case
     final boolean triggerOobForMaxCodeSizeException = Exceptions.maxCodeSizeException(exceptions);
     if (triggerOobForMaxCodeSizeException) {
-      final OobCall oobCall = new DeploymentOobCall();
-      firstImcFragment.callOob(oobCall);
+      firstImcFragment.callOob(new DeploymentOobCall());
       commonValues.setTracedException(TracedException.MAX_CODE_SIZE_EXCEPTION);
       return;
     }
@@ -139,19 +147,27 @@ public class ReturnSection extends TraceSection
     final boolean nontrivialMmuOperation = mxpCall.mayTriggerNontrivialMmuOperation;
     final boolean triggerMmuForInvalidCodePrefix = Exceptions.invalidCodePrefix(exceptions);
     if (triggerMmuForInvalidCodePrefix) {
-      checkArgument(returnFromDeployment && nontrivialMmuOperation);
+      checkArgument(
+          returnFromDeployment && nontrivialMmuOperation,
+          "invalidCodePrefixException triggered yet returnFromDeployment = %s and nontrivialMmuOperation = %s",
+          returnFromDeployment,
+          nontrivialMmuOperation);
 
       final MmuCall actuallyInvalidCodePrefixMmuCall = MmuCall.invalidCodePrefix(hub);
       firstImcFragment.callMmu(actuallyInvalidCodePrefixMmuCall);
 
-      checkArgument(actuallyInvalidCodePrefixMmuCall.successBit());
+      checkArgument(
+          actuallyInvalidCodePrefixMmuCall.successBit(),
+          "RETURN from deployment: invalidCodePrefixException incorrectly picked up by MMU");
       commonValues.setTracedException(TracedException.INVALID_CODE_PREFIX);
       return;
     }
 
     // OOGX case
     if (Exceptions.outOfGasException(exceptions) && returnFromDeployment) {
-      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      checkArgument(
+          exceptions == OUT_OF_GAS_EXCEPTION,
+          "RETURN from deployment: last exception should be OOGX");
       commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
@@ -159,7 +175,7 @@ public class ReturnSection extends TraceSection
     // Unexceptional RETURN's
     // (we have exceptions ≡ ∅ by the checkArgument below)
     //////////////////////////////////////////////////////
-    checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions), "RETURN: unexpected exception");
 
     // RETURN_FROM_MESSAGE_CALL cases
     if (returnFromMessageCall) {
@@ -215,7 +231,11 @@ public class ReturnSection extends TraceSection
               : RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WONT_REVERT);
 
       final Bytes byteCodeSize = frame.getStackItem(1);
-      checkArgument(nonemptyByteCode == (!byteCodeSize.isZero()));
+      checkArgument(
+          nonemptyByteCode == (!byteCodeSize.isZero()),
+          "RETURN from deployment: mxp nonemptyByteCode = %s disagrees with byteCoedeSize = %s",
+          nonemptyByteCode,
+          byteCodeSize);
 
       // Empty deployments
       if (!nonemptyByteCode) {
@@ -230,12 +250,16 @@ public class ReturnSection extends TraceSection
       final MmuCall invalidCodePrefixCheckMmuCall = MmuCall.invalidCodePrefix(hub);
       firstImcFragment.callMmu(invalidCodePrefixCheckMmuCall);
 
-      final DeploymentOobCall maxCodeSizeOobCall = new DeploymentOobCall();
-      firstImcFragment.callOob(maxCodeSizeOobCall);
+      final DeploymentOobCall maxCodeSizeOobCall =
+          (DeploymentOobCall) firstImcFragment.callOob(new DeploymentOobCall());
 
       // sanity checks
-      checkArgument(!invalidCodePrefixCheckMmuCall.successBit());
-      checkArgument(!maxCodeSizeOobCall.isMaxCodeSizeException());
+      checkArgument(
+          !invalidCodePrefixCheckMmuCall.successBit(),
+          "RETURN shouldn't throw invalidCodePrefixException at this stage, but does");
+      checkArgument(
+          !maxCodeSizeOobCall.isMaxCodeSizeException(),
+          "RETURN shouldn't throw maxCodeSizeException at this stage, but does");
 
       final ImcFragment secondImcFragment = ImcFragment.empty(hub);
       this.addFragment(secondImcFragment);
@@ -255,7 +279,9 @@ public class ReturnSection extends TraceSection
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
 
-    checkState(returnFromDeployment);
+    checkState(
+        returnFromDeployment,
+        "ReturnSection: a RETURN requires resolution at context re-entry only for deployments");
 
     firstCreateeNew = AccountSnapshot.canonical(hub, deploymentAddress);
     final AccountFragment deploymentAccountFragment =
@@ -264,7 +290,8 @@ public class ReturnSection extends TraceSection
             .make(
                 firstCreatee,
                 firstCreateeNew,
-                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0),
+                TransactionProcessingType.USER);
 
     if (nonemptyByteCode) {
       deploymentAccountFragment.requiresRomlex(true);
@@ -276,7 +303,7 @@ public class ReturnSection extends TraceSection
   @Override
   public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
-    checkArgument(returnFromDeployment);
+    checkArgument(returnFromDeployment, "rollback sensitive RETURNs should stem from deployments");
     returnScenarioFragment.setScenario(
         nonemptyByteCode
             ? RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT
@@ -292,7 +319,8 @@ public class ReturnSection extends TraceSection
                 firstCreateeNew,
                 secondCreateeNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    hubStamp, hub.callStack().currentCallFrame().revertStamp(), 1));
+                    hubStamp, hub.callStack().currentCallFrame().revertStamp(), 1),
+                TransactionProcessingType.USER);
 
     this.addFragment(undoingDeploymentAccountFragment);
   }
@@ -301,13 +329,17 @@ public class ReturnSection extends TraceSection
   public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
-    checkArgument(returnFromDeployment);
+    checkArgument(
+        returnFromDeployment,
+        "RETURNs which trigger resolveAtEndTransaction should stem from deployments");
     this.addFragment(squashParentContextReturnData);
   }
 
   private void addDeploymentAccountFragmentIfRoot(Hub hub, MxpCall mxpCall) {
 
-    checkState(returnFromDeployment);
+    checkState(
+        returnFromDeployment,
+        "RETURN associated addDeploymentAccountFragmentIfRoot should be called only for deployments");
 
     firstCreateeNew = AccountSnapshot.canonical(hub, deploymentAddress);
     firstCreateeNew.code(
@@ -322,7 +354,8 @@ public class ReturnSection extends TraceSection
             .make(
                 firstCreatee,
                 firstCreateeNew,
-                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0),
+                TransactionProcessingType.USER);
 
     if (nonemptyByteCode) {
       deploymentAccountFragment.requiresRomlex(true);
@@ -333,6 +366,6 @@ public class ReturnSection extends TraceSection
 
   private static short maxNumberOfRows(Hub hub) {
     return (short)
-        (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 4 : 7));
+        (hub.opCodeData().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 4 : 7));
   }
 }

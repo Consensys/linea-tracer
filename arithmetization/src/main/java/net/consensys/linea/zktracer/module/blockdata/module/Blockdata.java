@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.blockdata.module;
 
 import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_DATA;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.util.*;
@@ -25,10 +26,12 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockdataOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import net.consensys.linea.zktracer.module.txndata.TxnData;
+import net.consensys.linea.zktracer.module.txndata.TxnDataOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -49,8 +52,8 @@ public abstract class Blockdata implements Module {
   @Getter private final OpCode[] opCodes = setOpCodes();
 
   @Override
-  public String moduleKey() {
-    return "BLOCK_DATA";
+  public ModuleName moduleKey() {
+    return BLOCK_DATA;
   }
 
   @Override
@@ -91,7 +94,7 @@ public abstract class Blockdata implements Module {
               hub,
               blockHeader,
               previousBlockHeader,
-              txnData().currentBlock().getNbOfTxsInBlock(),
+              txnData().numberOfUserTransactionsInCurrentBlock(),
               wcp,
               euc,
               chain,
@@ -145,7 +148,7 @@ public abstract class Blockdata implements Module {
     }
   }
 
-  TxnData txnData() {
+  TxnData<? extends TxnDataOperation> txnData() {
     return hub.txnData();
   }
 }

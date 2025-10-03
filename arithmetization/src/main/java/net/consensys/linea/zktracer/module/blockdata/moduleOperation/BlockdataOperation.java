@@ -25,10 +25,9 @@ import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_NB;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_TS;
 import static net.consensys.linea.zktracer.TraceCancun.Blockdata.nROWS_BL;
 import static net.consensys.linea.zktracer.TraceLondon.Blockdata.nROWS_DF;
-import static net.consensys.linea.zktracer.TraceParis.Blockdata.nROWS_PV;
+import static net.consensys.linea.zktracer.TraceShanghai.Blockdata.nROWS_PV;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -59,7 +58,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
   private final BlockHeader blockHeader;
   private final BlockHeader prevBlockHeader;
   private static final EWord POWER_256_20 = EWord.of(TWOFIFTYSIX_TO_THE_TWENTY);
-  private static final EWord POWER_256_6 = EWord.of(BigInteger.ONE.shiftLeft(6 * 8));
+  private static final EWord POWER_256_8 = EWord.of(BigInteger.ONE.shiftLeft(8 * 8));
 
   private final boolean firstBlockInConflation;
   private final int nbRows;
@@ -135,12 +134,12 @@ public abstract class BlockdataOperation extends ModuleOperation {
   }
 
   private void handleTimestamp() {
-    data = EWord.of(blockHeader.getTimestamp());
+    data = EWord.of(Bytes.ofUnsignedLong(blockHeader.getTimestamp()));
     final EWord prevData =
         prevBlockHeader == null ? EWord.ZERO : EWord.of(prevBlockHeader.getTimestamp());
 
     // row i
-    wcpCallToLT(0, data, POWER_256_6);
+    wcpCallToLT(0, data, POWER_256_8);
 
     // row i + 1
     wcpCallToGT(1, data, prevData);
@@ -153,7 +152,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
 
     // row i
     if (firstBlockInConflation) {
-      wcpCallToLT(1, data, POWER_256_6);
+      wcpCallToLT(1, data, POWER_256_8);
     }
   }
 
@@ -246,9 +245,12 @@ public abstract class BlockdataOperation extends ModuleOperation {
           .exoInst(exoInst[ct])
           .wcpFlag(wcpFlag[ct])
           .eucFlag(eucFlag[ct]);
-      trace.validateRow();
+      traceTimestampAndNumber(trace);
+      trace.fillAndValidateRow();
     }
   }
+
+  protected abstract void traceTimestampAndNumber(Trace.Blockdata trace);
 
   protected abstract void traceIsDifficulty(Trace.Blockdata trace, OpCode opCode);
 
@@ -260,8 +262,8 @@ public abstract class BlockdataOperation extends ModuleOperation {
 
   // Module call macros
   private boolean wcpCallTo(int w, EWord arg1, EWord arg2, int inst) {
-    checkArgument(arg1.bitLength() / 8 <= 32);
-    checkArgument(arg2.bitLength() / 8 <= 32);
+    checkArgument(arg1.bitLength() / 8 <= 32, "WCP: arg1 bit width too large");
+    checkArgument(arg2.bitLength() / 8 <= 32, "WCP: arg2 bit width too large");
 
     this.arg1[w] = arg1;
     this.arg2[w] = arg2;
@@ -329,7 +331,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
       case CHAINID -> nROWS_ID;
       case BASEFEE -> nROWS_BF;
       case BLOBBASEFEE -> nROWS_BL; // Cancun and after
-      default -> throw new IllegalArgumentException("Not a valid opcode for lockData: " + opCode);
+      default -> throw new IllegalArgumentException("Not a valid opcode for BlockData: " + opCode);
     };
   }
 }

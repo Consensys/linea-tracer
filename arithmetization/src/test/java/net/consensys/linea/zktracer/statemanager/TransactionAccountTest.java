@@ -30,12 +30,13 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 public class TransactionAccountTest extends TracerTestBase {
   TestContext tc;
 
   @Test
-  void testTransactionMapAccount() {
+  void testTransactionMapAccount(TestInfo testInfo) {
     // initialize the test context
     this.tc = new TestContext();
     this.tc.initializeTestContext();
@@ -54,7 +55,7 @@ public class TransactionAccountTest extends TracerTestBase {
 
     // prepare a multi-block execution of transactions
     final MultiBlockExecutionEnvironment multiBlockEnv =
-        MultiBlockExecutionEnvironment.builder(testInfo)
+        MultiBlockExecutionEnvironment.builder(chainConfig, testInfo)
             // initialize accounts
             .accounts(
                 List.of(
@@ -105,7 +106,7 @@ public class TransactionAccountTest extends TracerTestBase {
     multiBlockEnv.run();
 
     // Total number of transactions
-    int txCount = multiBlockEnv.getHub().state().txCount();
+    int txCount = multiBlockEnv.getHub().state().getUserTransactionNumber();
 
     // Replay the transaction's trace from the hub to compute the first and last values for the
     // account fragment

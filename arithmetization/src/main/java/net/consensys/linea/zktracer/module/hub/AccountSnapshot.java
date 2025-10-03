@@ -27,8 +27,10 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.types.Bytecode;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -58,7 +60,7 @@ public class AccountSnapshot {
         hub.messageFrame().getWorldUpdater(),
         address,
         hub.transients.conflation().deploymentInfo(),
-        isAddressWarm(hub.messageFrame(), address));
+        isAddressWarm(hub.fork, hub.messageFrame(), address));
   }
 
   public static AccountSnapshot canonical(Hub hub, Address address, boolean warmth) {
@@ -70,7 +72,7 @@ public class AccountSnapshot {
         world,
         address,
         hub.transients.conflation().deploymentInfo(),
-        isAddressWarm(hub.messageFrame(), address));
+        isAddressWarm(hub.fork, hub.messageFrame(), address));
   }
 
   public static AccountSnapshot canonical(
@@ -85,7 +87,7 @@ public class AccountSnapshot {
       final boolean warmth) {
 
     final Account account = worldView.get(address);
-    Bytecode bytecode =
+    final Bytecode bytecode =
         deploymentInfo.getDeploymentStatus(address)
             ? new Bytecode(deploymentInfo.getInitializationCode(address))
             : (account == null) ? new Bytecode(Bytes.EMPTY) : new Bytecode(account.getCode());
@@ -156,7 +158,7 @@ public class AccountSnapshot {
 
   public void wipe(DeploymentInfo deploymentInfo) {
     final boolean deploymentStatus = deploymentInfo.getDeploymentStatus(address);
-    checkArgument(!deploymentStatus);
+    checkArgument(!deploymentStatus, "Cannot wipe an account that is under deployment");
     this.nonce(0).balance(Wei.ZERO).code(Bytecode.EMPTY).setDeploymentInfo(deploymentInfo);
   }
 
@@ -230,7 +232,10 @@ public class AccountSnapshot {
   }
 
   public AccountSnapshot decrementNonceByOne() {
-    checkState(nonce > 0);
+    checkState(
+        nonce > 0,
+        "AccountSnapshot: attempting to decrement nonce by one when nonce is %s ≤ 0",
+        nonce);
     return this.nonce(nonce - 1);
   }
 
@@ -243,7 +248,10 @@ public class AccountSnapshot {
   }
 
   public void decrementDeploymentNumberByOne() {
-    checkState(deploymentNumber > 0);
+    checkState(
+        deploymentNumber > 0,
+        "Attempting to decrement deployment number by one when deployment number is %s ≤ 0",
+        deploymentNumber);
     this.deploymentNumber(deploymentNumber - 1);
   }
 
@@ -257,9 +265,22 @@ public class AccountSnapshot {
     return this;
   }
 
+  public AccountSnapshot setDeploymentStatus(boolean deploymentStatus) {
+    this.deploymentStatus(deploymentStatus);
+    return this;
+  }
+
   public AccountSnapshot deployByteCode(Bytecode code) {
     checkState(deploymentStatus, "Deployment status should be true before deploying byte code.");
 
     return new AccountSnapshot(address, nonce, balance, true, code, deploymentNumber, false);
+  }
+
+  public EWord tracedCodeHash() {
+    return EWord.of(this.deploymentStatus() ? Hash.EMPTY : this.code().getCodeHash());
+  }
+
+  public boolean tracedHasCode() {
+    return !this.tracedCodeHash().equals(EWord.of(Hash.EMPTY));
   }
 }

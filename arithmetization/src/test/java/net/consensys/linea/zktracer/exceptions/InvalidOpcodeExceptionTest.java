@@ -26,8 +26,8 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -37,33 +37,34 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class InvalidOpcodeExceptionTest extends TracerTestBase {
 
   @Test
-  void invalidOpcodeExceptionTest() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+  void invalidOpcodeExceptionTest(TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program.op(OpCode.INVALID);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
     assertEquals(
         TracedException.INVALID_OPCODE,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @ParameterizedTest
   @MethodSource("nonOpcodeExceptionSource")
-  void nonOpcodeExceptionTest(int value) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+  void nonOpcodeExceptionTest(int value, TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program.immediate(value);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
     assertEquals(
         TracedException.INVALID_OPCODE,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   static Stream<Arguments> nonOpcodeExceptionSource() {
     List<Arguments> arguments = new ArrayList<>();
+    //
     for (int value = 0; value < 256; value++) {
       // If value is not in the map, then it is not an OpCode
-      if (!OpCodes.isValid(value)) {
+      if (!opcodes.isValid(value)) {
         arguments.add(Arguments.of(value));
       }
     }

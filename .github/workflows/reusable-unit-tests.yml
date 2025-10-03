@@ -18,7 +18,7 @@ jobs:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           submodules: false
 
@@ -31,28 +31,27 @@ jobs:
         run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:test
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
-          CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -v --ansi-escapes=false --report --air
           UNIT_TESTS_PARALLELISM: 4
           ZKEVM_FORK: ${{ inputs.zkevm_fork }}
 
       - name: Upload test report
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: unit-tests-report-${{ inputs.zkevm_fork }}
           path: arithmetization/build/reports/tests/**/*
 
       - name: Upload jacoco unit tests coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: jacoco-unit-tests-coverage-report-${{ inputs.zkevm_fork }}
           path: arithmetization/build/reports/jacoco/test/**/*
 
       - name: Upload jacoco unit tests exec file
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: jacoco-unit-tests-exec-file-${{ inputs.zkevm_fork }}
           path: arithmetization/build/jacoco/test.exec

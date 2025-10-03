@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.AdvancedCreate2ScenarioValue.*;
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.ScenarioUtils.getTransactions;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
 import java.math.BigInteger;
@@ -31,6 +33,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -69,13 +72,14 @@ public class StorageNoOpTests extends TracerTestBase {
           .build();
 
   @Test
-  public void simpleTest() {
+  public void simpleTest(TestInfo testInfo) {
 
     testBody(
         TouchStorage.TOUCH_STORAGE,
         ModifyStorage.MODIFY_STORAGE,
         SelfDestruct.SELF_DESTRUCT,
-        Revert.DONT_REVERT);
+        Revert.DONT_REVERT,
+        testInfo);
   }
 
   @ParameterizedTest
@@ -85,9 +89,9 @@ public class StorageNoOpTests extends TracerTestBase {
           TouchStorage touchStorage,
           ModifyStorage modifyStorage,
           SelfDestruct selfdestruct,
-          Revert revert) {
-
-    testBody(touchStorage, modifyStorage, selfdestruct, revert);
+          Revert revert,
+          TestInfo testInfo) {
+    testBody(touchStorage, modifyStorage, selfdestruct, revert, testInfo);
   }
 
   public static Stream<Arguments> getParameters() {
@@ -109,7 +113,8 @@ public class StorageNoOpTests extends TracerTestBase {
       TouchStorage touchStorage,
       ModifyStorage modifyStorage,
       SelfDestruct selfdestruct,
-      Revert revert) {
+      Revert revert,
+      TestInfo testInfo) {
 
     // preparing payload for the first transaction
     Uint256 salt = new Uint256(BigInteger.valueOf(0xaaff11L));
@@ -121,13 +126,13 @@ public class StorageNoOpTests extends TracerTestBase {
             selfdestruct == SelfDestruct.SELF_DESTRUCT,
             revert == Revert.REVERT);
     // for some reason the solidity code does not allow to pass a nonzero value to the
-    // transaction; we thus provide zero Wei to both transactions
+    // transaction; we thus provide zero Wei (NONE) to both transactions
     List<Transaction> transactions =
-        InitCodeTests.getTransactions(
-            factorySmc, userAccount, List.of(deployPayload, callMainMethod), List.of(0L, 0L));
+        getTransactions(
+            factorySmc, userAccount, List.of(deployPayload, callMainMethod), List.of(NONE, NONE));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
-        ToyExecutionEnvironmentV2.builder(testInfo)
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
             .accounts(List.of(userAccount, factorySmc))
             .transactions(transactions)
             .build();

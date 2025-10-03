@@ -28,6 +28,7 @@ import static net.consensys.linea.zktracer.Trace.MMIO_INST_RAM_TO_RAM_TRANSPLANT
 import static net.consensys.linea.zktracer.Trace.MMIO_INST_RAM_TO_RAM_TWO_SOURCE;
 import static net.consensys.linea.zktracer.Trace.MMIO_INST_RAM_TO_RAM_TWO_TARGET;
 import static net.consensys.linea.zktracer.Trace.MMIO_INST_RAM_VANISHES;
+import static net.consensys.linea.zktracer.module.ModuleName.MMIO;
 import static net.consensys.linea.zktracer.module.mmio.MmioData.isFastOperation;
 import static net.consensys.linea.zktracer.module.mmio.MmioData.lineCountOfMmioInstruction;
 
@@ -37,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.mmu.MmuOperation;
@@ -49,8 +51,8 @@ public class Mmio implements Module {
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
 
   @Override
-  public String moduleKey() {
-    return "MMIO";
+  public ModuleName moduleKey() {
+    return MMIO;
   }
 
   @Override
@@ -119,6 +121,7 @@ public class Mmio implements Module {
     final boolean effectiveExoIsRom = requiresExoFlag && mmioData.exoIsRom();
     final boolean effectiveExoIsLog = requiresExoFlag && mmioData.exoIsLog();
     final boolean effectiveExoIsEcData = requiresExoFlag && mmioData.exoIsEcData();
+    final boolean effectiveExoIsBls = requiresExoFlag && mmioData.exoIsBls();
     final boolean effectiveExoIsBlakeModexp = requiresExoFlag && mmioData.exoIsBlake2fModexp();
     final boolean effectiveExoIsRipSha = requiresExoFlag && mmioData.exoIsRipSha();
     final boolean effectiveExoIsKeccak = requiresExoFlag && mmioData.exoIsKeccak();
@@ -183,7 +186,14 @@ public class Mmio implements Module {
           .exoIsEcdata(effectiveExoIsEcData)
           .exoIsBlakemodexp(effectiveExoIsBlakeModexp)
           .exoIsRipsha(effectiveExoIsRipSha)
-          .exoIsKec(effectiveExoIsKeccak)
+          .exoIsKec(effectiveExoIsKeccak);
+      try {
+        trace.exoIsBls(effectiveExoIsBls);
+      }
+      // ignore exception, this columns appears in cancun
+      catch (final Exception ignored) {
+      }
+      trace
           .kecId(mmioData.kecId())
           .phase(mmioData.phase())
           .successBit(mmioData.successBit())

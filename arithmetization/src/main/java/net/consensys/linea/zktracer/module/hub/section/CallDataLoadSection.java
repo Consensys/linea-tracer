@@ -25,12 +25,13 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.CallDataLoad;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallDataLoadOobCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.opcode.OpCode;
 
 public class CallDataLoadSection extends TraceSection {
 
+  public static final short NB_ROWS_HUB_CALLDATALOAD = 4;
+
   public CallDataLoadSection(Hub hub) {
-    super(hub, (short) (hub.opCode().equals(OpCode.CALLDATALOAD) ? 4 : 3));
+    super(hub, NB_ROWS_HUB_CALLDATALOAD);
     this.addStack(hub);
 
     final short exception = hub.pch().exceptions();
@@ -38,8 +39,8 @@ public class CallDataLoadSection extends TraceSection {
     final ImcFragment imcFragment = ImcFragment.empty(hub);
     this.addFragment(imcFragment);
 
-    final CallDataLoadOobCall oobCall = new CallDataLoadOobCall();
-    imcFragment.callOob(oobCall);
+    final CallDataLoadOobCall oobCall =
+        (CallDataLoadOobCall) imcFragment.callOob(new CallDataLoadOobCall());
 
     if (Exceptions.none(exception)) {
       if (!oobCall.isCdlOutOfBounds()) {
@@ -48,7 +49,9 @@ public class CallDataLoadSection extends TraceSection {
       }
     } else {
       // Sanity check
-      checkArgument(Exceptions.outOfGasException(exception));
+      checkArgument(
+          Exceptions.outOfGasException(exception),
+          "CALLDATALOAD may only throw the OOGX exception");
     }
 
     final ContextFragment context = readCurrentContextData(hub);

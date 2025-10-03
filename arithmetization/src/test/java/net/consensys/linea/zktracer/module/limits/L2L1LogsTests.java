@@ -24,6 +24,7 @@ import java.util.List;
 
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.*;
+import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -33,11 +34,12 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 public class L2L1LogsTests extends TracerTestBase {
 
   @Test
-  void twoSuccessfullL2l1Logs() {
+  void twoSuccessfullL2l1Logs(TestInfo testInfo) {
     // sender account
     final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -51,7 +53,7 @@ public class L2L1LogsTests extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(TEST_DEFAULT.contract())
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram(chainConfig)
                     // LOG1 with right topic, and no data
                     .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
@@ -81,7 +83,7 @@ public class L2L1LogsTests extends TracerTestBase {
             .build();
 
     final ToyExecutionEnvironmentV2 toyWorld =
-        ToyExecutionEnvironmentV2.builder(testInfo)
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
             .accounts(List.of(senderAccount, l2l1LogSMC))
             .transaction(tx)
             .zkTracerValidator(zkTracer -> {})
@@ -89,14 +91,14 @@ public class L2L1LogsTests extends TracerTestBase {
 
     toyWorld.run();
 
-    final L2L1Logs l2l1Logs = toyWorld.getHub().l2L1Logs();
+    final IncrementingModule l2l1Logs = toyWorld.getHub().l2L1Logs();
 
     // We made two LOGs, one with 1 topic, and one with 4 topics and data
     assertEquals(2, l2l1Logs.lineCount());
   }
 
   @Test
-  void unsuccessfullL2l1Logs() {
+  void unsuccessfullL2l1Logs(TestInfo testInfo) {
     // sender account
     final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -109,7 +111,7 @@ public class L2L1LogsTests extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(Address.wrap(Bytes.repeat((byte) 1, Address.SIZE)))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram(chainConfig)
                     // LOG1 with right topic, and no data
                     .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
@@ -123,7 +125,7 @@ public class L2L1LogsTests extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(Address.wrap(Bytes.repeat((byte) 2, Address.SIZE)))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram(chainConfig)
                     // LOG1 with right topic, and no data
                     .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
@@ -141,7 +143,7 @@ public class L2L1LogsTests extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(TEST_DEFAULT.contract())
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram(chainConfig)
                     // LOG2 with right topic, not at the right place
                     .push(TEST_DEFAULT.topic()) // topic 2
                     .push(Bytes.of(1)) // topic 1
@@ -165,7 +167,7 @@ public class L2L1LogsTests extends TracerTestBase {
             .build();
 
     final ToyExecutionEnvironmentV2 toyWorld =
-        ToyExecutionEnvironmentV2.builder(testInfo)
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
             .accounts(List.of(senderAccount, l2l1LogSMC, LOG_ACCOUNT_AND_REVERT, LOG_ACCOUNT))
             .transaction(tx)
             .zkTracerValidator(zkTracer -> {})
@@ -173,7 +175,7 @@ public class L2L1LogsTests extends TracerTestBase {
 
     toyWorld.run();
 
-    final L2L1Logs l2l1Logs = toyWorld.getHub().l2L1Logs();
+    final IncrementingModule l2l1Logs = toyWorld.getHub().l2L1Logs();
 
     // We made a reverted LOG
     assertEquals(0, l2l1Logs.lineCount());

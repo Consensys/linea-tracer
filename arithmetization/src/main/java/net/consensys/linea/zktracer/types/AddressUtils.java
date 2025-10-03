@@ -16,15 +16,22 @@
 package net.consensys.linea.zktracer.types;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
+import static net.consensys.linea.zktracer.Trace.CREATE2_SHIFT;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.hyperledger.besu.crypto.Hash.keccak256;
+import static org.hyperledger.besu.datatypes.Address.*;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.List;
+import java.util.stream.Stream;
 
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.crypto.Hash;
@@ -34,12 +41,14 @@ import org.hyperledger.besu.ethereum.rlp.RLP;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class AddressUtils {
-  private static final Bytes CREATE2_PREFIX = Bytes.of(0xff);
-  public static final List<Address> precompileAddress =
+
+  private static final Bytes CREATE2_PREFIX = Bytes.minimalBytes(CREATE2_SHIFT);
+
+  public static final List<Address> precompileAddressLondon =
       List.of(
-          Address.ECREC,
-          Address.SHA256,
-          Address.RIPEMD160,
+          ECREC,
+          SHA256,
+          RIPEMD160,
           Address.ID,
           Address.MODEXP,
           Address.ALTBN128_ADD,
@@ -47,8 +56,45 @@ public class AddressUtils {
           Address.ALTBN128_PAIRING,
           Address.BLAKE2B_F_COMPRESSION);
 
-  public static boolean isPrecompile(Address to) {
-    return precompileAddress.contains(to);
+  public static final List<Address> precompileAddressCancun =
+      Stream.concat(precompileAddressLondon.stream(), Stream.of(Address.KZG_POINT_EVAL)).toList();
+
+  public static final List<Address> BLS_PRECOMPILES =
+      List.of(
+          Address.BLS12_G1ADD,
+          Address.BLS12_G1MULTIEXP,
+          Address.BLS12_G2ADD,
+          Address.BLS12_G2MULTIEXP,
+          Address.BLS12_PAIRING,
+          Address.BLS12_MAP_FP_TO_G1,
+          Address.BLS12_MAP_FP2_TO_G2);
+
+  public static final List<Address> precompileAddressPrague =
+      Stream.concat(precompileAddressCancun.stream(), BLS_PRECOMPILES.stream()).toList();
+
+  /**
+   * Check if the address is one of the BLS precompiles added in Prague (so excluding
+   * KZG_POINT_EVAL).
+   */
+  public static boolean isBlsPrecompile(Address address) {
+    return BLS_PRECOMPILES.contains(address);
+  }
+
+  public static boolean isBlsPrecompileCall(Address address, Fork fork) {
+    return isBlsPrecompile(address) && isPostPrague(fork);
+  }
+
+  public static boolean isKzgPrecompileCall(Address address, Fork fork) {
+    return address.equals(Address.KZG_POINT_EVAL) && isPostCancun(fork);
+  }
+
+  public static boolean isPrecompile(Fork fork, Address to) {
+    return switch (fork) {
+      case LONDON, PARIS, SHANGHAI -> precompileAddressLondon.contains(to);
+      case CANCUN -> precompileAddressCancun.contains(to);
+      case PRAGUE -> precompileAddressPrague.contains(to);
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
   }
 
   /**
@@ -105,18 +151,19 @@ public class AddressUtils {
     return Hash.keccak256(Bytes.concatenate(CREATE2_PREFIX, sender, salt, hash));
   }
 
-  public static Address getCreate2Address(final MessageFrame frame) {
+  public static Address getCreate2Address(final MessageFrame frame, OpCodeData opCode) {
     final Address sender = frame.getRecipientAddress();
     final Bytes32 salt = Bytes32.leftPad(frame.getStackItem(3));
-    final Bytes initCode = OperationAncillaries.initCode(frame);
+    final Bytes initCode = OperationAncillaries.initCode(frame, opCode);
     final Bytes32 hash = Hash.keccak256(initCode);
     return Address.extract(getCreate2RawAddress(sender, salt, hash));
   }
 
-  public static Address getDeploymentAddress(final MessageFrame frame) {
-    final OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    checkArgument(opcode.isCreate(), "Must be called only for CREATE/CREATE2 opcode");
-    return opcode.equals(OpCode.CREATE) ? getCreateAddress(frame) : getCreate2Address(frame);
+  public static Address getDeploymentAddress(final MessageFrame frame, final OpCodeData opCode) {
+    checkArgument(opCode.isCreate(), "Must be called only for CREATE/CREATE2 opcode");
+    return opCode.mnemonic() == OpCode.CREATE
+        ? getCreateAddress(frame)
+        : getCreate2Address(frame, opCode);
   }
 
   public static Address addressFromBytes(final Bytes input) {
@@ -133,7 +180,8 @@ public class AddressUtils {
     return address.slice(4, LLARGE);
   }
 
-  public static boolean isAddressWarm(final MessageFrame messageFrame, final Address address) {
-    return messageFrame.isAddressWarm(address) || isPrecompile(address);
+  public static boolean isAddressWarm(
+      final Fork fork, final MessageFrame messageFrame, final Address address) {
+    return messageFrame.isAddressWarm(address) || isPrecompile(fork, address);
   }
 }

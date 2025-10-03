@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
+import static net.consensys.linea.zktracer.module.ModuleName.OOB;
+
 import java.util.List;
 
 import lombok.Getter;
@@ -22,7 +24,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationAdder;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
@@ -44,19 +48,23 @@ public class Oob implements OperationSetModule<OobOperation> {
       new ModuleOperationStackedSet<>();
 
   @Override
-  public String moduleKey() {
-    return "OOB";
+  public ModuleName moduleKey() {
+    return OOB;
   }
 
-  public void call(OobCall oobCall) {
-    final OobOperation oobOperation =
-        new OobOperation(oobCall, hub, hub.messageFrame(), add, mod, wcp);
-    operations.add(oobOperation);
+  public OobCall call(OobCall oobCall) {
+    final OobOperation oobOperation = new OobOperation(oobCall, hub, hub.messageFrame());
+    final ModuleOperationAdder addedOperation = operations.addAndGet(oobOperation);
+    final OobOperation op = (OobOperation) addedOperation.op();
+    if (addedOperation.isNew()) {
+      op.oobCall.callExoModulesAndSetOutputs(add, mod, wcp);
+    }
+    return op.oobCall;
   }
 
   final void traceOperation(final OobOperation oobOperation, int stamp, Trace.Oob trace) {
     final int nRows = oobOperation.nRows();
-    final OobCall oobCall = oobOperation.getOobCall();
+    final OobCall oobCall = oobOperation.oobCall();
 
     for (int ct = 0; ct < nRows; ct++) {
       trace.stamp(stamp).ct((short) ct).ctMax((short) oobOperation.ctMax());

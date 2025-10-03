@@ -15,8 +15,7 @@
 
 package net.consensys.linea.testing;
 
-import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
-import static net.consensys.linea.zktracer.Fork.LONDON;
+import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
 
 import java.math.BigInteger;
@@ -29,15 +28,18 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.blockcapture.snapshots.*;
-import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.ethereum.core.*;
+import org.junit.jupiter.api.TestInfo;
 
 @Builder
 @Slf4j
 public class MultiBlockExecutionEnvironment {
+  public static final short DEFAULT_DELTA_TIMESTAMP_BETWEEN_BLOCKS = 2;
+
   @Singular("addAccount")
   private final List<ToyAccount> accounts;
 
@@ -46,7 +48,11 @@ public class MultiBlockExecutionEnvironment {
   public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
   private final ZkTracer tracer;
 
-  @Builder.Default public final ChainConfig testsChain = MAINNET_TESTCONFIG(LONDON);
+  public final ChainConfig testsChain;
+  public final TestInfo testInfo;
+
+  @Builder.Default private final long startingBlockNumber = DEFAULT_BLOCK_NUMBER;
+  @Builder.Default private final boolean systemContractDeployedPriorToConflation = true;
 
   /**
    * A transaction validator of each transaction; by default, it asserts that the transaction was
@@ -57,10 +63,24 @@ public class MultiBlockExecutionEnvironment {
       TransactionProcessingResultValidator.DEFAULT_VALIDATOR;
 
   public static MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder(
-      TestInfoWithChainConfig testInfo) {
+      ChainConfig chainConfig, TestInfo testInfo) {
     return new MultiBlockExecutionEnvironmentBuilder()
-        .tracer(new ZkTracer(testInfo.chainConfig))
-        .testsChain(testInfo.chainConfig);
+        .tracer(new ZkTracer(chainConfig))
+        .testsChain(chainConfig)
+        .testInfo(testInfo);
+  }
+
+  public static MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder(
+      ChainConfig chainConfig,
+      TestInfo testInfo,
+      boolean systemContractDeployedPriorConflation,
+      long firstBlockNumber) {
+    return new MultiBlockExecutionEnvironmentBuilder()
+        .tracer(new ZkTracer(chainConfig))
+        .testsChain(chainConfig)
+        .testInfo(testInfo)
+        .systemContractDeployedPriorToConflation(systemContractDeployedPriorConflation)
+        .startingBlockNumber(firstBlockNumber);
   }
 
   public static class MultiBlockExecutionEnvironmentBuilder {
@@ -73,14 +93,29 @@ public class MultiBlockExecutionEnvironment {
 
     public MultiBlockExecutionEnvironmentBuilder addBlock(
         List<Transaction> transactions, long gasLimit) {
-      BlockHeaderBuilder blockHeaderBuilder =
-          this.blocks.isEmpty()
+      final boolean firstBlock = this.blocks.isEmpty();
+      final BlockHeaderBuilder blockHeaderBuilder =
+          firstBlock
               ? ExecutionEnvironment.getLineaBlockHeaderBuilder(Optional.empty())
               : ExecutionEnvironment.getLineaBlockHeaderBuilder(
                   Optional.of(this.blocks.getLast().header().toBlockHeader()));
       blockHeaderBuilder.coinbase(ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS);
       blockHeaderBuilder.gasLimit(gasLimit);
-      BlockBody blockBody = new BlockBody(transactions, Collections.emptyList());
+      blockHeaderBuilder.number(startingBlockNumber$value + blocks.size());
+      // Note: as per https://eips.ethereum.org/EIPS/eip-4788: "If this EIP is active in a genesis
+      // block, the genesis header’s parent_beacon_block_root must be 0x0 and no system transaction
+      // may occur."
+      if (firstBlock) {
+        blockHeaderBuilder.parentBeaconBlockRoot(
+            startingBlockNumber$value == 0 ? Bytes32.ZERO : Bytes32.fromHexString("0xBADDADD7"));
+      } else {
+        // e.g. 0xaaaa..aa00e3 for block number 0xe3
+        final String prefix = "aa".repeat(30);
+        final String suffix = String.format("%04x", blocks.size());
+        blockHeaderBuilder.parentBeaconBlockRoot(Bytes32.fromHexString("0x" + prefix + suffix));
+      }
+
+      final BlockBody blockBody = new BlockBody(transactions, Collections.emptyList());
       this.blocks.add(BlockSnapshot.of(blockHeaderBuilder.buildBlockHeader(), blockBody));
 
       return this;
@@ -92,8 +127,9 @@ public class MultiBlockExecutionEnvironment {
         .zkTracer(tracer)
         .useCoinbaseAddressFromBlockHeader(true)
         .transactionProcessingResultValidator(this.transactionProcessingResultValidator)
+        .systemContractDeployedPriorToConflation(systemContractDeployedPriorToConflation)
         .build()
-        .replay(testsChain, this.buildConflationSnapshot());
+        .replay(testsChain, testInfo, this.buildConflationSnapshot());
   }
 
   public Hub getHub() {

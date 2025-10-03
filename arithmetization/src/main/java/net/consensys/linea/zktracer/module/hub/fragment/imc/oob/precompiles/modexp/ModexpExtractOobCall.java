@@ -20,9 +20,9 @@ import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_MODEXP_EXTRACT;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
-import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
@@ -33,18 +33,23 @@ import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.oob.OobExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class ModexpExtractOobCall extends OobCall {
 
-  final ModexpMetadata metadata;
-  EWord cds;
+  public static final short NB_ROWS_OOB_MODEXP_EXTRACT = CT_MAX_MODEXP_EXTRACT + 1;
 
+  // Inputs
+  @EqualsAndHashCode.Include final ModexpMetadata metadata;
+  @EqualsAndHashCode.Include EWord cds;
+
+  // Outputs
   boolean extractBase;
   boolean extractExponent;
   boolean extractModulus;
@@ -56,12 +61,12 @@ public class ModexpExtractOobCall extends OobCall {
 
   @Override
   public void setInputData(MessageFrame frame, Hub hub) {
-    final OpCode opCode = getOpCode(frame);
+    final OpCodeData opCode = hub.opCodeData(frame);
     setCds(EWord.of(frame.getStackItem(opCode.callCdsStackIndex())));
   }
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
     // row i
     final OobExoCall bbsIsZeroCall = callToIsZero(wcp, metadata.bbs());
     exoCalls.add(bbsIsZeroCall);

@@ -32,14 +32,17 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
 public class IdentitySubsection extends PrecompileSubsection {
 
+  public static final short NB_ROWS_HUB_PRC_IDENTITY = 3;
+
   final CommonPrecompileOobCall oobCall;
 
   public IdentitySubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
 
     final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
-    oobCall = new IdentityOobCall(BigInteger.valueOf(calleeGas));
-    firstImcFragment.callOob(oobCall);
+    oobCall =
+        (CommonPrecompileOobCall)
+            firstImcFragment.callOob(new IdentityOobCall(BigInteger.valueOf(calleeGas)));
 
     if (!oobCall.isHubSuccess()) {
       precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_HUB);
@@ -51,7 +54,9 @@ public class IdentitySubsection extends PrecompileSubsection {
     super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity check
-    checkArgument(callSuccess == oobCall.isHubSuccess());
+    checkArgument(
+        callSuccess == oobCall.isHubSuccess(),
+        "oob and hub disagree on IDENTITY precompile success");
 
     if (!callSuccess) {
       return;
@@ -74,7 +79,7 @@ public class IdentitySubsection extends PrecompileSubsection {
   // 3 = 1 + 2 (scenario row + up to 2 miscellaneous fragments)
   @Override
   protected short maxNumberOfLines() {
-    return 3;
+    return NB_ROWS_HUB_PRC_IDENTITY;
     // Note: we don't have the successBit available at the moment
     // and can't provide the "real" value (2 in case of FKTH.)
   }

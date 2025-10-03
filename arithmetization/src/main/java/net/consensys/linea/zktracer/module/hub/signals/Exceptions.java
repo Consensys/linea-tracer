@@ -17,8 +17,9 @@ package net.consensys.linea.zktracer.module.hub.signals;
 
 import static net.consensys.linea.zktracer.Fork.isPostShanghai;
 import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.CANCUN_MXPX_THRESHOLD;
+import static net.consensys.linea.zktracer.TraceLondon.Mxp.LONDON_MXPX_THRESHOLD;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
-import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static org.hyperledger.besu.evm.internal.Words.clampedToInt;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
@@ -29,7 +30,7 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
+import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
@@ -127,18 +128,21 @@ public class Exceptions {
         > 1024;
   }
 
-  private static boolean isMemoryExpansionFault(
-      MessageFrame frame, OpCode opCode, GasProjector gp) {
-    return gp.of(frame, opCode).largestOffset() > 0xffffffffL;
+  private static boolean isMemoryExpansionFault(Fork fork, GasProjection op) {
+    return switch (fork) {
+      case LONDON, PARIS, SHANGHAI -> op.mxpxOffset(fork) >= LONDON_MXPX_THRESHOLD;
+      case CANCUN, PRAGUE, OSAKA -> op.mxpxOffset(fork) > CANCUN_MXPX_THRESHOLD;
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
   }
 
-  private static boolean isOutOfGas(MessageFrame frame, OpCode opCode, GasProjector gp) {
-    final long required = gp.of(frame, opCode).upfrontGasCost();
+  private static boolean isOutOfGas(GasProjection op, MessageFrame frame) {
+    final long required = op.upfrontGasCost();
     return required > frame.getRemainingGas();
   }
 
-  private static boolean isReturnDataCopyFault(final MessageFrame frame, final OpCode opCode) {
-    if (opCode == OpCode.RETURNDATACOPY) {
+  private static boolean isReturnDataCopyFault(final MessageFrame frame, final OpCodeData opCode) {
+    if (opCode.mnemonic() == OpCode.RETURNDATACOPY) {
       final long returnDataSize = frame.getReturnData().size();
       final long askedOffset = clampedToLong(frame.getStackItem(1));
       final long askedSize = clampedToLong(frame.getStackItem(2));
@@ -149,12 +153,12 @@ public class Exceptions {
     return false;
   }
 
-  private static boolean isJumpFault(final MessageFrame frame, OpCode opCode) {
-    if (opCode == OpCode.JUMP || opCode == OpCode.JUMPI) {
+  private static boolean isJumpFault(final MessageFrame frame, OpCodeData opCode) {
+    if (opCode.mnemonic() == OpCode.JUMP || opCode.mnemonic() == OpCode.JUMPI) {
       final int target = clampedToInt(frame.getStackItem(0));
       final boolean invalidDestination = frame.getCode().isJumpDestInvalid(target);
 
-      switch (opCode) {
+      switch (opCode.mnemonic()) {
         case JUMP -> {
           return invalidDestination;
         }
@@ -194,12 +198,13 @@ public class Exceptions {
     return false;
   }
 
-  private static boolean isOutOfSStore(MessageFrame frame, OpCode opCode) {
-    return opCode == OpCode.SSTORE && frame.getRemainingGas() <= Trace.GAS_CONST_G_CALL_STIPEND;
+  private static boolean isOutOfSStore(MessageFrame frame, OpCodeData opCode) {
+    return opCode.mnemonic() == OpCode.SSTORE
+        && frame.getRemainingGas() <= Trace.GAS_CONST_G_CALL_STIPEND;
   }
 
-  private static boolean isInvalidCodePrefix(MessageFrame frame) {
-    if (frame.getType() != MessageFrame.Type.CONTRACT_CREATION || getOpCode(frame) != RETURN) {
+  private static boolean isInvalidCodePrefix(MessageFrame frame, OpCodeData opCode) {
+    if (frame.getType() != MessageFrame.Type.CONTRACT_CREATION || opCode.mnemonic() != RETURN) {
       return false;
     }
     final long size = clampedToLong(frame.getStackItem(1));
@@ -214,13 +219,12 @@ public class Exceptions {
     return firstByte == (byte) EIP_3541_MARKER;
   }
 
-  private static boolean isCodeSizeOverflow(MessageFrame frame, Fork fork) {
-    final OpCode opCode = getOpCode(frame);
-    if (opCode != RETURN && !opCode.isCreate()) {
+  private static boolean isCodeSizeOverflow(MessageFrame frame, OpCodeData opCode, Fork fork) {
+    if (opCode.mnemonic() != RETURN && !opCode.isCreate()) {
       return false;
     }
 
-    switch (opCode) {
+    switch (opCode.mnemonic()) {
       case RETURN -> {
         if (frame.getType() != MessageFrame.Type.CONTRACT_CREATION) {
           return false;
@@ -246,8 +250,7 @@ public class Exceptions {
    * @param frame the context from which to compute the putative exceptions
    */
   public static short fromFrame(final Hub hub, final MessageFrame frame) {
-    final OpCode opCode = hub.opCode();
-    final OpCodeData opCodeData = hub.currentFrame().opCodeData();
+    final OpCodeData opCodeData = hub.opCodeData();
 
     if (isStackUnderflow(frame, opCodeData)) {
       return STACK_UNDERFLOW;
@@ -255,21 +258,22 @@ public class Exceptions {
     if (isStackOverflow(frame, opCodeData)) {
       return STACK_OVERFLOW;
     }
-    if (isInvalidOpcode(opCode)) {
+    if (isInvalidOpcode(opCodeData.mnemonic())) {
       return INVALID_OPCODE;
     }
     if (isStaticFault(frame, opCodeData)) {
       return STATIC_FAULT;
     }
-    if (isCodeSizeOverflow(frame, hub.fork)) {
+    if (isCodeSizeOverflow(frame, opCodeData, hub.fork)) {
       return MAX_CODE_SIZE_EXCEPTION;
     }
 
-    final GasProjector gp = hub.gasProjector;
-    switch (opCode) {
+    final GasProjection op = hub.gasProjector.of(hub.messageFrame(), opCodeData);
+    switch (opCodeData.mnemonic()) {
       case CALLDATACOPY,
           CODECOPY,
           EXTCODECOPY,
+          MCOPY,
           LOG0,
           LOG1,
           LOG2,
@@ -288,22 +292,22 @@ public class Exceptions {
           MLOAD,
           MSTORE,
           MSTORE8 -> {
-        if (isMemoryExpansionFault(frame, opCode, gp)) {
+        if (isMemoryExpansionFault(hub.fork, op)) {
           return MEMORY_EXPANSION_EXCEPTION;
         }
-        if (isOutOfGas(frame, opCode, gp)) {
+        if (isOutOfGas(op, frame)) {
           return OUT_OF_GAS_EXCEPTION;
         }
       }
 
       case RETURNDATACOPY -> {
-        if (isReturnDataCopyFault(frame, opCode)) {
+        if (isReturnDataCopyFault(frame, opCodeData)) {
           return RETURN_DATA_COPY_FAULT;
         }
-        if (isMemoryExpansionFault(frame, opCode, gp)) {
+        if (isMemoryExpansionFault(hub.fork, op)) {
           return MEMORY_EXPANSION_EXCEPTION;
         }
-        if (isOutOfGas(frame, opCode, gp)) {
+        if (isOutOfGas(op, frame)) {
           return OUT_OF_GAS_EXCEPTION;
         }
       }
@@ -311,31 +315,31 @@ public class Exceptions {
       case STOP -> {}
 
       case JUMP, JUMPI -> {
-        if (isOutOfGas(frame, opCode, gp)) {
+        if (isOutOfGas(op, frame)) {
           return OUT_OF_GAS_EXCEPTION;
         }
-        if (isJumpFault(frame, opCode)) {
+        if (isJumpFault(frame, opCodeData)) {
           return JUMP_FAULT;
         }
       }
 
       case SSTORE -> {
-        if (isOutOfSStore(frame, opCode)) {
+        if (isOutOfSStore(frame, opCodeData)) {
           return OUT_OF_SSTORE;
         }
-        if (isOutOfGas(frame, opCode, gp)) {
+        if (isOutOfGas(op, frame)) {
           return OUT_OF_GAS_EXCEPTION;
         }
       }
 
       default -> {
-        if (isOutOfGas(frame, opCode, gp)) {
+        if (isOutOfGas(op, frame)) {
           return OUT_OF_GAS_EXCEPTION;
         }
       }
     }
 
-    if (isInvalidCodePrefix(frame)) {
+    if (isInvalidCodePrefix(frame, opCodeData)) {
       return INVALID_CODE_PREFIX;
     }
     return NONE;

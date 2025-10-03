@@ -20,7 +20,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
+import net.consensys.linea.zktracer.container.module.IncrementAndDetectModule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -28,8 +28,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class CountOnlyModuleTest extends TracerTestBase {
   @Test
   void test() {
-    ZkTracer state = new ZkTracer(testInfo.chainConfig);
-    final ModexpEffectiveCall countingOnlyModule = state.getHub().modexpEffectiveCall();
+    ZkTracer state = new ZkTracer(chainConfig);
+    final IncrementAndDetectModule countingOnlyModule = state.getHub().modexpEffectiveCall();
 
     countingOnlyModule.updateTally(1);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(1);
@@ -47,7 +47,7 @@ public class CountOnlyModuleTest extends TracerTestBase {
     countingOnlyModule.popTransactionBundle();
     assertThat(countingOnlyModule.lineCount()).isEqualTo(1);
 
-    state = new ZkTracer(testInfo.chainConfig);
+    state = new ZkTracer(chainConfig);
     assertThat(state.getHub().modexpEffectiveCall().lineCount()).isEqualTo(0);
   }
 }

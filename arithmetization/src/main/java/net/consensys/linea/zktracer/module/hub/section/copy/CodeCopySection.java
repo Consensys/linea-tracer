@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
@@ -31,8 +32,10 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 
 public class CodeCopySection extends TraceSection {
 
+  public static final short NB_ROWS_HUB_CODE_COPY = 4; // 4 = 1 + 3
+
   public CodeCopySection(Hub hub) {
-    super(hub, maxNumberOfRows(hub));
+    super(hub, NB_ROWS_HUB_CODE_COPY);
 
     // Miscellaneous row
     final ImcFragment imcFragment = ImcFragment.empty(hub);
@@ -41,11 +44,13 @@ public class CodeCopySection extends TraceSection {
 
     // triggerOob = false
     // triggerMxp = true
-    final MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     imcFragment.callMxp(mxpCall);
 
     final short exceptions = hub.pch().exceptions();
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "CODECOPY: mxp and hub disagree on MXPX");
 
     // The MXPX case
     if (mxpCall.mxpx) {
@@ -54,7 +59,7 @@ public class CodeCopySection extends TraceSection {
 
     // The OOGX case
     if (Exceptions.any(exceptions)) {
-      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION, "CODECOPY: unexpected exception %s");
       return;
     }
 
@@ -65,7 +70,7 @@ public class CodeCopySection extends TraceSection {
     // Account row
     final AccountSnapshot codeAccountSnapshot =
         AccountSnapshot.canonical(hub, hub.messageFrame().getContractAddress());
-    checkArgument(codeAccountSnapshot.isWarm());
+    checkArgument(codeAccountSnapshot.isWarm(), "CODECOPY: code account should be warm but isn't");
 
     final DomSubStampsSubFragment doingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0); // Specifics for CODECOPY
@@ -73,7 +78,11 @@ public class CodeCopySection extends TraceSection {
     final AccountFragment accountReadingFragment =
         hub.factories()
             .accountFragment()
-            .make(codeAccountSnapshot, codeAccountSnapshot, doingDomSubStamps)
+            .make(
+                codeAccountSnapshot,
+                codeAccountSnapshot,
+                doingDomSubStamps,
+                TransactionProcessingType.USER)
             .requiresRomlex(true);
 
     this.addFragment(accountReadingFragment);
@@ -83,10 +92,5 @@ public class CodeCopySection extends TraceSection {
       final MmuCall mmuCall = MmuCall.codeCopy(hub);
       imcFragment.callMmu(mmuCall);
     }
-  }
-
-  // 4 = 1 (stack row) + 3 (up to 3 non-stack rows)
-  private static short maxNumberOfRows(Hub hub) {
-    return (short) (hub.opCode().numberOfStackRows() + 3);
   }
 }

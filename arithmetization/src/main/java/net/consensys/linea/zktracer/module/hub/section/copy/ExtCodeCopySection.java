@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
@@ -38,6 +39,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class ExtCodeCopySection extends TraceSection implements PostRollbackDefer {
 
+  public static final short NB_ROWS_HUB_EXT_CODE_COPY = 4; // 4 = 1 + 3
+
   final Bytes rawAddress;
   final Address address;
   final int incomingDeploymentNumber;
@@ -51,24 +54,25 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
   AccountSnapshot secondForeignNew;
 
   public ExtCodeCopySection(Hub hub, MessageFrame frame) {
-    // 4 = 1 + 3
-    super(hub, maxNumberOfRows(hub));
+    super(hub, NB_ROWS_HUB_EXT_CODE_COPY);
 
     rawAddress = frame.getStackItem(0);
     address = Address.extract(Bytes32.leftPad(rawAddress));
     incomingDeploymentNumber = hub.deploymentNumberOf(address);
     incomingDeploymentStatus = hub.deploymentStatusOf(address);
-    incomingWarmth = isAddressWarm(frame, address);
+    incomingWarmth = isAddressWarm(hub.fork, frame, address);
     final ImcFragment imcFragment = ImcFragment.empty(hub);
 
     this.addStack(hub);
     this.addFragment(imcFragment);
 
-    final MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     imcFragment.callMxp(mxpCall);
 
     final short exceptions = hub.pch().exceptions();
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "EXTCODECOPY: mxp and hub disagree on MXPX");
 
     // The MXPX case
     if (mxpCall.mxpx) {
@@ -92,14 +96,19 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
       final AccountFragment accountReadingFragment =
           hub.factories()
               .accountFragment()
-              .makeWithTrm(firstForeign, firstForeign, rawAddress, doingDomSubStamps);
+              .makeWithTrm(
+                  firstForeign,
+                  firstForeign,
+                  rawAddress,
+                  doingDomSubStamps,
+                  TransactionProcessingType.USER);
 
       this.addFragment(accountReadingFragment);
       return;
     }
 
     // The unexceptional case
-    checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions), "EXTCODECOPY: unexpected exception");
 
     final boolean triggerMmu = mxpCall.mayTriggerNontrivialMmuOperation;
     if (triggerMmu) {
@@ -115,7 +124,12 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     final AccountFragment accountDoingFragment =
         hub.factories()
             .accountFragment()
-            .makeWithTrm(firstForeign, firstForeignNew, rawAddress, doingDomSubStamps);
+            .makeWithTrm(
+                firstForeign,
+                firstForeignNew,
+                rawAddress,
+                doingDomSubStamps,
+                TransactionProcessingType.USER);
     accountDoingFragment.requiresRomlex(triggerRomLex);
     if (triggerRomLex) {
       hub.romLex().callRomLex(frame);
@@ -140,12 +154,12 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     final AccountFragment undoingAccountFragment =
         hub.factories()
             .accountFragment()
-            .make(secondForeign, secondForeignNew, undoingDomSubStamps);
+            .make(
+                secondForeign,
+                secondForeignNew,
+                undoingDomSubStamps,
+                TransactionProcessingType.USER);
 
     this.addFragment(undoingAccountFragment);
-  }
-
-  private static short maxNumberOfRows(Hub hub) {
-    return (short) (hub.opCode().numberOfStackRows() + 3);
   }
 }

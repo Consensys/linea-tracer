@@ -38,6 +38,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -49,31 +50,31 @@ public class SelfdestructCoinbaseTests extends TracerTestBase {
    * context is deployment - coinbase / recipient address collision - coinbase is deployed prior to
    * the transaction - the transaction is reverted
    */
-  static final ToyAccount CHECKING_COINBASE =
-      ToyAccount.builder()
-          .code(
-              BytecodeCompiler.newProgram(testInfo)
-                  .op(OpCode.COINBASE)
-                  .op(OpCode.BALANCE)
-                  .op(OpCode.POP)
-                  .op(OpCode.COINBASE)
-                  .op(OpCode.EXTCODESIZE)
-                  .push(0)
-                  .push(0)
-                  .op(OpCode.COINBASE)
-                  .op(OpCode.EXTCODECOPY)
-                  .op(OpCode.COINBASE)
-                  .op(OpCode.EXTCODEHASH)
-                  .compile())
-          .build();
-
   @ParameterizedTest
   @MethodSource("selfDestructCoinbaseInputs")
   void selfdestructCoinbaseTests(
       boolean rootIsDeployment,
       boolean recipientCoinbaseCollision,
       boolean coinBaseDeployed,
-      boolean revertingTransaction) {
+      boolean revertingTransaction,
+      TestInfo testInfo) {
+    final ToyAccount CHECKING_COINBASE =
+        ToyAccount.builder()
+            .code(
+                BytecodeCompiler.newProgram(chainConfig)
+                    .op(OpCode.COINBASE)
+                    .op(OpCode.BALANCE)
+                    .op(OpCode.POP)
+                    .op(OpCode.COINBASE)
+                    .op(OpCode.EXTCODESIZE)
+                    .push(0)
+                    .push(0)
+                    .op(OpCode.COINBASE)
+                    .op(OpCode.EXTCODECOPY)
+                    .op(OpCode.COINBASE)
+                    .op(OpCode.EXTCODEHASH)
+                    .compile())
+            .build();
 
     final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -89,7 +90,7 @@ public class SelfdestructCoinbaseTests extends TracerTestBase {
             HEIR_IS_EOA,
             Optional.of(
                 (coinBaseDeployed && rootIsDeployment) ? DEFAULT_COINBASE_ADDRESS : depAddress),
-            testInfo);
+            chainConfig);
     if (revertingTransaction) {
       setRevert(selfDestructorCoinbaseAccount);
     }
@@ -100,7 +101,7 @@ public class SelfdestructCoinbaseTests extends TracerTestBase {
             .nonce(1)
             .address(Address.fromHexString("0x1122334455667788990011223344556677889900"))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram(chainConfig)
                     .push(0)
                     .push(0)
                     .push(0)
@@ -142,7 +143,7 @@ public class SelfdestructCoinbaseTests extends TracerTestBase {
       deployedAccounts.add(selfDestructorCoinbaseAccount);
     }
 
-    ToyExecutionEnvironmentV2.builder(testInfo)
+    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .accounts(deployedAccounts)
         .transactions(List.of(selfdestruction, checkingCoinbase))
         .zkTracerValidator(zkTracer -> {})

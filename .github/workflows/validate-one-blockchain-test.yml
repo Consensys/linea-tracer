@@ -1,5 +1,9 @@
 name: "Validate One Blockchain Test"
-on: [pull_request]
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches:
+      - '**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -7,10 +11,11 @@ concurrency:
 
 jobs:
   validation-reference-test-flow:
+    if: github.event.pull_request.draft == false && github.base_ref != 'main'
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           submodules: recursive
 
@@ -32,5 +37,4 @@ jobs:
         timeout-minutes: 15
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
-          CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -v --ansi-escapes=false --report --air

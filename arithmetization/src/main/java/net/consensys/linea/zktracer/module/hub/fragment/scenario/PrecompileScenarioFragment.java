@@ -15,6 +15,23 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
+import static java.util.Map.entry;
+import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_IDENTITY;
+import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_RIPEMD;
+import static net.consensys.linea.zktracer.TracePrague.Blsdata.CT_MAX_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.TracePrague.Oob.*;
+import static net.consensys.linea.zktracer.TracePrague.Oob.CT_MAX_BLAKE2F_CDS;
+import static net.consensys.linea.zktracer.TracePrague.Oob.CT_MAX_BLAKE2F_PARAMS;
+import static net.consensys.linea.zktracer.TracePrague.Oob.CT_MAX_ECADD;
+import static net.consensys.linea.zktracer.TracePrague.Oob.CT_MAX_ECMUL;
+import static net.consensys.linea.zktracer.TracePrague.Oob.CT_MAX_ECPAIRING;
+import static net.consensys.linea.zktracer.TracePrague.Oob.CT_MAX_ECRECOVER;
+import static net.consensys.linea.zktracer.TracePrague.Oob.CT_MAX_SHA2;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpCallDataSizeOobCall.NB_ROWS_OOB_MODEXP_CDS;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpExtractOobCall.NB_ROWS_OOB_MODEXP_EXTRACT;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpLeadOobCall.NB_ROWS_OOB_MODEXP_LEAD;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpPricingOobCall.NB_ROWS_OOB_MODEXP_PRICING;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsOobCall.NB_ROWS_OOB_MODEXP_XBS;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.*;
 
@@ -59,44 +76,75 @@ public class PrecompileScenarioFragment implements TraceFragment {
     PRC_ECADD,
     PRC_ECMUL,
     PRC_ECPAIRING,
-    PRC_BLAKE2F;
+    PRC_BLAKE2F,
+    PRC_POINT_EVALUATION,
+    PRC_BLS_G1_ADD,
+    PRC_BLS_G1_MSM,
+    PRC_BLS_G2_ADD,
+    PRC_BLS_G2_MSM,
+    PRC_BLS_PAIRING_CHECK,
+    PRC_BLS_MAP_FP_TO_G1,
+    PRC_BLS_MAP_FP2_TO_G2;
 
     private static final Map<Address, PrecompileFlag> ADDRESS_TO_FLAG_MAP =
-        Map.of(
-            Address.ECREC, PRC_ECRECOVER,
-            Address.SHA256, PRC_SHA2_256,
-            Address.RIPEMD160, PRC_RIPEMD_160,
-            Address.ID, PRC_IDENTITY,
-            Address.MODEXP, PRC_MODEXP,
-            Address.ALTBN128_ADD, PRC_ECADD,
-            Address.ALTBN128_MUL, PRC_ECMUL,
-            Address.ALTBN128_PAIRING, PRC_ECPAIRING,
-            Address.BLAKE2B_F_COMPRESSION, PRC_BLAKE2F);
+        Map.ofEntries(
+            entry(Address.ECREC, PRC_ECRECOVER),
+            entry(Address.SHA256, PRC_SHA2_256),
+            entry(Address.RIPEMD160, PRC_RIPEMD_160),
+            entry(Address.ID, PRC_IDENTITY),
+            entry(Address.MODEXP, PRC_MODEXP),
+            entry(Address.ALTBN128_ADD, PRC_ECADD),
+            entry(Address.ALTBN128_MUL, PRC_ECMUL),
+            entry(Address.ALTBN128_PAIRING, PRC_ECPAIRING),
+            entry(Address.BLAKE2B_F_COMPRESSION, PRC_BLAKE2F),
+            entry(Address.KZG_POINT_EVAL, PRC_POINT_EVALUATION),
+            entry(Address.BLS12_G1ADD, PRC_BLS_G1_ADD),
+            entry(Address.BLS12_G1MULTIEXP, PRC_BLS_G1_MSM),
+            entry(Address.BLS12_G2ADD, PRC_BLS_G2_ADD),
+            entry(Address.BLS12_G2MULTIEXP, PRC_BLS_G2_MSM),
+            entry(Address.BLS12_PAIRING, PRC_BLS_PAIRING_CHECK),
+            entry(Address.BLS12_MAP_FP_TO_G1, PRC_BLS_MAP_FP_TO_G1),
+            entry(Address.BLS12_MAP_FP2_TO_G2, PRC_BLS_MAP_FP2_TO_G2));
 
     private static final Map<PrecompileFlag, Integer> DATA_PHASE_MAP =
-        Map.of(
-            PRC_ECRECOVER, Trace.PHASE_ECRECOVER_DATA,
-            PRC_SHA2_256, Trace.PHASE_SHA2_DATA,
-            PRC_RIPEMD_160, Trace.PHASE_RIPEMD_DATA,
+        Map.ofEntries(
+            Map.entry(PRC_ECRECOVER, Trace.PHASE_ECRECOVER_DATA),
+            Map.entry(PRC_SHA2_256, Trace.PHASE_SHA2_DATA),
+            Map.entry(PRC_RIPEMD_160, Trace.PHASE_RIPEMD_DATA),
             // IDENTITY not supported
             // MODEXP not supported
-            PRC_ECADD, Trace.PHASE_ECADD_DATA,
-            PRC_ECMUL, Trace.PHASE_ECMUL_DATA,
-            PRC_ECPAIRING, Trace.PHASE_ECPAIRING_DATA
+            Map.entry(PRC_ECADD, Trace.PHASE_ECADD_DATA),
+            Map.entry(PRC_ECMUL, Trace.PHASE_ECMUL_DATA),
+            Map.entry(PRC_ECPAIRING, Trace.PHASE_ECPAIRING_DATA),
             // BLAKE2f not supported
-            );
+            Map.entry(PRC_POINT_EVALUATION, Trace.PHASE_POINT_EVALUATION_DATA),
+            Map.entry(PRC_BLS_G1_ADD, Trace.PHASE_BLS_G1_ADD_DATA),
+            Map.entry(PRC_BLS_G1_MSM, Trace.PHASE_BLS_G1_MSM_DATA),
+            Map.entry(PRC_BLS_G2_ADD, Trace.PHASE_BLS_G2_ADD_DATA),
+            Map.entry(PRC_BLS_G2_MSM, Trace.PHASE_BLS_G2_MSM_DATA),
+            Map.entry(PRC_BLS_PAIRING_CHECK, Trace.PHASE_BLS_PAIRING_CHECK_DATA),
+            Map.entry(PRC_BLS_MAP_FP_TO_G1, Trace.PHASE_BLS_MAP_FP_TO_G1_DATA),
+            Map.entry(PRC_BLS_MAP_FP2_TO_G2, Trace.PHASE_BLS_MAP_FP2_TO_G2_DATA));
 
     private static final Map<PrecompileFlag, Integer> RESULT_PHASE_MAP =
-        Map.of(
-            PRC_ECRECOVER, Trace.PHASE_ECRECOVER_RESULT,
-            PRC_SHA2_256, Trace.PHASE_SHA2_RESULT,
-            PRC_RIPEMD_160, Trace.PHASE_RIPEMD_RESULT,
+        Map.ofEntries(
+            Map.entry(PRC_ECRECOVER, Trace.PHASE_ECRECOVER_RESULT),
+            Map.entry(PRC_SHA2_256, Trace.PHASE_SHA2_RESULT),
+            Map.entry(PRC_RIPEMD_160, Trace.PHASE_RIPEMD_RESULT),
             // IDENTITY not supported
-            PRC_MODEXP, Trace.PHASE_MODEXP_RESULT,
-            PRC_ECADD, Trace.PHASE_ECADD_RESULT,
-            PRC_ECMUL, Trace.PHASE_ECMUL_RESULT,
-            PRC_ECPAIRING, Trace.PHASE_ECPAIRING_RESULT,
-            PRC_BLAKE2F, Trace.PHASE_BLAKE_RESULT);
+            // MODEXP not supported
+            Map.entry(PRC_ECADD, Trace.PHASE_ECADD_RESULT),
+            Map.entry(PRC_ECMUL, Trace.PHASE_ECMUL_RESULT),
+            Map.entry(PRC_ECPAIRING, Trace.PHASE_ECPAIRING_RESULT),
+            // BLAKE2f not supported
+            Map.entry(PRC_POINT_EVALUATION, Trace.PHASE_POINT_EVALUATION_RESULT),
+            Map.entry(PRC_BLS_G1_ADD, Trace.PHASE_BLS_G1_ADD_RESULT),
+            Map.entry(PRC_BLS_G1_MSM, Trace.PHASE_BLS_G1_MSM_RESULT),
+            Map.entry(PRC_BLS_G2_ADD, Trace.PHASE_BLS_G2_ADD_RESULT),
+            Map.entry(PRC_BLS_G2_MSM, Trace.PHASE_BLS_G2_MSM_RESULT),
+            Map.entry(PRC_BLS_PAIRING_CHECK, Trace.PHASE_BLS_PAIRING_CHECK_RESULT),
+            Map.entry(PRC_BLS_MAP_FP_TO_G1, Trace.PHASE_BLS_MAP_FP_TO_G1_RESULT),
+            Map.entry(PRC_BLS_MAP_FP2_TO_G2, Trace.PHASE_BLS_MAP_FP2_TO_G2_RESULT));
 
     public static PrecompileFlag addressToPrecompileFlag(Address precompileAddress) {
       if (!ADDRESS_TO_FLAG_MAP.containsKey(precompileAddress)) {
@@ -123,6 +171,18 @@ public class PrecompileScenarioFragment implements TraceFragment {
       return this.isAnyOf(PRC_ECRECOVER, PRC_ECADD, PRC_ECMUL, PRC_ECPAIRING);
     }
 
+    public boolean isBlsPrecompile() {
+      return this.isAnyOf(
+          PRC_POINT_EVALUATION,
+          PRC_BLS_G1_ADD,
+          PRC_BLS_G1_MSM,
+          PRC_BLS_G2_ADD,
+          PRC_BLS_G2_MSM,
+          PRC_BLS_PAIRING_CHECK,
+          PRC_BLS_MAP_FP_TO_G1,
+          PRC_BLS_MAP_FP2_TO_G2);
+    }
+
     public boolean isAnyOf(PrecompileFlag... flags) {
       for (PrecompileFlag flag : flags) {
         if (this == flag) {
@@ -130,6 +190,33 @@ public class PrecompileScenarioFragment implements TraceFragment {
         }
       }
       return false;
+    }
+
+    public static short oobLineCountForPrc(PrecompileFlag prc) {
+      return switch (prc) {
+        case PRC_ECRECOVER -> 1 + CT_MAX_ECRECOVER;
+        case PRC_SHA2_256 -> 1 + CT_MAX_SHA2;
+        case PRC_RIPEMD_160 -> 1 + CT_MAX_RIPEMD;
+        case PRC_IDENTITY -> 1 + CT_MAX_IDENTITY;
+        case PRC_MODEXP -> NB_ROWS_OOB_MODEXP_CDS
+            + 3 * NB_ROWS_OOB_MODEXP_XBS
+            + NB_ROWS_OOB_MODEXP_LEAD
+            + NB_ROWS_OOB_MODEXP_PRICING
+            + NB_ROWS_OOB_MODEXP_EXTRACT;
+        case PRC_ECADD -> CT_MAX_ECADD + 1;
+        case PRC_ECMUL -> CT_MAX_ECMUL + 1;
+        case PRC_ECPAIRING -> CT_MAX_ECPAIRING + 1;
+        case PRC_BLAKE2F -> 1 + CT_MAX_BLAKE2F_CDS + 1 + CT_MAX_BLAKE2F_PARAMS;
+        case PRC_POINT_EVALUATION -> 1 + CT_MAX_POINT_EVALUATION;
+        case PRC_BLS_G1_ADD -> 1 + CT_MAX_BLS_G1_ADD;
+        case PRC_BLS_G1_MSM -> 1 + CT_MAX_BLS_G1_MSM;
+        case PRC_BLS_G2_ADD -> 1 + CT_MAX_BLS_G2_ADD;
+        case PRC_BLS_G2_MSM -> 1 + CT_MAX_BLS_G2_MSM;
+        case PRC_BLS_PAIRING_CHECK -> 1 + CT_MAX_BLS_PAIRING_CHECK;
+        case PRC_BLS_MAP_FP_TO_G1 -> 1 + CT_MAX_BLS_MAP_FP_TO_G1;
+        case PRC_BLS_MAP_FP2_TO_G2 -> 1 + CT_MAX_BLS_MAP_FP2_TO_G2;
+        default -> throw new IllegalArgumentException("Precompile not supported:" + prc);
+      };
     }
   }
 
@@ -176,6 +263,24 @@ public class PrecompileScenarioFragment implements TraceFragment {
         .pScenarioPrcCds(precompileSubSection.callDataSize())
         .pScenarioPrcRao(precompileSubSection.returnAtOffset())
         .pScenarioPrcRac(precompileSubSection.returnAtCapacity());
+
+    // Cancun
+    if (flag == PRC_POINT_EVALUATION) {
+      trace.pScenarioPrcPointEvaluation(true);
+    }
+
+    // Prague
+    if (flag.isBlsPrecompile() && flag != PRC_POINT_EVALUATION) {
+      trace
+          .pScenarioPrcBlsG1Add(flag == PRC_BLS_G1_ADD)
+          .pScenarioPrcBlsG1Msm(flag == PRC_BLS_G1_MSM)
+          .pScenarioPrcBlsG2Add(flag == PRC_BLS_G2_ADD)
+          .pScenarioPrcBlsG2Msm(flag == PRC_BLS_G2_MSM)
+          .pScenarioPrcBlsPairingCheck(flag == PRC_BLS_PAIRING_CHECK)
+          .pScenarioPrcBlsMapFpToG1(flag == PRC_BLS_MAP_FP_TO_G1)
+          .pScenarioPrcBlsMapFp2ToG2(flag == PRC_BLS_MAP_FP2_TO_G2);
+    }
+
     return trace;
   }
 }

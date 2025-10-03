@@ -37,12 +37,12 @@ public class KeccakSection extends TraceSection implements PostOpcodeDefer {
 
   public KeccakSection(Hub hub) {
     super(hub, (short) 3);
-    hub.defers().scheduleForPostExecution(this);
 
     final ImcFragment imcFragment = ImcFragment.empty(hub);
     this.addStackAndFragments(hub, imcFragment);
 
-    final MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = MxpCall.newMxpCall(hub);
+
     imcFragment.callMxp(mxpCall);
 
     final boolean mayTriggerNonTrivialOperation = mxpCall.mayTriggerNontrivialMmuOperation;
@@ -55,15 +55,15 @@ public class KeccakSection extends TraceSection implements PostOpcodeDefer {
       final MmuCall mmuCall = MmuCall.sha3(hub, hashInput);
       imcFragment.callMmu(mmuCall);
     }
+
+    if (Exceptions.none(hub.pch().exceptions())) {
+      hub.defers().scheduleForPostExecution(this);
+    }
   }
 
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
-
-    if (Exceptions.any(hub.pch().exceptions())) {
-      return;
-    }
 
     final Bytes32 hashResult = Bytes32.leftPad(frame.getStackItem(0));
 

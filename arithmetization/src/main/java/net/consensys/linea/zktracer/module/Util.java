@@ -117,7 +117,7 @@ public class Util {
    * @return The UInt256 sum of the products of the elements in the two input ranges.
    */
   public static UInt256 multiplyRange(Bytes[] range1, Bytes[] range2) {
-    checkArgument(range1.length == range2.length);
+    checkArgument(range1.length == range2.length, "Ranges must be of the same length");
     UInt256 sum = UInt256.ZERO;
     for (int i = 0; i < range1.length; i++) {
       UInt256 prod =
@@ -163,6 +163,7 @@ public class Util {
       case ACCESS_LIST -> 1;
       case EIP1559 -> 2;
       case BLOB -> 3;
+      case DELEGATE_CODE -> 4;
       default -> throw new RuntimeException("Transaction type not supported:" + txType);
     };
   }

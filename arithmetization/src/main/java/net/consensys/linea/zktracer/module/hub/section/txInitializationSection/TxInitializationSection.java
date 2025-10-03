@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
@@ -39,6 +40,8 @@ import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public abstract class TxInitializationSection extends TraceSection implements EndTransactionDefer {
+
+  public static final short NB_ROWS_HUB_INIT = 9;
 
   @Getter private final int hubStamp;
   final AccountFragment.AccountFragmentFactory accountFragmentFactory;
@@ -71,7 +74,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
   private int domSubOffset = 0;
 
   public TxInitializationSection(Hub hub, WorldView world) {
-    super(hub, (short) 9);
+    super(hub, NB_ROWS_HUB_INIT);
     hub.defers().scheduleForEndTransaction(this);
 
     hubStamp = hub.stamp();
@@ -120,7 +123,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
 
     checkState(
         !recipientValueReception.deploymentStatus(),
-        "recipient should not have been undergoing deployment before transaction start");
+        "TxInitializationSection: recipient should not have been undergoing deployment before transaction start");
 
     recipientValueReceptionNew = recipientValueReception.deepCopy();
 
@@ -128,10 +131,10 @@ public abstract class TxInitializationSection extends TraceSection implements En
       if (recipientAccount != null) {
         checkState(
             recipientAccount.getCode().equals(Bytes.EMPTY),
-            "the recipient of a deployment transaction must have empty code");
+            "TxInitializationSection: the recipient of a deployment transaction must have empty code");
         checkState(
             recipientAccount.getNonce() == 0,
-            "the recipient of a deployment transaction must have zero nonce");
+            "TxInitializationSection: the recipient of a deployment transaction must have zero nonce");
       }
 
       deploymentInfo.newDeploymentWithExecutionAt(
@@ -166,19 +169,22 @@ public abstract class TxInitializationSection extends TraceSection implements En
             senderGasPayment,
             senderGasPaymentNew,
             senderGasPayment.address(),
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()));
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()),
+            TransactionProcessingType.USER);
     valueSendingAccountFragment =
         accountFragmentFactory.make(
             senderValueTransfer,
             senderValueTransferNew,
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()));
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()),
+            TransactionProcessingType.USER);
     valueReceptionAccountFragment =
         accountFragmentFactory
             .makeWithTrm(
                 recipientValueReception,
                 recipientValueReceptionNew,
                 recipientValueReception.address(),
-                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()))
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()),
+                TransactionProcessingType.USER)
             .requiresRomlex(true);
 
     initializationContextFragment = ContextFragment.initializeExecutionContext(hub);
@@ -190,8 +196,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
   public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
-    addFragment(miscFragment); // MISC i + 0
-    addFragment(hub.txStack().current().transactionFragment()); // TXN i + 1
+    addTxnAndMiscFragments(miscFragment); // Only the order of the txn and misc fragments differs
     addCoinbaseWarmingFragment(); // Post Shanghai Only
     addFragment(gasPaymentAccountFragment); // ACC i +  (sender: gas payment)
     addFragment(valueSendingAccountFragment); // ACC i +  (sender: value transfer)
@@ -219,14 +224,16 @@ public abstract class TxInitializationSection extends TraceSection implements En
               senderUndoingValueTransfer,
               senderUndoingValueTransferNew,
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                  hubStamp, revertStamp, domSubOffset())));
+                  hubStamp, revertStamp, domSubOffset()),
+              TransactionProcessingType.USER));
 
       this.addFragment( // ACC i +  (recipient)
           accountFragmentFactory.make(
               recipientUndoingValueReception,
               recipientUndoingValueReceptionNew,
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                  hubStamp, revertStamp, domSubOffset())));
+                  hubStamp, revertStamp, domSubOffset()),
+              TransactionProcessingType.USER));
     }
 
     this.addFragment(initializationContextFragment); // CON i +
@@ -249,5 +256,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
     return tx.isRecipientPreWarmed();
   }
 
-  protected void addCoinbaseWarmingFragment() {}
+  protected abstract void addTxnAndMiscFragments(ImcFragment miscFragment);
+
+  protected abstract void addCoinbaseWarmingFragment();
 }

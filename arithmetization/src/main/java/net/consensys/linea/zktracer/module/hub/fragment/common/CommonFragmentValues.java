@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.common;
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.EVM_INST_PUSH0;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.MAX_CODE_SIZE_EXCEPTION;
@@ -32,11 +33,13 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.gas.GasParameters;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.module.hub.state.State;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
@@ -47,7 +50,12 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 public class CommonFragmentValues {
   public final Hub hub;
   public final TransactionProcessingMetadata txMetadata;
+  @Getter final short relBlockNumber;
+  @Getter final short sysiTransactionNumber;
+  @Getter final short userTransactionNumber;
+  @Getter final short sysfTransactionNumber;
   public final HubProcessingPhase hubProcessingPhase;
+  public final TransactionProcessingType transactionProcessingType;
   public final int hubStamp;
   public final CallStack callStack;
   public final State.HubTransactionState.Stamps stamps;
@@ -78,30 +86,36 @@ public class CommonFragmentValues {
     final boolean stackException = stackException(exceptions);
 
     final boolean isExec = hub.state.processingPhase() == TX_EXEC;
+    final OpCodeData opCode = hub.opCodeData();
 
     this.hub = hub;
-    this.txMetadata = hub.txStack().current();
+    relBlockNumber = (short) hub.blockStack().currentRelativeBlockNumber();
+    sysiTransactionNumber = hub.state().sysiTransactionNumber();
+    userTransactionNumber = hub.state.getUserTransactionNumber();
+    sysfTransactionNumber = hub.state().sysfTransactionNumber();
     this.hubProcessingPhase = hub.state().processingPhase();
+    transactionProcessingType = hub.state.transactionProcessingType();
+    txMetadata = transactionProcessingType == USER ? hub.txStack().current() : null;
     this.hubStamp = hub.stamp();
     this.callStack = hub.callStack();
     this.stamps = hub.state().stamps();
     this.callFrame = hub.currentFrame();
     this.exceptions = exceptions;
-    // this.contextNumberNew = hub.contextNumberNew(callFrame);
-    this.pc = isExec ? hub.currentFrame().pc() : 0;
-    this.pcNew = computePcNew(hub, pc, stackException, isExec);
+    this.pc = isExec ? callFrame.pc() : 0;
+    this.pcNew = computePcNew(callFrame, opCode, pc, stackException, isExec);
     this.height = callFrame.stack().getHeight();
     this.heightNew = callFrame.stack().getHeightNew();
 
-    this.gasExpected = computeGasExpected();
-    this.gasActual = computeGasRemaining();
-    this.gasCost = isExec ? computeGasCost() : 0;
+    this.gasExpected = computeGasExpected(callFrame);
+    this.gasActual = hub.remainingGas();
+    final GasProjection op = isExec ? hub.gasProjector.of(hub.messageFrame(), opCode) : null;
+    this.gasCost = isExec ? op.upfrontGasCost() : 0;
     this.gasNext = isExec ? computeGasNext(exceptions) : 0;
-    this.gasCostExcluduingDeploymentCost = isExec ? computeGasCostExcludingDeploymentCost() : 0;
+    this.gasCostExcluduingDeploymentCost = isExec ? op.gasCostExcludingDeploymentCost() : 0;
 
-    final InstructionFamily instructionFamily = hub.opCode().getData().instructionFamily();
+    final InstructionFamily instructionFamily = opCode.instructionFamily();
     this.contextMayChange =
-        hubProcessingPhase == HubProcessingPhase.TX_EXEC
+        isExec
             && ((instructionFamily == CALL
                     || instructionFamily == CREATE
                     || instructionFamily == HALT
@@ -118,22 +132,23 @@ public class CommonFragmentValues {
       return;
     }
 
-    final OpCode opCode = hub.opCode();
-
     if (Exceptions.staticFault(exceptions)) {
-      checkArgument(opCode.mayTriggerStaticException());
+      checkArgument(
+          opCode.mayTriggerStaticException(),
+          "CommonFragmentValues: opCode %s throws impossible static exception",
+          opCode);
       setTracedException(TracedException.STATIC_FAULT);
       return;
     }
 
     // RETURNDATACOPY opcode specific exception
-    if (opCode == OpCode.RETURNDATACOPY && Exceptions.returnDataCopyFault(exceptions)) {
+    if (opCode.mnemonic() == OpCode.RETURNDATACOPY && Exceptions.returnDataCopyFault(exceptions)) {
       setTracedException(TracedException.RETURN_DATA_COPY_FAULT);
       return;
     }
 
     // SSTORE opcode specific exception
-    if (opCode == OpCode.SSTORE && Exceptions.outOfSStore(exceptions)) {
+    if (opCode.mnemonic() == OpCode.SSTORE && Exceptions.outOfSStore(exceptions)) {
       setTracedException(TracedException.OUT_OF_SSTORE);
       return;
     }
@@ -141,20 +156,22 @@ public class CommonFragmentValues {
     // For RETURN, in case none of the above exceptions is the traced one,
     // we have a complex logic to determine the traced exception that is
     // implemented in the instruction processing
-    if (opCode == OpCode.RETURN) {
+    if (opCode.mnemonic() == OpCode.RETURN) {
       return;
     }
 
     if (maxCodeSizeException(exceptions))
     // the MaxCodeSize exceptions for return is already dealt before
     {
-      checkArgument(opCode.isCreate());
+      checkArgument(opCode.isCreate(), "MaxCodeSize exception on non CREATE opcode" + opCode);
       setTracedException(MAX_CODE_SIZE_EXCEPTION);
       return;
     }
 
     if (Exceptions.memoryExpansionException(exceptions)) {
-      checkArgument(opCode.mayTriggerMemoryExpansionException());
+      checkArgument(
+          opCode.mayTriggerMemoryExpansionException(hub.fork),
+          "MXP triggered by non MXP opcode" + opCode);
       setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
@@ -171,37 +188,44 @@ public class CommonFragmentValues {
   }
 
   public void setTracedException(TracedException tracedException) {
-    checkArgument(this.tracedException == UNDEFINED);
+    checkArgument(
+        this.tracedException == UNDEFINED,
+        "Traced exception already set to " + this.tracedException);
     this.tracedException = tracedException;
   }
 
-  static int computePcNew(final Hub hub, final int pc, boolean stackException, boolean isExec) {
-    final OpCode opCode = hub.opCode();
+  static int computePcNew(
+      final CallFrame callFrame,
+      OpCodeData opCode,
+      final int pc,
+      boolean stackException,
+      boolean isExec) {
     if (!isExec || stackException) {
       return 0;
     }
 
+    // General Case:
     if (!opCode.isNonTrivialPush() && !opCode.isJump()) return pc + 1;
 
+    // PUSHX (with X !=0 ) case
     if (opCode.isNonTrivialPush()) {
       return pc + 1 + (opCode.byteValue() - EVM_INST_PUSH0);
     }
 
+    // JUMP case
     if (opCode.isJump()) {
-      final BigInteger prospectivePcNew =
-          hub.currentFrame().frame().getStackItem(0).toUnsignedBigInteger();
-      final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
+      final BigInteger prospectivePcNew = callFrame.frame().getStackItem(0).toUnsignedBigInteger();
+      final BigInteger codeSize = BigInteger.valueOf(callFrame.code().getSize());
 
       final int attemptedPcNew =
           codeSize.compareTo(prospectivePcNew) > 0 ? prospectivePcNew.intValueExact() : 0;
 
-      if (opCode.equals(OpCode.JUMP)) {
+      if (opCode.mnemonic().equals(OpCode.JUMP)) {
         return attemptedPcNew;
       }
 
-      if (opCode.equals(OpCode.JUMPI)) {
-        final BigInteger condition =
-            hub.currentFrame().frame().getStackItem(1).toUnsignedBigInteger();
+      if (opCode.mnemonic().equals(OpCode.JUMPI)) {
+        final BigInteger condition = callFrame.frame().getStackItem(1).toUnsignedBigInteger();
         if (!condition.equals(BigInteger.ZERO)) {
           return attemptedPcNew;
         } else {
@@ -211,17 +235,11 @@ public class CommonFragmentValues {
     }
 
     throw new RuntimeException(
-        "Instruction not covered " + opCode.getData().mnemonic() + " unable to compute pcNew.");
+        "Instruction not covered " + opCode.mnemonic() + " unable to compute pcNew.");
   }
 
-  public long computeGasRemaining() {
-    return hub.remainingGas();
-  }
-
-  public long computeGasExpected() {
+  public long computeGasExpected(CallFrame currentFrame) {
     if (hub.state().processingPhase() != TX_EXEC) return 0;
-
-    final CallFrame currentFrame = hub.currentFrame();
 
     if (currentFrame.executionPaused()) {
       currentFrame.unpauseCurrentFrame();
@@ -229,14 +247,6 @@ public class CommonFragmentValues {
     }
 
     return currentFrame.frame().getRemainingGas();
-  }
-
-  private long computeGasCost() {
-    return hub.gasProjector.of(hub.messageFrame(), hub.opCode()).upfrontGasCost();
-  }
-
-  private long computeGasCostExcludingDeploymentCost() {
-    return hub.gasProjector.of(hub.messageFrame(), hub.opCode()).gasCostExcludingDeploymentCost();
   }
 
   /**
@@ -258,39 +268,25 @@ public class CommonFragmentValues {
    * @return
    */
   public long computeGasNext(short exceptions) {
-
-    if (Exceptions.any(exceptions)) {
-      return 0;
-    }
-
-    final long gasAfterDeductingCost = computeGasRemaining() - computeGasCost();
-
-    return switch (hub.opCodeData().instructionFamily()) {
-      case KEC, COPY, STACK_RAM, STORAGE, LOG, HALT -> gasAfterDeductingCost;
-      case CREATE -> gasAfterDeductingCost;
-        // Note: this is only part of the story because of
-        //  1. nonempty init code CREATE's where gas is paid out of pocket
-        // This is done in the CREATE section
-      case CALL -> gasAfterDeductingCost;
-        // Note: this is only part of the story because of
-        //  1. aborts with value transfers (immediately reapStipend)
-        //  2. EOA calls with value transfer (immediately reapStipend)
-        //  3. SMC calls: gas paid out of pocket
-        //  4. PRC calls: gas paid out of pocket + special PRC cost + returned gas
-        // This is done in the CALL section
-
-      default -> // ADD, MUL, MOD, EXT, WCP, BIN, SHF, CONTEXT, ACCOUNT, TRANSACTION, BATCH, JUMP,
-      // MACHINE_STATE, PUSH_POP, DUP, SWAP, INVALID
-      gasAfterDeductingCost;
-    };
+    return Exceptions.any(exceptions) ? 0 : gasActual - gasCost;
+    // Note:
+    //   for CREATE(s) -> this is only part of the story because of
+    //     //  1. nonempty init code CREATE's where gas is paid out of pocket
+    //     // This is done in the CREATE section
+    //   for CALL(s) -> this is only part of the story because of
+    //     //  1. aborts with value transfers (immediately reapStipend)
+    //     //  2. EOA calls with value transfer (immediately reapStipend)
+    //     //  3. SMC calls: gas paid out of pocket
+    //     //  4. PRC calls: gas paid out of pocket + special PRC cost + returned gas
+    //     // This is done in the CALL section
   }
 
   public void payGasPaidOutOfPocket(Hub hub) {
-    this.gasNext -= hub.gasProjector.of(hub.messageFrame(), hub.opCode()).gasPaidOutOfPocket();
+    this.gasNext -= hub.gasProjector.of(hub.messageFrame(), hub.opCodeData()).gasPaidOutOfPocket();
   }
 
   public void collectChildStipend(Hub hub) {
-    this.gasNext += hub.gasProjector.of(hub.messageFrame(), hub.opCode()).stipend();
+    this.gasNext += hub.gasProjector.of(hub.messageFrame(), hub.opCodeData()).stipend();
   }
 
   public long gasCostToTrace() {

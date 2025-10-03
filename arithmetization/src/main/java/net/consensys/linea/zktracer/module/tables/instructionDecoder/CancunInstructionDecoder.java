@@ -15,14 +15,46 @@
 
 package net.consensys.linea.zktracer.module.tables.instructionDecoder;
 
+import static net.consensys.linea.zktracer.opcode.InstructionFamily.MCOPY;
 import static net.consensys.linea.zktracer.opcode.InstructionFamily.TRANSIENT;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 
 public class CancunInstructionDecoder extends LondonInstructionDecoder {
+
+  public CancunInstructionDecoder(OpCodes opCodes) {
+    super(opCodes);
+  }
+
   @Override
   protected void traceTransientFamily(OpCodeData op, Trace.Instdecoder trace) {
     trace.familyTransient(op.instructionFamily() == TRANSIENT);
+  }
+
+  @Override
+  protected void traceMcopyFamily(OpCodeData op, Trace.Instdecoder trace) {
+    trace.familyMcopy(op.instructionFamily() == MCOPY);
+  }
+
+  @Override
+  protected void traceMxpFlag(OpCodeData op, Trace.Instdecoder trace) {
+    // From Cancun, we have a Mxp flag available
+    trace.mxpFlag(op.isMxp());
+  }
+
+  @Override
+  protected void traceMxpScenario(OpCodeData op, Trace.Instdecoder trace) {
+    trace
+        .isMsize(op.isMSize())
+        .isReturn(op.isReturn())
+        .isMcopy(op.isMCopy())
+        .isFixedSize1(op.isFixedSize1())
+        .isFixedSize32(op.isFixedSize32())
+        .isSingleMaxOffset(op.isSingleOffset())
+        .isDoubleMaxOffset(op.isDoubleOffset())
+        .isWordPricing(op.isWordPricing())
+        .isBytePricing(op.isBytePricing());
   }
 }

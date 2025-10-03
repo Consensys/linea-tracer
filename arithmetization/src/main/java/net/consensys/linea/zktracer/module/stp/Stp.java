@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.stp;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.types.Conversions.longToBytes32;
+import static net.consensys.linea.zktracer.module.ModuleName.STP;
 
 import java.util.List;
 
@@ -26,17 +26,12 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.StpCall;
-import net.consensys.linea.zktracer.module.mod.Mod;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
-import org.apache.tuweni.bytes.Bytes32;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public class Stp implements OperationSetModule<StpOperation> {
-
-  private final Wcp wcp;
-  private final Mod mod;
 
   @Getter
   private final ModuleOperationStackedSet<StpOperation> operations =
@@ -47,33 +42,13 @@ public class Stp implements OperationSetModule<StpOperation> {
     operations.add(stpOperation);
 
     checkArgument(
-        stpCall.opCode().isCall() || stpCall.opCode().isCreate(),
+        stpCall.opCodeData().isCall() || stpCall.opCodeData().isCreate(),
         "STP handles only Calls and CREATEs");
-
-    if (stpCall.opCode().isCreate()) {
-      wcp.callLT(longToBytes32(stpCall.gasActual()), Bytes32.ZERO);
-      wcp.callLT(longToBytes32(stpCall.gasActual()), longToBytes32(stpCall.upfrontGasCost()));
-      if (!stpCall.outOfGasException()) {
-        mod.callDIV(longToBytes32(stpOperation.getGDiff()), longToBytes32(64L));
-      }
-    }
-
-    if (stpCall.opCode().isCall()) {
-      wcp.callLT(longToBytes32(stpCall.gasActual()), Bytes32.ZERO);
-      if (stpCall.opCode().callHasValueArgument()) {
-        wcp.callISZERO(Bytes32.leftPad(stpCall.value()));
-      }
-      wcp.callLT(longToBytes32(stpCall.gasActual()), longToBytes32(stpCall.upfrontGasCost()));
-      if (!stpCall.outOfGasException()) {
-        mod.callDIV(longToBytes32(stpOperation.getGDiff()), longToBytes32(64L));
-        wcp.callLT(stpCall.gas(), longToBytes32(stpOperation.get63of64GDiff()));
-      }
-    }
   }
 
   @Override
-  public String moduleKey() {
-    return "STP";
+  public ModuleName moduleKey() {
+    return STP;
   }
 
   @Override
@@ -88,9 +63,8 @@ public class Stp implements OperationSetModule<StpOperation> {
 
   @Override
   public void commit(Trace trace) {
-    int stamp = 0;
     for (StpOperation operation : operations.sortOperations(new StpOperationComparator())) {
-      operation.trace(trace.stp(), ++stamp);
+      operation.trace(trace.stp());
     }
   }
 }

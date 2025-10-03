@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.gas;
 
+import static net.consensys.linea.zktracer.module.ModuleName.GAS;
+
 import java.math.BigInteger;
 import java.util.List;
 
@@ -24,12 +26,12 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 
@@ -43,11 +45,10 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
 
   private CommonFragmentValues commonValues;
   private GasParameters gasParameters;
-  private final Wcp wcp;
 
   @Override
-  public String moduleKey() {
-    return "GAS";
+  public ModuleName moduleKey() {
+    return GAS;
   }
 
   public void call(GasParameters gasParameters, Hub hub, CommonFragmentValues commonValues) {
@@ -68,7 +69,7 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
 
   @Override
   public void commit(Trace trace) {
-    for (GasOperation gasOperation : operations.sortOperations(new GasOperationComparator())) {
+    for (GasOperation gasOperation : operations.sortOperations(new GasOperation.GasComparator())) {
       gasOperation.trace(trace.gas());
     }
   }
@@ -80,6 +81,6 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
     gasParameters.gasCost(BigInteger.valueOf(commonValues.gasCostToTrace()));
     gasParameters.xahoy(Exceptions.any(commonValues.exceptions));
     gasParameters.oogx(commonValues.tracedException() == TracedException.OUT_OF_GAS_EXCEPTION);
-    this.operations.add(new GasOperation(gasParameters, wcp));
+    this.operations.add(new GasOperation(gasParameters));
   }
 }

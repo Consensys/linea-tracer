@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.precompiles;
 
 import static net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks.RIPEMD160_BLOCKSIZE;
-import static net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks.numberOfRipemd160locks;
+import static net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks.numberOfRipemd160Blocks;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
@@ -29,6 +29,7 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -37,9 +38,9 @@ public class RipTests extends TracerTestBase {
 
   @ParameterizedTest
   @MethodSource("sizes")
-  void basicRipTest(int size) {
+  void basicRipTest(int size, TestInfo testInfo) {
     final Bytes bytecode =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram(chainConfig)
             .push(Bytes.fromHexString("0x0badb077")) // value, some random data to hash
             .push(5) // offset
             .op(OpCode.MSTORE)
@@ -59,14 +60,14 @@ public class RipTests extends TracerTestBase {
             .compile();
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     // check precompile limits line count
     // if size is 0, no RIP call is made
     // if size is huge, we get an OOGX, so no RIP call made
     final boolean noRipCAll = size == 0 || size == HUGE_SIZE;
     assertEquals(
-        noRipCAll ? 0 : numberOfRipemd160locks(size),
+        noRipCAll ? 0 : numberOfRipemd160Blocks(size),
         bytecodeRunner.getHub().ripemdBlocks().lineCount(),
         "Fail at size: " + size);
   }

@@ -32,7 +32,9 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -59,17 +61,17 @@ public class ExpTest extends TracerTestBase {
   // documentation
 
   @Test
-  void testExpLogSingleCase() {
+  void testExpLogSingleCase(TestInfo testInfo) {
     BytecodeCompiler program =
-        BytecodeCompiler.newProgram(testInfo).push(2).push(10).op(OpCode.EXP);
+        BytecodeCompiler.newProgram(chainConfig).push(2).push(10).op(OpCode.EXP);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
   @Test
-  void testModexpLogSingleCase() {
+  void testModexpLogSingleCase(TestInfo testInfo) {
     BytecodeCompiler program =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram(chainConfig)
             .push(1) // bbs
             .push(0)
             .op(OpCode.MSTORE)
@@ -94,7 +96,7 @@ public class ExpTest extends TracerTestBase {
             .op(OpCode.STATICCALL);
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
   @ParameterizedTest
@@ -103,12 +105,12 @@ public class ExpTest extends TracerTestBase {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
         25, 26, 27, 28, 29, 30, 31, 32
       })
-  void testExpLogFFBlockCase(int k) {
+  void testExpLogFFBlockCase(int k, TestInfo testInfo) {
     Bytes exponent = Bytes.fromHexString(ffBlock(k));
     BytecodeCompiler program =
-        BytecodeCompiler.newProgram(testInfo).push(exponent).push(10).op(OpCode.EXP);
+        BytecodeCompiler.newProgram(chainConfig).push(exponent).push(10).op(OpCode.EXP);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
   @ParameterizedTest
@@ -117,37 +119,34 @@ public class ExpTest extends TracerTestBase {
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
         26, 27, 28, 29, 30, 31, 32
       })
-  void testExpLogFFAtCase(int k) {
+  void testExpLogFFAtCase(int k, TestInfo testInfo) {
     Bytes exponent = Bytes.fromHexString(ffAt(k));
     BytecodeCompiler program =
-        BytecodeCompiler.newProgram(testInfo).push(exponent).push(10).op(OpCode.EXP);
+        BytecodeCompiler.newProgram(chainConfig).push(exponent).push(10).op(OpCode.EXP);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
-  @Disabled("We may want to run these long tests only during nightly builds")
+  @Tag("nightly")
   @ParameterizedTest
   @MethodSource("testModexpLogSource")
-  void testModexpLogFFBlockWithLDCase(int ebsCutoff, int cdsCutoff, int k, int LDIndex) {
-    log.debug("k: " + k);
-    log.debug("LDIndex: " + LDIndex);
+  void testModexpLogFFBlockWithLDCase(
+      int ebsCutoff, int cdsCutoff, int k, int LDIndex, TestInfo testInfo) {
     // 0x00000000000000000000000000000040ffffffffffffffffffffffffffffffff
     Bytes wordAfterBase = Bytes.fromHexStringLenient(ffBlockWithLd(k, LDIndex));
     BytecodeCompiler program = initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
-  @Disabled("We may want to run these long tests only during nightly builds")
+  @Tag("nightly")
   @ParameterizedTest
   @MethodSource("testModexpLogSource")
-  void testModexpLogLDAtCase(int ebsCutoff, int cdsCutoff, int k, int ldIndex) {
-    log.debug("k: " + k);
-    log.debug("ldIndex: " + ldIndex);
+  void testModexpLogLDAtCase(int ebsCutoff, int cdsCutoff, int k, int ldIndex, TestInfo testInfo) {
     Bytes wordAfterBase = Bytes.fromHexStringLenient(ldAt(k, ldIndex));
     BytecodeCompiler program = initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
   private static Stream<Arguments> testModexpLogSource() {
@@ -165,7 +164,7 @@ public class ExpTest extends TracerTestBase {
   }
 
   @Test
-  void testModexpLogFFBlockWithLDCaseSpecific() {
+  void testModexpLogFFBlockWithLDCaseSpecific(TestInfo testInfo) {
     final int ebsCutoff = 17;
     final int cdsCutoff = 17;
     final int k = 16;
@@ -174,11 +173,11 @@ public class ExpTest extends TracerTestBase {
     Bytes wordAfterBase = Bytes.fromHexStringLenient(ffBlockWithLd(k, ldIndex));
     BytecodeCompiler program = initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
   @Test
-  void testModexpLogLDAtCaseSpecific() {
+  void testModexpLogLDAtCaseSpecific(TestInfo testInfo) {
     final int ebsCutoff = 17;
     final int cdsCutoff = 17;
     final int k = 2;
@@ -187,18 +186,18 @@ public class ExpTest extends TracerTestBase {
     Bytes wordAfterBase = Bytes.fromHexStringLenient(ldAt(k, ldIndex));
     BytecodeCompiler program = initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
   @ParameterizedTest
   @MethodSource("testModexpLogZerosCaseSource")
-  void testModexpLogZerosCase(int ebsCutoff, int cdsCutoff) {
+  void testModexpLogZerosCase(int ebsCutoff, int cdsCutoff, TestInfo testInfo) {
     Bytes wordAfterBase =
         Bytes.fromHexStringLenient(
             "0000000000000000000000000000000000000000000000000000000000000000");
     BytecodeCompiler program = initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
   private static Stream<Arguments> testModexpLogZerosCaseSource() {
@@ -218,7 +217,7 @@ public class ExpTest extends TracerTestBase {
     final int mbs = 0;
     final int minimalValidCds = cdsCutoff + 96 + bbs;
 
-    return BytecodeCompiler.newProgram(testInfo)
+    return BytecodeCompiler.newProgram(chainConfig)
         .push(bbs) // bbs
         .push(0)
         .op(OpCode.MSTORE)

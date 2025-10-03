@@ -15,12 +15,37 @@
 
 package net.consensys.linea.zktracer;
 
+import static net.consensys.linea.zktracer.Trace.*;
+
+import net.consensys.linea.plugins.BesuServiceProvider;
+import org.hyperledger.besu.datatypes.HardforkId;
+import org.hyperledger.besu.datatypes.HardforkId.MainnetHardforkId;
+import org.hyperledger.besu.evm.gascalculator.*;
+import org.hyperledger.besu.plugin.ServiceManager;
+import org.hyperledger.besu.plugin.services.BlockchainService;
+
+/**
+ * release numbers of forks are defined from the <b>Ethereum Protocol Releases</b> table in <a
+ * href="https://github.com/ethereum/execution-specs">execution specs</a> repo. We start counting at
+ * 1 and include all named releases, including aborted ones (such as "DAO Wars").
+ */
 public enum Fork {
-  LONDON,
-  PARIS,
-  SHANGHAI,
-  CANCUN,
-  PRAGUE;
+  LONDON(EVM_LONDON),
+  PARIS(EVM_PARIS),
+  SHANGHAI(EVM_SHANGHAI),
+  CANCUN(EVM_CANCUN),
+  PRAGUE(EVM_PRAGUE),
+  OSAKA(EVM_OSAKA) // not yet live on L1
+;
+  private final int releaseNumber;
+
+  Fork(int releaseNumber) {
+    this.releaseNumber = releaseNumber;
+  }
+
+  public int getReleaseNumber() {
+    return releaseNumber;
+  }
 
   public static String toString(Fork fork) {
     return switch (fork) {
@@ -29,6 +54,8 @@ public enum Fork {
       case SHANGHAI -> "shanghai";
       case CANCUN -> "cancun";
       case PRAGUE -> "prague";
+      case OSAKA -> "osaka";
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
     };
   }
 
@@ -44,7 +71,149 @@ public enum Fork {
     return Fork.valueOf(fork.toUpperCase());
   }
 
+  private static boolean forkIsAtLeast(Fork fork, Fork threshold) {
+    return fork.getReleaseNumber() >= threshold.getReleaseNumber();
+  }
+
+  public static boolean isPostParis(Fork fork) {
+    return forkIsAtLeast(fork, PARIS);
+  }
+
   public static boolean isPostShanghai(Fork fork) {
-    return fork.compareTo(SHANGHAI) >= 0;
+    return forkIsAtLeast(fork, SHANGHAI);
+  }
+
+  public static boolean isPostCancun(Fork fork) {
+    return forkIsAtLeast(fork, CANCUN);
+  }
+
+  public static boolean isPostPrague(Fork fork) {
+    return forkIsAtLeast(fork, PRAGUE);
+  }
+
+  public static boolean isPostOsaka(Fork fork) {
+    return forkIsAtLeast(fork, OSAKA);
+  }
+
+  public static boolean forkSupported(Fork fork) {
+    return !forkNotSupported(fork);
+  }
+
+  public static boolean forkNotSupported(Fork fork) {
+    return isPostOsaka(fork);
+  }
+
+  /**
+   * Map MainnetHardforkId, datatype from Besu, to Fork enum instance
+   *
+   * @param hardForkId the hardfork id retrieved from Besu API
+   * @return Fork
+   */
+  public static Fork fromMainnetHardforkIdToTracerFork(MainnetHardforkId hardForkId) {
+    return switch (hardForkId) {
+      case MainnetHardforkId.LONDON -> LONDON;
+      case MainnetHardforkId.PARIS -> PARIS;
+      case MainnetHardforkId.SHANGHAI -> SHANGHAI;
+      case MainnetHardforkId.CANCUN -> CANCUN;
+      case MainnetHardforkId.PRAGUE -> PRAGUE;
+      case MainnetHardforkId.OSAKA -> OSAKA;
+      default -> throw new IllegalArgumentException(
+          "Fork not supported by the tracer: " + hardForkId);
+    };
+  }
+
+  /**
+   * Start a Besu Blockchain service and retrieve the hardfork id for a given block range
+   *
+   * @param context the context on which to start the service
+   * @param fromBlock the block number at which to retrieve the hardfork id
+   * @param toBlock the block number at which to retrieve the hardfork id
+   * @return Fork corresponding Fork instance if the hardfork id is the same between fromBlock and
+   *     toBlock, else throw
+   */
+  public static Fork getForkFromBesuBlockchainService(
+      ServiceManager context, long fromBlock, long toBlock) {
+    final HardforkId forkStart =
+        BesuServiceProvider.getBesuService(context, BlockchainService.class)
+            .getHardforkId(fromBlock);
+    if (fromBlock != toBlock) {
+      final HardforkId forkEnd =
+          BesuServiceProvider.getBesuService(context, BlockchainService.class)
+              .getHardforkId(toBlock);
+      // Do not accept conflations with different fork ...
+      if (!forkStart.equals(forkEnd)) {
+        throw new IllegalStateException(
+            "Illegal fork change from  "
+                + forkStart
+                + " at start block "
+                + fromBlock
+                + " to "
+                + forkEnd
+                + " at end block "
+                + toBlock);
+      }
+    }
+    return fromMainnetHardforkIdToTracerFork((MainnetHardforkId) forkStart);
+  }
+
+  /**
+   * Start a Besu Blockchain service and retrieve the hardfork id for a given block number
+   *
+   * @param context the context on which to start the service
+   * @param blockNumber the block number at which to retrieve the hardfork id
+   * @return Fork corresponding Fork instance
+   */
+  public static Fork getForkFromBesuBlockchainService(ServiceManager context, long blockNumber) {
+    return getForkFromBesuBlockchainService(context, blockNumber, blockNumber);
+  }
+
+  public static Trace getTraceFromFork(Fork fork) {
+    return switch (fork) {
+      case LONDON -> new TraceLondon();
+      case PARIS -> new TraceParis();
+      case SHANGHAI -> new TraceShanghai();
+      case CANCUN -> new TraceCancun();
+      case PRAGUE -> new TracePrague();
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
+  }
+
+  public static GasCalculator getGasCalculatorFromFork(Fork fork) {
+    return switch (fork) {
+      case LONDON, PARIS -> new LondonGasCalculator();
+      case SHANGHAI -> new ShanghaiGasCalculator();
+      case CANCUN -> new CancunGasCalculator();
+      case PRAGUE -> new PragueGasCalculator();
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
+  }
+
+  /**
+   * Return the number of contract addresses seen by the system transaction during execution. This
+   * is primary to testing purposes to ensure the right number were seen.
+   *
+   * @param fork
+   * @return
+   */
+  public static int numberOfAddressesSeenBySystemTransaction(Fork fork) {
+    return switch (fork) {
+      case LONDON, PARIS, SHANGHAI -> 0;
+      case CANCUN -> 1;
+      case PRAGUE -> 2;
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
+  }
+
+  // Used for blockchain ref tests with the Paris exception of "Merge"
+  public static String toPascalCase(Fork fork) {
+    return switch (fork) {
+      case LONDON -> "London";
+      case PARIS -> "Merge";
+      case SHANGHAI -> "Shanghai";
+      case CANCUN -> "Cancun";
+      case PRAGUE -> "Prague";
+      case OSAKA -> "Osaka";
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
   }
 }

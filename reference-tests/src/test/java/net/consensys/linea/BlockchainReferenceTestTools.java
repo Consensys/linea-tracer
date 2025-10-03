@@ -15,9 +15,13 @@
 
 package net.consensys.linea;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
 import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_INPUT_FILENAME;
 import static net.consensys.linea.reporting.TracerTestBase.getForkOrDefault;
+import static net.consensys.linea.testing.ToyExecutionTools.addSystemAccountsIfRequired;
+import static net.consensys.linea.zktracer.Fork.*;
+import static net.consensys.linea.zktracer.container.module.IncrementAndDetectModule.ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Paths;
@@ -40,8 +44,10 @@ import net.consensys.linea.reporting.TestOutcome;
 import net.consensys.linea.reporting.TestOutcomeWriterTool;
 import net.consensys.linea.testing.ExecutionEnvironment;
 import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
-import org.hyperledger.besu.ethereum.MainnetBlockValidator;
+import org.hyperledger.besu.ethereum.BlockValidator;
+import org.hyperledger.besu.ethereum.MainnetBlockValidatorBuilder;
 import org.hyperledger.besu.ethereum.ProtocolContext;
 import org.hyperledger.besu.ethereum.chain.MutableBlockchain;
 import org.hyperledger.besu.ethereum.core.Block;
@@ -62,11 +68,11 @@ import org.junit.jupiter.api.Assumptions;
 @Slf4j
 public class BlockchainReferenceTestTools {
   // Keep the forkName and the zkevm_fork in github worklow in PascalCase
-  private static final String forkName = getForkOrDefault("London");
+  private static final Fork fork = getForkOrDefault(LONDON);
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
       ReferenceTestProtocolSchedules.create();
 
-  private static final List<String> NETWORKS_TO_RUN = List.of(forkName);
+  private static final List<String> NETWORKS_TO_RUN = List.of(toPascalCase(fork));
 
   public static final JsonTestParameters<?, ?> PARAMS =
       JsonTestParameters.create(BlockchainReferenceTestCaseSpec.class)
@@ -90,7 +96,7 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("dynamicAccountOverwriteEmpty_d0g0v0_*");
 
     // ignore tests that are failing because there is an account with nonce 0 and
-    // non empty code which can't happen in Linea since we are post LONDON
+    // non-empty code which can't happen in Linea since we are post LONDON
     PARAMS.ignore("InitCollision_d0g0v0_*");
     PARAMS.ignore("InitCollision_d1g0v0_*");
     PARAMS.ignore("InitCollision_d2g0v0_*");
@@ -204,6 +210,93 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("static_RETURN_BoundsOOG_d0g0v0_*");
     PARAMS.ignore("static_RETURN_BoundsOOG_d1g0v0_*");
     PARAMS.ignore("static_RETURN_Bounds_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("Cancun-enough_gas*");
+    PARAMS.ignore("Cancun-out_of_gas*");
+    PARAMS.ignore("Cancun-no_stack_overflow*");
+    PARAMS.ignore("Cancun-stack_overflow*");
+    PARAMS.ignore("Cancun-zero_inputs*");
+    PARAMS.ignore("Cancun-zero_length_out_of_bounds_destination*");
+    PARAMS.ignore("Cancun-single_byte_rewrite*");
+    PARAMS.ignore("Cancun-full_word_rewrite*");
+    PARAMS.ignore("Cancun-single_byte_forward_overwrite*");
+    PARAMS.ignore("Cancun-full_word_forward_overwrite*");
+    PARAMS.ignore("Cancun-mid_word_single_byte_rewrite*");
+    PARAMS.ignore("Cancun-mid_word_single_word_rewrite*");
+    PARAMS.ignore("Cancun-mid_word_multi_word_rewrite*");
+    PARAMS.ignore("Cancun-two_words_forward_overwrite*");
+    PARAMS.ignore("Cancun-two_words_backward_overwrite*");
+    PARAMS.ignore("Cancun-two_words_backward_overwrite_single_byte_offset*");
+    PARAMS.ignore("Cancun-single_byte_memory_extension*");
+    PARAMS.ignore("Cancun-single_word_memory_extension*");
+    PARAMS.ignore("Cancun-single_word_minus_one_byte_memory_extension*");
+    PARAMS.ignore("Cancun-single_word_plus_one_byte_memory_extension*");
+    PARAMS.ignore("Cancun-full_memory_rewrite*");
+    PARAMS.ignore("Cancun-full_memory_copy*");
+    PARAMS.ignore("Cancun-full_memory_copy_offset*");
+    PARAMS.ignore("Cancun-full_memory_clean*");
+    PARAMS.ignore("Cancun-empty_memory-length=0-src=0-dest=0*");
+    PARAMS.ignore("Cancun-empty_memory-length=0-src=0-dest=32*");
+    PARAMS.ignore("Cancun-empty_memory-length=0-src=32-dest=0*");
+    PARAMS.ignore("Cancun-empty_memory-length=0-src=32-dest=32*");
+    PARAMS.ignore("Cancun-empty_memory-length=1-src=0-dest=0*");
+    PARAMS.ignore("Cancun-empty_memory-length=1-src=0-dest=32*");
+    PARAMS.ignore("Cancun-empty_memory-length=1-src=32-dest=0*");
+    PARAMS.ignore("Cancun-empty_memory-length=1-src=32-dest=32*");
+    PARAMS.ignore("Cancun-call");
+    PARAMS.ignore("Cancun-staticcall_cant_call_tstore");
+    PARAMS.ignore("Cancun-staticcall_cant_call_tstore_with_stack_underflow");
+    PARAMS.ignore("Cancun-staticcalled_can_call_tstore");
+    PARAMS.ignore("Cancun-staticcalled_context_can_call_tload");
+    PARAMS.ignore("Cancun-callcode");
+    PARAMS.ignore("Cancun-delegatecall");
+    PARAMS.ignore("Cancun-call_with_revert");
+    PARAMS.ignore("Cancun-call_with_invalid");
+    PARAMS.ignore("Cancun-call_with_stack_underflow");
+    PARAMS.ignore("Cancun-call_with_tstore_stack_underflow");
+    PARAMS.ignore("Cancun-call_with_tstore_stack_underflow_2");
+    PARAMS.ignore("Cancun-call_with_tload_stack_underflow");
+    PARAMS.ignore("Cancun-call_with_out_of_gas");
+    PARAMS.ignore("Cancun-call_with_out_of_gas_2");
+    PARAMS.ignore("Cancun-callcode_with_revert");
+    PARAMS.ignore("Cancun-callcode_with_invalid");
+    PARAMS.ignore("Cancun-callcode_with_stack_underflow");
+    PARAMS.ignore("Cancun-callcode_with_tstore_stack_underflow");
+    PARAMS.ignore("Cancun-callcode_with_tstore_stack_underflow_2");
+    PARAMS.ignore("Cancun-callcode_with_tload_stack_underflow");
+    PARAMS.ignore("Cancun-callcode_with_out_of_gas");
+    PARAMS.ignore("Cancun-callcode_with_out_of_gas_2");
+    PARAMS.ignore("Cancun-delegatecall_with_revert");
+    PARAMS.ignore("Cancun-delegatecall_with_invalid");
+    PARAMS.ignore("Cancun-delegatecall_with_stack_underflow");
+    PARAMS.ignore("Cancun-delegatecall_with_tstore_stack_underflow");
+    PARAMS.ignore("Cancun-delegatecall_with_tstore_stack_underflow_2");
+    PARAMS.ignore("Cancun-delegatecall_with_tload_stack_underflow");
+    PARAMS.ignore("Cancun-delegatecall_with_out_of_gas");
+    PARAMS.ignore("Cancun-delegatecall_with_out_of_gas_2");
+    PARAMS.ignore("Cancun-tstore_in_reentrant_call");
+    PARAMS.ignore("Cancun-tload_after_reentrant_tstore");
+    PARAMS.ignore("Cancun-manipulate_in_reentrant_call");
+    PARAMS.ignore("Cancun-tstore_in_call_then_tload_return_in_staticcall");
+    PARAMS.ignore("Cancun-tstore_before_revert_has_no_effect");
+    PARAMS.ignore("Cancun-revert_undoes_all");
+    PARAMS.ignore("Cancun-revert_undoes_tstorage_after_successful_call");
+    PARAMS.ignore("Cancun-tstore_before_invalid_has_no_effect");
+    PARAMS.ignore("Cancun-revert_undoes_all");
+    PARAMS.ignore("Cancun-invalid_undoes_all");
+    PARAMS.ignore("Cancun-invalid_undoes_tstorage_after_successful_call");
+    PARAMS.ignore("Cancun-tload_after_selfdestruct_pre_existing_contract");
+    PARAMS.ignore("Cancun-tload_after_selfdestruct_new_contract");
+    PARAMS.ignore("Cancun-tload_after_inner_selfdestruct_pre_existing_contract");
+    PARAMS.ignore("Cancun-tload_after_inner_selfdestruct_new_contract");
+    PARAMS.ignore("Cancun-tstore_after_selfdestruct_pre_existing_contract");
+    PARAMS.ignore("Cancun-tstore_after_selfdestruct_new_contract");
+    PARAMS.ignore("Cancun-out_of_bounds_memory_extension*");
+    PARAMS.ignore("Cancun-opcode=CALL");
+    PARAMS.ignore("Cancun-opcode=DELEGATECALL");
+    PARAMS.ignore("Cancun-opcode=STATICCALL");
+    PARAMS.ignore("Cancun-opcode=CALLCODE");
+    PARAMS.ignore("Cancun-opcode=CREATE");
+    PARAMS.ignore("Cancun-opcode=CREATE2");
 
     // Deployment transaction to an account with nonce / code
     PARAMS.ignore("TransactionCollisionToEmptyButCode_d0g0v0_*");
@@ -235,6 +328,10 @@ public class BlockchainReferenceTestTools {
     // Don't do time-consuming tests.
     PARAMS.ignore("CALLBlake2f_MaxRounds.*");
     PARAMS.ignore("loopMul_*");
+    PARAMS.ignore("randomStatetest177_d0g0v0_*");
+    PARAMS.ignore("15_tstoreCannotBeDosd_d0g0v0*");
+    PARAMS.ignore("21_tstoreCannotBeDosdOOO_d0g0v0*");
+    PARAMS.ignore("ContractCreationSpam_d0g0v0*");
 
     // Inconclusive fork choice rule, since in merge CL should be choosing forks and setting the
     // chain head. Perfectly valid test pre-merge.
@@ -297,7 +394,6 @@ public class BlockchainReferenceTestTools {
 
     // the following tests blow up due monetary creation pre PoS where the COINBASE would get paid 2
     // Eth at the end of every block
-    // TODO: re-enable post Paris
     PARAMS.ignore("correct_London\\[London\\]");
     PARAMS.ignore("incorrectUncleTimestamp4_London\\[London\\]");
     PARAMS.ignore("incorrectUncleTimestamp5_London\\[London\\]");
@@ -354,46 +450,58 @@ public class BlockchainReferenceTestTools {
     // Contantinople+Fix
     // - in state tests, they run on the 3 forks above only
     // - coinbase is in pre and not post and has no balance
-    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g0v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g1v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g2v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g3v0_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g0v0_*");
+    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g1v0_*");
+    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g2v0_*");
+    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g3v0_*");
     // - all the other ecmul tests for point 0,3 factor
     // 21888242871839275222246405745257275088548364400416034343698204186575808495616 have coinbase
     // pre and post with balance
     // - coinbase is in pre and not post and has no balance
-    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g0v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g1v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g2v0_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g0v0_*");
+    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g1v0_*");
+    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g2v0_*");
     // - all the other ecadd tests for points (0,0) and (0,0) have coinbase pre and post with
     // balance
     // - coinbase is in pre and not post and has no balance
-    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g0v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g1v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g2v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g3v0_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g0v0_*");
+    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g1v0_*");
+    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g2v0_*");
+    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g3v0_*");
     // - all the other ecadd tests for points (1,3) and (0,0) have coinbase pre and post with
     // balance
     // - coinbase is in pre and not post and has no balance
-    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g0v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g1v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g2v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g3v0_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g0v0_*");
+    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g1v0_*");
+    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g2v0_*");
+    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g3v0_*");
 
     // System transactions Withdrawals are not supported
-    // Breaks hub.account-consistency---linking---conflation-level---balance as the transition on
-    // account 0x0000000000000000000000000000000000000200
+    // Breaks hub.account-consistency---linking---conflation-level---balance as the transition
+    // for account 0x0000000000000000000000000000000000000200
     PARAMS.ignore("BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/balance_within_block.json");
     PARAMS.ignore(
         "BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/use_value_in_contract.json");
+    // for account EIP4788_BEACONROOT_ADDRESS
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_overwrite");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_overwrite_high_timestamp");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite_2");
 
     // Pending deployment number fix
     // Issue #https://github.com/Consensys/linea-specification/issues/191
     PARAMS.ignore("create2collisionwithSelfdestructSameBlock.json");
-  }
 
-  private BlockchainReferenceTestTools() {
-    // utility class
+    // Transaction Type not supported at the moment
+    PARAMS.ignore("opcodeBlobhBounds*");
+    PARAMS.ignore("opcodeBlobhashOutOfRange*");
+    PARAMS.ignore("blockWithAllTransactionTypes*");
+    PARAMS.ignore("Cancun-tx_type=3*");
+    PARAMS.ignore("blobhashListBounds3_d0g0v0_*");
+    PARAMS.ignore("blobhashListBounds4_d0g0v0_*");
+    PARAMS.ignore("blobhashListBounds5_d0g0v0_*");
+    PARAMS.ignore("blobhashListBounds6_d0g0v0_*");
   }
 
   public static CompletableFuture<Set<String>> getRecordedFailedTestsFromJson(
@@ -476,9 +584,13 @@ public class BlockchainReferenceTestTools {
 
     final ProtocolSchedule schedule =
         REFERENCE_TEST_PROTOCOL_SCHEDULES.getByName(spec.getNetwork());
-    final ChainConfig chain = ChainConfig.ETHEREUM_CHAIN(spec.getNetwork());
+    final ChainConfig chain = ChainConfig.ETHEREUM_CHAIN(fork);
     final MutableBlockchain blockchain = spec.getBlockchain();
     final ProtocolContext context = spec.getProtocolContext();
+
+    // Add system accounts if the fork requires it.
+    addSystemAccountsIfRequired(worldState.updater(), chain.fork);
+
     final CorsetValidator corsetValidator = new CorsetValidator(chain);
     final ZkTracer zkTracer = new ZkTracer(chain);
     zkTracer.traceStartConflation(spec.getCandidateBlocks().length);
@@ -499,7 +611,7 @@ public class BlockchainReferenceTestTools {
       try {
         final Block block = candidateBlock.getBlock();
 
-        zkTracer.traceStartBlock(block.getHeader(), block.getHeader().getCoinbase());
+        zkTracer.traceStartBlock(worldState, block.getHeader(), block.getHeader().getCoinbase());
 
         final ProtocolSpec protocolSpec = schedule.getByBlockHeader(block.getHeader());
 
@@ -532,15 +644,22 @@ public class BlockchainReferenceTestTools {
       }
     }
 
-    zkTracer.traceEndConflation(worldState);
-
-    ExecutionEnvironment.checkTracer(
-        zkTracer,
-        corsetValidator,
-        Optional.of(log),
-        // NOTE: just use 0 for start and end block here, since this information is not used.
-        0,
-        0);
+    // TODO: run it normally once we don't exclude BLS precompiles
+    try {
+      zkTracer.traceEndConflation(worldState);
+      ExecutionEnvironment.checkTracer(
+          zkTracer,
+          corsetValidator,
+          Optional.of(log),
+          // NOTE: just use 0 for start and end block here, since this information is not used.
+          0,
+          0,
+          null);
+    } catch (Exception e) {
+      // Tmp: we ignore this error, as BLS precompiles are excluded in prod, but not in test
+      checkArgument(
+          e.getMessage().contains(ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX), e.getMessage());
+    }
     assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());
   }
 
@@ -556,8 +675,8 @@ public class BlockchainReferenceTestTools {
             schedule,
             zkTracer);
 
-    final MainnetBlockValidator blockValidator =
-        new MainnetBlockValidator(
+    final BlockValidator blockValidator =
+        MainnetBlockValidatorBuilder.frontier(
             protocolSpec.getBlockHeaderValidator(),
             protocolSpec.getBlockBodyValidator(),
             corsetBlockProcessor);

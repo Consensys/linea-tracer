@@ -31,12 +31,13 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class RevertSection extends TraceSection {
 
+  public static final short NB_ROWS_HUB_REVERT = 4; // 4 = 1 + 3
+
   final ImcFragment imcFragment;
   MmuCall mmuCall;
 
   public RevertSection(Hub hub, MessageFrame frame) {
-    // up to 4 = 1 + 3 rows
-    super(hub, (short) 4);
+    super(hub, NB_ROWS_HUB_REVERT);
 
     short exceptions = hub.pch().exceptions();
 
@@ -47,9 +48,11 @@ public class RevertSection extends TraceSection {
     // triggerOob = false
     // triggerStp = false
     // triggerMxp = true
-    MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     imcFragment.callMxp(mxpCall);
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "REVERT: mxp and hub disagree on MXPX");
 
     if (Exceptions.memoryExpansionException(exceptions)) {
       return;
@@ -60,8 +63,7 @@ public class RevertSection extends TraceSection {
     }
 
     // The XAHOY = 0 case
-    /////////////////////
-    checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions), "REVERT: unexpected exception %s", exceptions);
 
     final CallFrame callFrame = hub.currentFrame();
     final Bytes offset = frame.getStackItem(0);

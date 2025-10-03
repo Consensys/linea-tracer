@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(UnitTestWatcher.class)
@@ -86,57 +87,58 @@ public class TrmTracerTest extends TracerTestBase {
               + "00000000");
 
   @Test
-  void testNonCallTinyParamLessThan16() {
+  void testNonCallTinyParamLessThan16(TestInfo testInfo) {
     for (int tiny = 0; tiny < 16; tiny++) {
-      nonCall(Bytes32.leftPad(Bytes.of(tiny)));
+      nonCall(Bytes32.leftPad(Bytes.of(tiny)), testInfo);
     }
   }
 
   @Test
-  void testNonCallTinyParamAround256() {
+  void testNonCallTinyParamAround256(TestInfo testInfo) {
     for (int tiny = 0; tiny < 32; tiny++) {
-      nonCall(Bytes32.leftPad(Bytes.ofUnsignedLong((long) tiny + 248)));
+      nonCall(Bytes32.leftPad(Bytes.ofUnsignedLong((long) tiny + 248)), testInfo);
     }
   }
 
   @Test
-  void testNonCallAddressParameterTinyAfterTrimming() {
+  void testNonCallAddressParameterTinyAfterTrimming(TestInfo testInfo) {
     for (int tiny = 0; tiny < 16; tiny++) {
       nonCall(
           RANDOM_STRING_FROM_THE_INTERNET
               .and(BYTE_STRING_OUTSIDE_OF_ADDRESS_RANGE___MAX_VALUE)
-              .or(Bytes32.leftPad(Bytes.of(tiny))));
+              .or(Bytes32.leftPad(Bytes.of(tiny))),
+          testInfo);
     }
   }
 
   @Test
-  void testNonCallRandomLarge() {
-    nonCall(RANDOM_STRING_FROM_THE_INTERNET);
+  void testNonCallRandomLarge(TestInfo testInfo) {
+    nonCall(RANDOM_STRING_FROM_THE_INTERNET, testInfo);
   }
 
   @Test
-  void testSevenArgCall() {
+  void testSevenArgCall(TestInfo testInfo) {
     for (int addr = 0; addr < 16; addr++) {
-      sevenArgCall(addr);
+      sevenArgCall(addr, testInfo);
     }
   }
 
   @Test
-  void testSampleDelegateCall() {
+  void testSampleDelegateCall(TestInfo testInfo) {
     for (long addr = 0; addr < 16; addr++) {
-      sampleDelegateCall(addr);
+      sampleDelegateCall(addr, testInfo);
     }
   }
 
-  void nonCall(Bytes bytes) {
+  void nonCall(Bytes bytes, TestInfo testInfo) {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(testInfo).push(bytes).op(OpCode.EXTCODEHASH).compile())
-        .run(testInfo);
+            BytecodeCompiler.newProgram(chainConfig).push(bytes).op(OpCode.EXTCODEHASH).compile())
+        .run(chainConfig, testInfo);
   }
 
   @Test
-  void testTrimToUncoverATinyAddressAndQueryItsBalanceCodeHashAndCodeSize() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+  void testTrimToUncoverATinyAddressAndQueryItsBalanceCodeHashAndCodeSize(TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     List<OpCode> opCodeList = List.of(OpCode.BALANCE, OpCode.EXTCODESIZE, OpCode.EXTCODEHASH);
 
@@ -156,12 +158,12 @@ public class TrmTracerTest extends TracerTestBase {
           .op(opCodeList.get((i + 2) % 3));
     }
 
-    BytecodeRunner.of(program.compile()).run(testInfo);
+    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
 
-  void sevenArgCall(long rawAddr) {
+  void sevenArgCall(long rawAddr, TestInfo testInfo) {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(testInfo)
+            BytecodeCompiler.newProgram(chainConfig)
                 .push(Bytes.fromHexString("0xff")) // rds
                 .push(Bytes.fromHexString("0x80")) // rdo
                 .push(Bytes.fromHexString("0x44")) // cds
@@ -171,12 +173,12 @@ public class TrmTracerTest extends TracerTestBase {
                 .push(Bytes.fromHexString("0xffff")) // gas
                 .op(OpCode.CALL)
                 .compile())
-        .run(testInfo);
+        .run(chainConfig, testInfo);
   }
 
-  void sampleDelegateCall(long rawAddr) {
+  void sampleDelegateCall(long rawAddr, TestInfo testInfo) {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(testInfo)
+            BytecodeCompiler.newProgram(chainConfig)
                 .push(Bytes.fromHexString("0xff")) // rds
                 .push(Bytes.fromHexString("0x80")) // rdo
                 .push(Bytes.fromHexString("0x44")) // cds
@@ -185,6 +187,6 @@ public class TrmTracerTest extends TracerTestBase {
                 .push(Bytes.fromHexString("0xffff")) // gas
                 .op(OpCode.DELEGATECALL)
                 .compile())
-        .run(testInfo);
+        .run(chainConfig, testInfo);
   }
 }

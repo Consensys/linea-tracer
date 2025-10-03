@@ -22,18 +22,19 @@ import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
-import net.consensys.linea.reporting.TestInfoWithChainConfig;
+import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
-import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.mxp.module.Mxp;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Responsible for executing JUnit 5 dynamic tests for modules with the ability to configure custom
@@ -98,9 +99,12 @@ public class DynamicTests {
    * @return a {@link Stream} of {@link DynamicTest} ran by a {@link
    *     org.junit.jupiter.api.TestFactory}
    */
-  public Stream<DynamicTest> run(TestInfoWithChainConfig testInfo) {
+  public Stream<DynamicTest> run(ChainConfig chainConfig, TestInfo testInfo) {
     return this.testCaseRegistry.stream()
-        .flatMap(e -> generateTestCases(e.name(), e.arguments(), e.customAssertions(), testInfo));
+        .flatMap(
+            e ->
+                generateTestCases(
+                    e.name(), e.arguments(), e.customAssertions(), chainConfig, testInfo));
   }
 
   private List<OpCode> supportedOpCodes(Module module) {
@@ -167,20 +171,25 @@ public class DynamicTests {
       final String testCaseName,
       final List<OpcodeCall> args,
       final BiConsumer<OpCode, List<Bytes32>> customAssertions,
-      TestInfoWithChainConfig testInfo) {
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
     return args.stream()
         .map(
             e -> {
               String testName =
                   "[%s][%s] Test bytecode for opcode %s with opArgs %s"
                       .formatted(
-                          module.moduleKey().toUpperCase(), testCaseName, e.opCode(), e.args());
+                          module.moduleKey().toString().toUpperCase(),
+                          testCaseName,
+                          e.opCode(),
+                          e.args());
 
               return DynamicTest.dynamicTest(
                   testName,
                   () -> {
                     if (customAssertions == null) {
-                      ModuleTests.runTestWithOpCodeArgs(e.opCode(), e.args(), testInfo);
+                      ModuleTests.runTestWithOpCodeArgs(
+                          e.opCode(), e.args(), chainConfig, testInfo);
                     } else {
                       customAssertions.accept(e.opCode(), e.args());
                     }

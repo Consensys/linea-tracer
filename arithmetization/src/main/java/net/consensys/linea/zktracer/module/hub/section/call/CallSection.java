@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.canonical;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+import static net.consensys.linea.zktracer.types.AddressUtils.*;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 import static org.hyperledger.besu.datatypes.Address.*;
 
@@ -32,6 +32,7 @@ import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Factories;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.defer.ContextEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
@@ -50,7 +51,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFra
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.*;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemoryRange;
@@ -87,18 +88,28 @@ public class CallSection extends TraceSection
         PostRollbackDefer,
         EndTransactionDefer {
 
+  public static final short NB_ROWS_HUB_CALL = 11; // 2 stack + up to 9 for SMC failure will revert
+  // Note: in case of precompile call there could be more rows.
   private static final Map<Address, BiFunction<Hub, CallSection, PrecompileSubsection>>
       ADDRESS_TO_PRECOMPILE =
-          Map.of(
-              ECREC, EllipticCurvePrecompileSubsection::new,
-              SHA256, ShaTwoOrRipemdSubSection::new,
-              RIPEMD160, ShaTwoOrRipemdSubSection::new,
-              ID, IdentitySubsection::new,
-              MODEXP, ModexpSubsection::new,
-              ALTBN128_ADD, EllipticCurvePrecompileSubsection::new,
-              ALTBN128_MUL, EllipticCurvePrecompileSubsection::new,
-              ALTBN128_PAIRING, EllipticCurvePrecompileSubsection::new,
-              BLAKE2B_F_COMPRESSION, BlakeSubsection::new);
+          Map.ofEntries(
+              Map.entry(ECREC, EllipticCurvePrecompileSubsection::new),
+              Map.entry(SHA256, ShaTwoOrRipemdSubSection::new),
+              Map.entry(RIPEMD160, ShaTwoOrRipemdSubSection::new),
+              Map.entry(ID, IdentitySubsection::new),
+              Map.entry(MODEXP, ModexpSubsection::new),
+              Map.entry(ALTBN128_ADD, EllipticCurvePrecompileSubsection::new),
+              Map.entry(ALTBN128_MUL, EllipticCurvePrecompileSubsection::new),
+              Map.entry(ALTBN128_PAIRING, EllipticCurvePrecompileSubsection::new),
+              Map.entry(BLAKE2B_F_COMPRESSION, BlakeSubsection::new),
+              Map.entry(KZG_POINT_EVAL, EllipticCurvePrecompileSubsection::new),
+              Map.entry(BLS12_G1ADD, EllipticCurvePrecompileSubsection::new),
+              Map.entry(BLS12_G1MULTIEXP, EllipticCurvePrecompileSubsection::new),
+              Map.entry(BLS12_G2ADD, EllipticCurvePrecompileSubsection::new),
+              Map.entry(BLS12_G2MULTIEXP, EllipticCurvePrecompileSubsection::new),
+              Map.entry(BLS12_PAIRING, EllipticCurvePrecompileSubsection::new),
+              Map.entry(BLS12_MAP_FP_TO_G1, EllipticCurvePrecompileSubsection::new),
+              Map.entry(BLS12_MAP_FP2_TO_G2, EllipticCurvePrecompileSubsection::new));
 
   public Optional<Address> precompileAddress;
 
@@ -133,7 +144,7 @@ public class CallSection extends TraceSection
   private AccountSnapshot reEntryCallerSnapshot;
   private AccountSnapshot reEntryCalleeSnapshot;
 
-  private final OpCode opCode;
+  private final OpCodeData opCode;
   private Wei value;
 
   public StpCall stpCall;
@@ -148,7 +159,7 @@ public class CallSection extends TraceSection
     super(hub, maxNumberOfLines(hub));
 
     factory = hub.factories();
-    opCode = hub.opCode();
+    opCode = hub.opCodeData();
 
     final short exceptions = hub.pch().exceptions();
 
@@ -161,9 +172,8 @@ public class CallSection extends TraceSection
 
     if (Exceptions.any(exceptions)) {
       scenarioFragment.setScenario(CALL_EXCEPTION);
-      if (opCode == CALL) {
-        final XCallOobCall oobCall = new XCallOobCall();
-        firstImcFragment.callOob(oobCall);
+      if (opCode.mnemonic() == CALL) {
+        firstImcFragment.callOob(new XCallOobCall());
       }
     }
 
@@ -172,9 +182,11 @@ public class CallSection extends TraceSection
       return;
     }
 
-    final MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     firstImcFragment.callMxp(mxpCall);
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "mxp module MXPX does not match the hub's MXPX");
 
     // MXPX case
     if (Exceptions.memoryExpansionException(exceptions)) {
@@ -194,6 +206,14 @@ public class CallSection extends TraceSection
     rawCalleeAddress = frame.getStackItem(1);
     calleeAddress = Address.extract(EWord.of(rawCalleeAddress));
 
+    // TODO: remove me when Linea supports Cancun & Prague precompiles
+    if (isKzgPrecompileCall(calleeAddress, hub.fork)) {
+      hub.pointEval().detectEvent();
+    }
+    if (isBlsPrecompileCall(calleeAddress, hub.fork)) {
+      hub.bls().detectEvent();
+    }
+
     callerFirst = canonical(hub, callerAddress);
     calleeFirst = canonical(hub, calleeAddress);
 
@@ -204,12 +224,13 @@ public class CallSection extends TraceSection
     }
 
     // The CALL is now unexceptional
-    checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions), "Unexpected exception in CallSection");
     currentFrame.childSpanningSection(this);
 
     // the call data span and ``return at'' spans are only required once the CALL is unexceptional
     callDataRange =
-        new MemoryRange(currentFrame.contextNumber(), Range.callDataRange(frame), frame);
+        new MemoryRange(
+            currentFrame.contextNumber(), Range.callDataRange(frame, hub.opCodeData(frame)), frame);
     returnAtRange = new MemoryRange(currentFrame.contextNumber(), returnAtRange(frame), frame);
 
     value =
@@ -217,11 +238,12 @@ public class CallSection extends TraceSection
             ? Wei.of(frame.getStackItem(2).toUnsignedBigInteger())
             : Wei.ZERO;
 
-    final CallOobCall oobCall = new CallOobCall();
-    firstImcFragment.callOob(oobCall);
+    final CallOobCall oobCall = (CallOobCall) firstImcFragment.callOob(new CallOobCall());
 
     final boolean aborts = hub.pch().abortingConditions().any();
-    checkArgument(oobCall.isAbortingCondition() == aborts);
+    checkArgument(
+        oobCall.isAbortingCondition() == aborts,
+        "oob module ABORT prediction and hub module ABORT prediction mismatch");
 
     hub.defers().scheduleForPostRollback(this, currentFrame);
     hub.defers().scheduleForEndTransaction(this);
@@ -257,7 +279,8 @@ public class CallSection extends TraceSection
             .make(
                 callerFirst,
                 callerFirst,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
+                TransactionProcessingType.USER);
 
     final AccountFragment calleeAccountFragment =
         factory
@@ -266,7 +289,8 @@ public class CallSection extends TraceSection
                 calleeFirst,
                 calleeFirst,
                 rawCalleeAddress,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1),
+                TransactionProcessingType.USER);
 
     this.addFragments(callerAccountFragment, calleeAccountFragment);
   }
@@ -281,7 +305,8 @@ public class CallSection extends TraceSection
             .make(
                 callerFirst,
                 callerFirstNew,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
+                TransactionProcessingType.USER);
 
     final AccountFragment readingCalleeAccountAndWarmth =
         factory
@@ -290,7 +315,8 @@ public class CallSection extends TraceSection
                 calleeFirst,
                 calleeFirstNew,
                 rawCalleeAddress,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1),
+                TransactionProcessingType.USER);
     finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
     this.addFragments(readingCallerAccount, readingCalleeAccountAndWarmth);
     hub.defers().scheduleForPostExecution(this);
@@ -324,7 +350,7 @@ public class CallSection extends TraceSection
     }
 
     final WorldUpdater world = frame.getWorldUpdater();
-    if (isPrecompile(calleeAddress)) {
+    if (isPrecompile(hub.fork, calleeAddress)) {
       precompileAddress = Optional.of(calleeAddress);
       scenarioFragment.setScenario(CALL_PRC_UNDEFINED);
     } else {
@@ -396,12 +422,16 @@ public class CallSection extends TraceSection
   public void resolveUponContextEntry(Hub hub, MessageFrame frame) {
 
     final CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
-    checkState(scenario == CALL_SMC_UNDEFINED | scenario == CALL_PRC_UNDEFINED);
+    checkState(
+        scenario == CALL_SMC_UNDEFINED | scenario == CALL_PRC_UNDEFINED,
+        String.format(
+            "CallSection: call scenario %s should be undefined at context entry resolution",
+            scenario));
 
     callerFirstNew = callerFirst.deepCopy();
     calleeFirstNew = calleeFirst.deepCopy().turnOnWarmth();
 
-    if (opCode == CALL) {
+    if (opCode.mnemonic() == CALL) {
       callerFirstNew.decrementBalanceBy(value);
       calleeFirstNew.incrementBalanceBy(value);
     }
@@ -412,7 +442,9 @@ public class CallSection extends TraceSection
     }
 
     if (isNonzeroValueSelfCall()) {
-      checkState(scenarioFragment.getScenario() == CALL_SMC_UNDEFINED);
+      checkState(
+          scenarioFragment.getScenario() == CALL_SMC_UNDEFINED,
+          "CallSection: self-calls cannot involve precompiles");
       calleeFirst = callerFirstNew.deepCopy();
       calleeFirstNew = callerFirst.deepCopy();
     }
@@ -423,7 +455,8 @@ public class CallSection extends TraceSection
             .make(
                 callerFirst,
                 callerFirstNew,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
+                TransactionProcessingType.USER);
 
     final AccountFragment firstCalleeAccountFragment =
         factory
@@ -432,7 +465,8 @@ public class CallSection extends TraceSection
                 calleeFirst,
                 calleeFirstNew,
                 rawCalleeAddress,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1),
+                TransactionProcessingType.USER);
 
     firstCalleeAccountFragment.requiresRomlex(true);
 
@@ -442,7 +476,9 @@ public class CallSection extends TraceSection
   /** Resolution happens as the child context is about to terminate. */
   @Override
   public void resolveUponContextExit(Hub hub, CallFrame frame) {
-    checkArgument(scenarioFragment.getScenario() == CALL_SMC_UNDEFINED);
+    checkArgument(
+        scenarioFragment.getScenario() == CALL_SMC_UNDEFINED,
+        "Illegal CALL scenario at context exit");
   }
 
   @Override
@@ -456,7 +492,10 @@ public class CallSection extends TraceSection
 
     switch (scenarioFragment.getScenario()) {
       case CALL_EOA_UNDEFINED -> {
-        checkState(success);
+        checkState(
+            success,
+            String.format(
+                "EOA calls that are still %s at context re-entry cannot fail", CALL_EOA_UNDEFINED));
         scenarioFragment.setScenario(CALL_EOA_SUCCESS_WONT_REVERT);
         firstAccountRowsEoaOrPrc(hub);
         final long gasAfterCall = frame.frame().getRemainingGas();
@@ -502,7 +541,8 @@ public class CallSection extends TraceSection
                     callerSecond,
                     callerSecondNew,
                     DomSubStampsSubFragment.revertsWithChildDomSubStamps(
-                        this.hubStamp(), childContextRevertStamp, 2));
+                        this.hubStamp(), childContextRevertStamp, 2),
+                    TransactionProcessingType.USER);
 
         final AccountFragment postReEntryCalleeAccountFragment =
             factory
@@ -511,7 +551,8 @@ public class CallSection extends TraceSection
                     calleeSecond,
                     calleeSecondNew,
                     DomSubStampsSubFragment.revertsWithChildDomSubStamps(
-                        this.hubStamp(), childContextRevertStamp, 3));
+                        this.hubStamp(), childContextRevertStamp, 3),
+                    TransactionProcessingType.USER);
 
         this.addFragments(postReEntryCallerAccountFragment, postReEntryCalleeAccountFragment);
       }
@@ -570,7 +611,8 @@ public class CallSection extends TraceSection
                 calleeSecond,
                 calleeSecondNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), this.revertStamp(), 2));
+                    this.hubStamp(), this.revertStamp(), 2),
+                TransactionProcessingType.USER);
     this.addFragment(undoingCalleeAccountFragment);
   }
 
@@ -590,7 +632,8 @@ public class CallSection extends TraceSection
                 callerSecond,
                 callerSecondNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), this.revertStamp(), 2));
+                    this.hubStamp(), this.revertStamp(), 2),
+                TransactionProcessingType.USER);
 
     final AccountFragment undoingCalleeAccountFragment =
         factory
@@ -599,7 +642,8 @@ public class CallSection extends TraceSection
                 calleeSecond,
                 calleeSecondNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), this.revertStamp(), 3));
+                    this.hubStamp(), this.revertStamp(), 3),
+                TransactionProcessingType.USER);
 
     this.addFragments(undoingCallerAccountFragment, undoingCalleeAccountFragment);
   }
@@ -623,7 +667,8 @@ public class CallSection extends TraceSection
                 calleeThird,
                 calleeThirdNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), this.revertStamp(), 4));
+                    this.hubStamp(), this.revertStamp(), 4),
+                TransactionProcessingType.USER);
 
     this.addFragment(undoingCalleeWarmthAccountFragment);
   }
@@ -631,7 +676,12 @@ public class CallSection extends TraceSection
   private void completeSmcOrPrcSuccessWillRevert(Hub hub) {
 
     final CallScenarioFragment.CallScenario callScenario = scenarioFragment.getScenario();
-    checkState(callScenario.isAnyOf(CALL_SMC_SUCCESS_WONT_REVERT, CALL_PRC_SUCCESS_WONT_REVERT));
+    checkState(
+        callScenario.isAnyOf(CALL_SMC_SUCCESS_WONT_REVERT, CALL_PRC_SUCCESS_WONT_REVERT),
+        "The only CALL scenarios that can be successful and reverted (down stream) are %s and %s, yet we are given %s",
+        CALL_SMC_SUCCESS_WONT_REVERT,
+        CALL_PRC_SUCCESS_WONT_REVERT,
+        callScenario);
     if (callScenario == CALL_SMC_SUCCESS_WONT_REVERT) {
       scenarioFragment.setScenario(CALL_SMC_SUCCESS_WILL_REVERT);
     } else {
@@ -651,7 +701,8 @@ public class CallSection extends TraceSection
                 callerSecond,
                 callerSecondNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), this.revertStamp(), 2));
+                    this.hubStamp(), this.revertStamp(), 2),
+                TransactionProcessingType.USER);
     final AccountFragment undoingCalleeAccountFragment =
         factory
             .accountFragment()
@@ -659,7 +710,8 @@ public class CallSection extends TraceSection
                 calleeSecond,
                 calleeSecondNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), this.revertStamp(), 3));
+                    this.hubStamp(), this.revertStamp(), 3),
+                TransactionProcessingType.USER);
 
     this.addFragments(undoingCallerAccountFragment, undoingCalleeAccountFragment);
   }
@@ -675,7 +727,8 @@ public class CallSection extends TraceSection
             .make(
                 callerFirst,
                 callerFirstNew,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
+                TransactionProcessingType.USER);
 
     final AccountFragment firstCalleeAccountFragment =
         factory
@@ -684,7 +737,8 @@ public class CallSection extends TraceSection
                 calleeFirst,
                 calleeFirstNew,
                 rawCalleeAddress,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1),
+                TransactionProcessingType.USER);
 
     this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
   }
@@ -699,12 +753,16 @@ public class CallSection extends TraceSection
   }
 
   private boolean isSelfCall() {
-    checkState(scenarioFragment.getScenario().isIndefiniteSmcCallScenario());
+    checkState(
+        scenarioFragment.getScenario().isIndefiniteSmcCallScenario(),
+        "self-calls only make sense for SMC call scenarios");
     return calleeAddress.equals(callerAddress);
   }
 
   private boolean isNonzeroValueSelfCall() {
-    checkState(scenarioFragment.getScenario().isIndefiniteSmcCallScenario());
+    checkState(
+        scenarioFragment.getScenario().isIndefiniteSmcCallScenario(),
+        "(nonzero value) self-calls only make sense for SMC call scenarios");
     return isSelfCall() && !value.isZero();
   }
 }

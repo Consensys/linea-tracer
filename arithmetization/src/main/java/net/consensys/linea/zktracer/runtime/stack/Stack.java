@@ -79,6 +79,19 @@ public class Stack {
             2, StackItem.pop((short) (height - 1), val2, stackStampWithOffset(1))));
   }
 
+  private void threeZero(MessageFrame frame, StackContext pending) {
+    Bytes val1 = getStack(frame, 0);
+    Bytes val2 = getStack(frame, 1);
+    Bytes val3 = getStack(frame, 2);
+
+    pending.addLine(
+        new IndexedStackOperation(1, StackItem.pop(height, val1, stackStampWithOffset(0))),
+        new IndexedStackOperation(
+            2, StackItem.pop((short) (height - 1), val2, stackStampWithOffset(1))),
+        new IndexedStackOperation(
+            3, StackItem.pop((short) (height - 2), val3, stackStampWithOffset(2))));
+  }
+
   private void zeroOne(MessageFrame ignoredFrame, StackContext pending) {
     pending.addArmingLine(
         new IndexedStackOperation(
@@ -121,7 +134,9 @@ public class Stack {
   }
 
   private void loadStore(MessageFrame frame, StackContext pending) {
-    if (currentOpcodeData.mnemonic().isAnyOf(OpCode.MSTORE, OpCode.MSTORE8, OpCode.SSTORE)) {
+    if (currentOpcodeData
+        .mnemonic()
+        .isAnyOf(OpCode.MSTORE, OpCode.MSTORE8, OpCode.SSTORE, OpCode.TSTORE)) {
       Bytes val1 = getStack(frame, 0);
       Bytes val2 = getStack(frame, 1);
 
@@ -279,7 +294,7 @@ public class Stack {
     Bytes val5 = getStack(frame, 4);
     Bytes val6 = getStack(frame, 5);
 
-    boolean callCanTransferValue = currentOpcodeData.mnemonic().callHasValueArgument();
+    boolean callCanTransferValue = currentOpcodeData.callHasValueArgument();
 
     if (callCanTransferValue) {
       Bytes val7 = getStack(frame, 6);
@@ -378,12 +393,13 @@ public class Stack {
     final CallFrame callFrame = hub.currentFrame();
     stamp = stackStamp;
     currentOpcodeData = hub.opCodeData();
-    callFrame.pending(new StackContext(currentOpcodeData.mnemonic()));
+    callFrame.pending(new StackContext(currentOpcodeData));
 
     final short delta = (short) currentOpcodeData.stackSettings().delta();
     final short alpha = (short) currentOpcodeData.stackSettings().alpha();
 
-    checkArgument(heightNew == frame.stackSize());
+    checkArgument(
+        heightNew == frame.stackSize(), "stack height prediction and frame value mismatch");
     height = (short) frame.stackSize();
     heightNew -= delta;
     heightNew += alpha;
@@ -400,7 +416,8 @@ public class Stack {
         hub.transients().conflation().stackHeightChecksForStackUnderflows().add(checkForUnderflow);
     if (isNewCheckForStackUnderflow) {
       final boolean underflowDetected = hub.wcp().callLT(height, delta);
-      checkArgument(underflowDetected == (status == Status.UNDERFLOW));
+      checkArgument(
+          underflowDetected == (status == Status.UNDERFLOW), "stack underflow detection mismatch");
     }
 
     // stack overflow checks happen only if no stack underflow was detected
@@ -410,7 +427,8 @@ public class Stack {
           hub.transients().conflation().stackHeightChecksForStackOverflows().add(checkForOverflow);
       if (isNewCheckForStackOverflow) {
         final boolean overflowDetected = hub.wcp().callGT(heightNew, MAX_STACK_SIZE);
-        checkArgument(overflowDetected == (status == Status.OVERFLOW));
+        checkArgument(
+            overflowDetected == (status == Status.OVERFLOW), "stack overflow detection mismatch");
       }
     }
 
@@ -426,6 +444,7 @@ public class Stack {
       case ZERO_ZERO -> stamp += callFrame.pending().addEmptyLines(1);
       case ONE_ZERO -> this.oneZero(frame, callFrame.pending());
       case TWO_ZERO -> this.twoZero(frame, callFrame.pending());
+      case THREE_ZERO -> this.threeZero(frame, callFrame.pending());
       case ZERO_ONE -> this.zeroOne(frame, callFrame.pending());
       case ONE_ONE -> this.oneOne(frame, callFrame.pending());
       case TWO_ONE -> this.twoOne(frame, callFrame.pending());

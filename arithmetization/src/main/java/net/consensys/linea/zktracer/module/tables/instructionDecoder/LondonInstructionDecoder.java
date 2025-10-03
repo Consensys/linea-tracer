@@ -17,10 +17,38 @@ package net.consensys.linea.zktracer.module.tables.instructionDecoder;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.OpCodes;
+import net.consensys.linea.zktracer.opcode.gas.MxpType;
 
 public class LondonInstructionDecoder extends InstructionDecoder {
+
+  public LondonInstructionDecoder(OpCodes opCodes) {
+    super(opCodes);
+  }
+
   @Override
   protected void traceTransientFamily(OpCodeData op, Trace.Instdecoder trace) {
     // London does not have any transient family opcodes, they appear in Cancun
+  }
+
+  @Override
+  protected void traceMcopyFamily(OpCodeData op, Trace.Instdecoder trace) {
+    // London does not have any mcopy family opcodes, they appear in Cancun
+  }
+
+  @Override
+  protected void traceMxpFlag(OpCodeData op, Trace.Instdecoder trace) {
+    // mxp flag is determined with types label in London
+    trace.mxpFlag(op.isMxpLondon());
+  }
+
+  @Override
+  protected void traceMxpScenario(OpCodeData op, Trace.Instdecoder trace) {
+    trace
+        .mxpType1(op.billing().type() == MxpType.TYPE_1)
+        .mxpType2(op.billing().type() == MxpType.TYPE_2)
+        .mxpType3(op.billing().type() == MxpType.TYPE_3)
+        .mxpType4(op.billing().type() == MxpType.TYPE_4)
+        .mxpType5(op.billing().type() == MxpType.TYPE_5);
   }
 }

@@ -15,53 +15,47 @@
 
 package net.consensys.linea.zktracer.module.ecdata;
 
+import static net.consensys.linea.zktracer.module.ModuleName.EC_DATA;
+
 import java.util.List;
-import java.util.Set;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingG2MembershipCalls;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public class EcData implements OperationListModule<EcDataOperation> {
-  public static final Set<Address> EC_PRECOMPILES =
-      Set.of(Address.ECREC, Address.ALTBN128_ADD, Address.ALTBN128_MUL, Address.ALTBN128_PAIRING);
-
   private final ModuleOperationStackedList<EcDataOperation> operations =
       new ModuleOperationStackedList<>();
 
   private final Wcp wcp;
   private final Ext ext;
 
-  private final EcAddEffectiveCall ecAddEffectiveCall;
-  private final EcMulEffectiveCall ecMulEffectiveCall;
-  private final EcRecoverEffectiveCall ecRecoverEffectiveCall;
+  private final IncrementingModule ecAddEffectiveCall;
+  private final IncrementingModule ecMulEffectiveCall;
+  private final IncrementingModule ecRecoverEffectiveCall;
 
-  private final EcPairingG2MembershipCalls ecPairingG2MembershipCalls;
-  private final EcPairingMillerLoops ecPairingMillerLoops;
-  private final EcPairingFinalExponentiations ecPairingFinalExponentiations;
+  private final CountingOnlyModule ecPairingG2MembershipCalls;
+  private final CountingOnlyModule ecPairingMillerLoops;
+  private final IncrementingModule ecPairingFinalExponentiations;
 
   @Getter private EcDataOperation ecDataOperation;
 
   @Override
-  public String moduleKey() {
-    return "EC_DATA";
+  public ModuleName moduleKey() {
+    return EC_DATA;
   }
 
   @Override
@@ -93,20 +87,20 @@ public class EcData implements OperationListModule<EcDataOperation> {
     operations.add(ecDataOperation);
 
     switch (ecDataOperation.precompileFlag()) {
-      case PRC_ECADD -> ecAddEffectiveCall.updateTally(
-          ecDataOperation.internalChecksPassed() ? 1 : 0);
-      case PRC_ECMUL -> ecMulEffectiveCall.updateTally(
-          ecDataOperation.internalChecksPassed() ? 1 : 0);
+      case PRC_ECADD -> ecAddEffectiveCall.updateTally(ecDataOperation.internalChecksPassed());
+      case PRC_ECMUL -> ecMulEffectiveCall.updateTally(ecDataOperation.internalChecksPassed());
       case PRC_ECRECOVER -> ecRecoverEffectiveCall.updateTally(
-          ecDataOperation.internalChecksPassed() ? 1 : 0);
+          ecDataOperation.internalChecksPassed());
       case PRC_ECPAIRING -> {
         // ecPairingG2MembershipCalls case
         // NOTE: the other precompile limits are managed below
         // NOTE: see EC_DATA specs Figure 3.5 for a graphical representation of this case analysis
-        if (!ecDataOperation.internalChecksPassed()) {
-          ecPairingG2MembershipCalls.updateTally(0);
-          // The circuit is never invoked in the case of internal checks failing
-        }
+
+        //  if (!ecDataOperation.internalChecksPassed()) {
+        //    // The circuit is never invoked in the case of internal checks failing
+        //    ecPairingG2MembershipCalls.updateTally(0);
+        //  }
+
         // NOTE: the && of the conditions may seem not necessary since in the specs
         // !internalChecksPassed => !notOnG2AccMax
         // however, in EcDataOperation implementation the notOnG2AccMax takes into consideration
@@ -118,12 +112,13 @@ public class EcData implements OperationListModule<EcDataOperation> {
           // The circuit is invoked only once if there is at least one point predicted to be not on
           // G2
         }
-        if (ecDataOperation.internalChecksPassed()
-            && !ecDataOperation.notOnG2AccMax()
-            && ecDataOperation.isOverallTrivialPairing()) {
-          ecPairingG2MembershipCalls.updateTally(0);
-          // The circuit is never invoked in the case of a trivial pairing
-        }
+        //   if (ecDataOperation.internalChecksPassed()
+        //       && !ecDataOperation.notOnG2AccMax()
+        //       && ecDataOperation.isOverallTrivialPairing()) {
+        //     // The circuit is never invoked in the case of a trivial pairing
+        //     // ecPairingG2MembershipCalls.updateTally(0);
+        //   }
+
         if (ecDataOperation.internalChecksPassed()
             && !ecDataOperation.notOnG2AccMax()
             && !ecDataOperation.isOverallTrivialPairing()) {
@@ -146,9 +141,8 @@ public class EcData implements OperationListModule<EcDataOperation> {
         // ecPairingFinalExponentiation case
         // NOTE: if at least one Miller Loop is computed, the final exponentiation is 1
         ecPairingFinalExponentiations.updateTally(
-            ecDataOperation.circuitSelectorEcPairingCounter() > 0
-                ? 1
-                : 0); // See https://eprint.iacr.org/2008/490.pdf
+            ecDataOperation.circuitSelectorEcPairingCounter()
+                > 0); // See https://eprint.iacr.org/2008/490.pdf
       }
       default -> throw new IllegalArgumentException("Operation not supported by EcData");
     }

@@ -29,13 +29,15 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 
 public class ReturnDataCopySection extends TraceSection {
 
+  public static final short NB_ROWS_HUB_RETURN_DATA_COPY = 4; // 4 = 1 + 3
+
   public ReturnDataCopySection(Hub hub) {
-    super(hub, maxNumberOfRows(hub));
+    super(hub, NB_ROWS_HUB_RETURN_DATA_COPY);
 
     final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
     final ImcFragment imcFragment = ImcFragment.empty(hub);
-    final ReturnDataCopyOobCall oobCall = new ReturnDataCopyOobCall();
-    imcFragment.callOob(oobCall);
+    final ReturnDataCopyOobCall oobCall =
+        (ReturnDataCopyOobCall) imcFragment.callOob(new ReturnDataCopyOobCall());
 
     this.addStack(hub);
     this.addFragment(imcFragment);
@@ -43,17 +45,21 @@ public class ReturnDataCopySection extends TraceSection {
 
     final short exceptions = hub.pch().exceptions();
     final boolean returnDataCopyException = oobCall.isRdcx();
-    checkArgument(returnDataCopyException == Exceptions.returnDataCopyFault(exceptions));
+    checkArgument(
+        returnDataCopyException == Exceptions.returnDataCopyFault(exceptions),
+        "RETURN_DATA_COPY: oob and hub disagree on RDCX");
 
     // returnDataCopyException case
     if (returnDataCopyException) {
       return;
     }
 
-    final MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     imcFragment.callMxp(mxpCall);
 
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "RETURN_DATA_COPY: mxp and hub disagree on MXPX");
 
     // memoryExpansionException case
     if (mxpCall.mxpx) {
@@ -62,7 +68,11 @@ public class ReturnDataCopySection extends TraceSection {
 
     // outOfGasException case
     if (Exceptions.any(exceptions)) {
-      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      checkArgument(
+          exceptions == OUT_OF_GAS_EXCEPTION,
+          "RETURN_DATA_COPY: unexpected exception, %s does not match %s",
+          exceptions,
+          OUT_OF_GAS_EXCEPTION);
       return;
     }
 
@@ -72,9 +82,5 @@ public class ReturnDataCopySection extends TraceSection {
       final MmuCall mmuCall = MmuCall.returnDataCopy(hub);
       imcFragment.callMmu(mmuCall);
     }
-  }
-
-  private static short maxNumberOfRows(Hub hub) {
-    return (short) (hub.opCode().numberOfStackRows() + 3);
   }
 }

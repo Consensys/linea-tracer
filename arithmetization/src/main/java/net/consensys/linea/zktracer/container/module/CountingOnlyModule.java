@@ -20,43 +20,63 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.module.ModuleName;
 
 /** A {@link CountingOnlyModule} is a {@link Module} that only counts certain outcomes. */
-public interface CountingOnlyModule extends Module {
-  CountOnlyOperation counts();
+public class CountingOnlyModule implements Module {
+  private final ModuleName moduleKey;
+  private final short spillage;
 
-  @Override
-  default void commitTransactionBundle() {
-    counts().commitTransactionBundle();
+  protected final CountOnlyOperation counts = new CountOnlyOperation();
+
+  public CountingOnlyModule(ModuleName moduleKey, int spillage) {
+    this.moduleKey = moduleKey;
+    this.spillage = (short) spillage;
+  }
+
+  public CountingOnlyModule(ModuleName moduleKey) {
+    this.moduleKey = moduleKey;
+    this.spillage = 0;
   }
 
   @Override
-  default void popTransactionBundle() {
-    counts().popTransactionBundle();
+  public void commitTransactionBundle() {
+    counts.commitTransactionBundle();
   }
 
   @Override
-  default int lineCount() {
-    return counts().lineCount();
+  public ModuleName moduleKey() {
+    return moduleKey;
   }
 
   @Override
-  default int spillage(Trace trace) {
-    return 0;
-  }
-
-  default void updateTally(final int count) {
-    Preconditions.checkArgument(count >= 0, "Must be non-negative");
-    counts().add(count);
+  public void popTransactionBundle() {
+    counts.popTransactionBundle();
   }
 
   @Override
-  default List<Trace.ColumnHeader> columnHeaders(Trace trace) {
-    throw new IllegalStateException("should never be called");
+  public int lineCount() {
+    return counts.lineCount();
   }
 
   @Override
-  default void commit(Trace trace) {
-    throw new IllegalStateException("should never be called");
+  public int spillage(Trace trace) {
+    return spillage;
+  }
+
+  public void updateTally(final int count) {
+    Preconditions.checkArgument(
+        count >= 0, "CountingOnlyModule: count %s in updateTally must be nonnegative", count);
+    counts.add(count);
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders(Trace trace) {
+    throw new IllegalStateException("Module " + moduleKey + "  should never be traced");
+  }
+
+  @Override
+  public void commit(Trace trace) {
+    throw new IllegalStateException("Module " + moduleKey + "  should never be traced");
   }
 }

@@ -32,10 +32,12 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.common.CancunCommonFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
+import net.consensys.linea.zktracer.module.hub.fragment.common.LondonCommonFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.stack.StackFragment;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.stack.Stack;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
@@ -50,6 +52,7 @@ public class TraceSection {
   @Setter public TraceSection previousSection = null;
   /* A link to the next section */
   @Setter public TraceSection nextSection = null;
+  // Maybe added to the fragments at end transaction after all defers are resolved
   @Setter public ContextFragment exceptionalContextFragment = null;
 
   /** Default creator specifying the max number of rows the section can contain. */
@@ -66,7 +69,9 @@ public class TraceSection {
    * @param fragment the fragment to insert
    */
   public final void addFragment(TraceFragment fragment) {
-    checkArgument(!(fragment instanceof CommonFragment));
+    checkArgument(
+        !(fragment instanceof CommonFragment),
+        "CommonFragment should not be added directly to a trace section");
     fragments.add(fragment);
   }
 
@@ -76,7 +81,7 @@ public class TraceSection {
    * @param hub the execution context
    */
   public final void addStack(Hub hub) {
-    for (var stackFragment : this.makeStackFragments(hub, hub.currentFrame())) {
+    for (var stackFragment : this.makeStackFragments(hub)) {
       this.addFragment(stackFragment);
     }
   }
@@ -118,9 +123,11 @@ public class TraceSection {
   /** This method is called at commit time, to build required information post-hoc. */
   public void seal() {
     final HubProcessingPhase currentPhase = commonValues.hubProcessingPhase;
-
-    commonValues.numberOfNonStackRows(
-        (int) fragments.stream().filter(l -> !(l instanceof StackFragment)).count());
+    final int nsr =
+        commonValues.hubProcessingPhase == TX_EXEC
+            ? (int) fragments.stream().filter(l -> !(l instanceof StackFragment)).count()
+            : 0;
+    commonValues.numberOfNonStackRows(nsr);
     commonValues.TLI(
         (int) fragments.stream().filter(l -> (l instanceof StackFragment)).count() == 2);
     commonValues.codeFragmentIndex(
@@ -163,11 +170,12 @@ public class TraceSection {
         : 0;
   }
 
-  private List<TraceFragment> makeStackFragments(final Hub hub, CallFrame currentFrame) {
+  private List<TraceFragment> makeStackFragments(final Hub hub) {
+    final CallFrame currentFrame = hub.currentFrame();
     final List<TraceFragment> stackFragments = new ArrayList<>(2);
     final Stack snapshot = currentFrame.stack().snapshot();
     if (currentFrame.pending().lines().isEmpty()) {
-      for (int i = 0; i < (currentFrame.opCodeData().numberOfStackRows()); i++) {
+      for (int i = 0; i < (hub.opCodeData().numberOfStackRows()); i++) {
         stackFragments.add(
             StackFragment.prepare(
                 hub,
@@ -175,7 +183,7 @@ public class TraceSection {
                 new StackLine().asStackItems(),
                 hub.pch().exceptions(),
                 hub.pch().abortingConditions().snapshot(),
-                hub.gasProjector.of(currentFrame.frame(), currentFrame.opCode()),
+                hub.gasProjector.of(currentFrame.frame(), hub.opCodeData()),
                 currentFrame.isDeployment(),
                 commonValues));
       }
@@ -188,7 +196,7 @@ public class TraceSection {
                 line.asStackItems(),
                 hub.pch().exceptions(),
                 hub.pch().abortingConditions().snapshot(),
-                hub.gasProjector.of(currentFrame.frame(), currentFrame.opCode()),
+                hub.gasProjector.of(currentFrame.frame(), hub.opCodeData()),
                 currentFrame.isDeployment(),
                 commonValues));
       }
@@ -220,17 +228,28 @@ public class TraceSection {
       if (specificFragment instanceof StackFragment) {
         stackLineCounter++;
       } else {
-        nonStackLineCounter++;
+        if (commonValues.hubProcessingPhase == TX_EXEC) {
+          nonStackLineCounter++;
+        }
       }
 
       specificFragment.trace(hubTrace);
       final CommonFragment commonFragment =
-          new CommonFragment(
-              commonValues,
-              stackLineCounter,
-              nonStackLineCounter,
-              hub().state.mmuStamp(),
-              hub().state.mxpStamp());
+          switch (commonValues.hub.fork) {
+            case LONDON, PARIS, SHANGHAI -> new LondonCommonFragment(
+                commonValues,
+                stackLineCounter,
+                nonStackLineCounter,
+                hub().state.mmuStamp(),
+                hub().state.mxpStamp());
+            case CANCUN, PRAGUE -> new CancunCommonFragment(
+                commonValues,
+                stackLineCounter,
+                nonStackLineCounter,
+                hub().state.mmuStamp(),
+                hub().state.mxpStamp());
+            default -> throw new IllegalArgumentException("Unknown fork: " + commonValues.hub.fork);
+          };
       commonFragment.trace(hubTrace);
       hubTrace.fillAndValidateRow();
     }
@@ -244,7 +263,7 @@ public class TraceSection {
     return commonValues.callFrame().revertStamp();
   }
 
-  private Hub hub() {
+  protected Hub hub() {
     return commonValues.hub;
   }
 }

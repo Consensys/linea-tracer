@@ -18,17 +18,17 @@ package net.consensys.linea.zktracer.statemanager;
 import static net.consensys.linea.testing.BytecodeCompiler.newProgram;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -38,8 +38,8 @@ import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /** Those tests are intended to produce LT trace to test the HUB <-> Shomei lookups. */
@@ -53,12 +53,12 @@ public class HubShomeiTests extends TracerTestBase {
   private static final Address DEFAULT =
       Address.fromHexString("0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef");
 
-  private final Bytes SSLOAD1(TestInfoWithChainConfig testInfo) {
-    return newProgram(testInfo).push(key1).op(OpCode.SLOAD).op(OpCode.POP).compile();
+  private final Bytes SSLOAD1(ChainConfig chainConfig) {
+    return newProgram(chainConfig).push(key1).op(OpCode.SLOAD).op(OpCode.POP).compile();
   }
 
-  private Bytes SSTORE1(TestInfoWithChainConfig testInfo) {
-    return newProgram(testInfo).push(value).push(key1).op(OpCode.SSTORE).compile();
+  private Bytes SSTORE1(ChainConfig chainConfig) {
+    return newProgram(chainConfig).push(value).push(key1).op(OpCode.SSTORE).compile();
   }
 
   /**
@@ -68,7 +68,7 @@ public class HubShomeiTests extends TracerTestBase {
    */
   @ParameterizedTest
   @MethodSource("opcodeProvider")
-  void sandwichPrewarming(OpCode opcode) {
+  void sandwichPrewarming(OpCode opcode, TestInfo testInfo) {
 
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -78,8 +78,8 @@ public class HubShomeiTests extends TracerTestBase {
 
     final Bytes code =
         switch (opcode) {
-          case SSTORE -> Bytes.concatenate(SSTORE1(testInfo));
-          case SLOAD -> Bytes.concatenate(SSLOAD1(testInfo));
+          case SSTORE -> Bytes.concatenate(SSTORE1(chainConfig));
+          case SLOAD -> Bytes.concatenate(SSLOAD1(chainConfig));
           default -> throw new IllegalStateException("Unexpected value: " + opcode);
         };
 
@@ -113,11 +113,11 @@ public class HubShomeiTests extends TracerTestBase {
             .gasLimit(1000000L)
             .gasPrice(Wei.of(10L))
             .accessList(List.of(accessListEntry))
-            .payload(newProgram(testInfo).push(1).push(1).op(OpCode.ADD).compile())
+            .payload(newProgram(chainConfig).push(1).push(1).op(OpCode.ADD).compile())
             .build();
 
     final ToyExecutionEnvironmentV2 executionEnvironmentV2 =
-        ToyExecutionEnvironmentV2.builder(testInfo)
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
             .accounts(List.of(senderAccount, recipientAccount))
             .transactions(List.of(tx1, tx2))
             .build();
@@ -128,7 +128,7 @@ public class HubShomeiTests extends TracerTestBase {
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
     final Map<Address, Set<Bytes32>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
 
-    assert (addressSeen.size() == 4);
+    assert (addressSeen.size() == 4 + Fork.numberOfAddressesSeenBySystemTransaction(fork));
     assert (addressSeen.contains(senderAddress));
     assert (addressSeen.contains(recipientAccount.getAddress()));
     assert (addressSeen.contains(DEFAULT_COINBASE_ADDRESS));
@@ -141,8 +141,7 @@ public class HubShomeiTests extends TracerTestBase {
   /** In this test we prewarm two storage keys, but only one will be used during execution */
   @ParameterizedTest
   @MethodSource("opcodeProvider")
-  void uselessPrewarming(OpCode opcode) {
-
+  void uselessPrewarming(OpCode opcode, TestInfo testInfo) {
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
         Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
@@ -151,8 +150,8 @@ public class HubShomeiTests extends TracerTestBase {
 
     final Bytes code =
         switch (opcode) {
-          case SSTORE -> Bytes.concatenate(SSTORE1(testInfo));
-          case SLOAD -> Bytes.concatenate(SSLOAD1(testInfo));
+          case SSTORE -> Bytes.concatenate(SSTORE1(chainConfig));
+          case SLOAD -> Bytes.concatenate(SSLOAD1(chainConfig));
           default -> throw new IllegalStateException("Unexpected value: " + opcode);
         };
 
@@ -174,7 +173,7 @@ public class HubShomeiTests extends TracerTestBase {
             .build();
 
     final ToyExecutionEnvironmentV2 executionEnvironmentV2 =
-        ToyExecutionEnvironmentV2.builder(testInfo)
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
             .accounts(List.of(senderAccount, recipientAccount))
             .transaction(tx)
             .build();
@@ -184,7 +183,7 @@ public class HubShomeiTests extends TracerTestBase {
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
     final Map<Address, Set<Bytes32>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
 
-    assert (addressSeen.size() == 3);
+    assert (addressSeen.size() == 3 + Fork.numberOfAddressesSeenBySystemTransaction(fork));
     assert (addressSeen.contains(senderAddress));
     assert (addressSeen.contains(recipientAccount.getAddress()));
     assert (addressSeen.contains(DEFAULT_COINBASE_ADDRESS));
@@ -194,9 +193,7 @@ public class HubShomeiTests extends TracerTestBase {
     assert (storageSeen.get(DEFAULT).contains(key2));
   }
 
-  private static Stream<Arguments> opcodeProvider() {
-    List<Arguments> arguments = new ArrayList<>();
-    arguments.add(Arguments.of(OpCode.SSTORE, OpCode.SLOAD));
-    return arguments.stream();
+  private static Stream<OpCode> opcodeProvider() {
+    return Stream.of(OpCode.SSTORE, OpCode.SLOAD);
   }
 }

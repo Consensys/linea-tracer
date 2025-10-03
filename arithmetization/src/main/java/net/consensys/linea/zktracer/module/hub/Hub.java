@@ -17,22 +17,22 @@ package net.consensys.linea.zktracer.module.hub;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT;
+import static net.consensys.linea.zktracer.Fork.getGasCalculatorFromFork;
 import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___STACK_STAMP;
+import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import lombok.Getter;
@@ -41,7 +41,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.module.IncrementAndDetectModule;
+import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
@@ -54,7 +58,7 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.stack.StackFragment;
 import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection;
@@ -64,8 +68,8 @@ import net.consensys.linea.zktracer.module.hub.section.copy.ReturnDataCopySectio
 import net.consensys.linea.zktracer.module.hub.section.create.CreateSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.ReturnSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.RevertSection;
-import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
+import net.consensys.linea.zktracer.module.hub.section.skip.TxSkipSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.state.BlockStack;
@@ -74,17 +78,8 @@ import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
-import net.consensys.linea.zktracer.module.limits.L1BlockSizeOld;
-import net.consensys.linea.zktracer.module.limits.L2L1Logs;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.L1BlockSize;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingG2MembershipCalls;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.logdata.LogData;
@@ -93,7 +88,7 @@ import net.consensys.linea.zktracer.module.mmio.Mmio;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
-import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.mxp.module.Mxp;
 import net.consensys.linea.zktracer.module.oob.Oob;
 import net.consensys.linea.zktracer.module.rlpaddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
@@ -104,14 +99,17 @@ import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
+import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
+import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
-import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
-import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import net.consensys.linea.zktracer.module.txndata.TxnData;
+import net.consensys.linea.zktracer.module.txndata.TxnDataOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
@@ -138,45 +136,49 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 @Accessors(fluent = true)
+@Getter
 public abstract class Hub implements Module {
-
+  /** Active fork for this hub. */
   public final Fork fork;
 
-  /** The {@link GasCalculator} used in this version of the arithmetization */
-  public final GasCalculator gasCalculator = setGasCalculator();
+  /** Active opcode information for this hub. */
+  private final OpCodes opCodes;
 
-  public final GasProjector gasProjector = new GasProjector(gasCalculator);
+  /** The {@link GasCalculator} used in this version of the arithmetization */
+  public final GasCalculator gasCalculator;
+
+  public final GasProjector gasProjector;
 
   /** accumulate the trace information for the Hub */
-  @Getter public final State state = new State();
+  public final State state = new State();
 
   /** contain the factories for trace segments that need complex initialization */
-  @Getter private final Factories factories = new Factories(this);
+  private final Factories factories = new Factories(this);
 
   /** provides phase-related volatile information */
-  @Getter Transients transients = new Transients(this);
+  Transients transients = new Transients(this);
 
   /**
    * Long-lived states, not used in tracing per se but keeping track of data of the associated
    * lifetime
    */
-  @Getter CallStack callStack = new CallStack();
+  CallStack callStack = new CallStack();
 
   /** Stores the transaction Metadata of all the transaction of the conflated block */
-  @Getter TransactionStack txStack = setTransactionStack();
+  TransactionStack txStack = new TransactionStack();
 
   /** Stores the block Metadata of all the blocks of the conflation */
-  @Getter BlockStack blockStack = new BlockStack();
+  BlockStack blockStack = new BlockStack();
 
   /** Stores all the actions that must be deferred to a later time */
-  @Getter private final DeferRegistry defers = new DeferRegistry();
+  private final DeferRegistry defers = new DeferRegistry();
 
   /** stores all data related to failure states & module activation */
-  @Getter private final PlatformController pch = new PlatformController(this);
+  private final PlatformController pch = new PlatformController(this);
 
   @Override
-  public String moduleKey() {
-    return "HUB";
+  public ModuleName moduleKey() {
+    return HUB;
   }
 
   @Override
@@ -201,69 +203,108 @@ public abstract class Hub implements Module {
 
   /** List of all modules of the ZK-evm */
   // stateless modules
-  @Getter private final Wcp wcp = new Wcp();
+  private final Wcp wcp = new Wcp();
 
   private final Add add = new Add();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
-  @Getter private final Euc euc = new Euc(wcp);
-  @Getter private final Ext ext = new Ext(this);
-  @Getter private final Gas gas = new Gas(wcp);
-  private final Mul mul = new Mul(this);
+  private final Euc euc = new Euc(wcp);
+  private final Ext ext = new Ext();
+  private final Gas gas = new Gas();
+  private final Mul mul = new Mul();
   private final Mod mod = new Mod();
   private final Shf shf = new Shf();
-  @Getter private final Trm trm = new Trm(wcp);
+  private final Trm trm;
+  private final Module rlpUtils = setRlpUtils(wcp);
 
   // other
-  @Getter private final Blockdata blockdata;
-  @Getter private final RomLex romLex = new RomLex(this);
+  private final Blockdata blockdata;
+  private final RomLex romLex = new RomLex(this);
   private final Rom rom = new Rom(romLex);
-  private final RlpTxn rlpTxn = new RlpTxn(romLex);
+  private final RlpTxn rlpTxn;
   private final Mmio mmio;
-
-  @Getter private final TxnData txnData = setTxnData();
+  @Getter final TxnData<? extends TxnDataOperation> txnData = setTxnData();
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
-  @Getter private final RlpAddr rlpAddr;
+  private final RlpAddr rlpAddr;
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
-  @Getter private final Mxp mxp = new Mxp();
-  @Getter private final Oob oob = new Oob(this, add, mod, wcp);
-  @Getter private final Mmu mmu;
-  @Getter private final Stp stp = new Stp(wcp, mod);
-  @Getter private final Exp exp = new Exp(this, wcp);
+  private final Mxp mxp = setMxp();
+  private final Oob oob = new Oob(this, add, mod, wcp);
+  private final Mmu mmu;
+  private final Stp stp = new Stp();
+  private final Exp exp = new Exp();
 
   /*
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits
    */
-  private final BlockTransactions blockTransactions = new BlockTransactions(this);
-  @Getter private final Keccak keccak;
-  @Getter private final Sha256Blocks sha256Blocks = new Sha256Blocks();
+  private final BlockTransactions blockTransactions = new BlockTransactions();
+  private final Keccak keccak;
+  private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
-  @Getter private final EcAddEffectiveCall ecAddEffectiveCall = new EcAddEffectiveCall();
-  @Getter private final EcMulEffectiveCall ecMulEffectiveCall = new EcMulEffectiveCall();
+  // related to EcData
+  private final IncrementingModule ecAddEffectiveCall =
+      new IncrementingModule(PRECOMPILE_ECADD_EFFECTIVE_CALLS);
+  private final IncrementingModule ecMulEffectiveCall =
+      new IncrementingModule(PRECOMPILE_ECMUL_EFFECTIVE_CALLS);
+  private final IncrementingModule ecRecoverEffectiveCall =
+      new IncrementingModule(PRECOMPILE_ECRECOVER_EFFECTIVE_CALLS);
+  private final CountingOnlyModule ecPairingG2MembershipCalls =
+      new CountingOnlyModule(PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_CALLS);
+  private final CountingOnlyModule ecPairingMillerLoops =
+      new CountingOnlyModule(PRECOMPILE_ECPAIRING_MILLER_LOOPS);
+  private final IncrementingModule ecPairingFinalExponentiations =
+      new IncrementingModule(PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS);
 
-  @Getter
-  private final EcRecoverEffectiveCall ecRecoverEffectiveCall = new EcRecoverEffectiveCall();
+  //  related to Modexp
+  private final IncrementAndDetectModule modexpEffectiveCall =
+      new IncrementAndDetectModule(PRECOMPILE_MODEXP_EFFECTIVE_CALLS);
+  private final IncrementingModule modexpLargeCall =
+      new IncrementingModule(PRECOMPILE_LARGE_MODEXP_EFFECTIVE_CALLS);
 
-  @Getter
-  private final EcPairingG2MembershipCalls ecPairingG2MembershipCalls =
-      new EcPairingG2MembershipCalls();
+  // related to Rip
+  private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
 
-  @Getter private final EcPairingMillerLoops ecPairingMillerLoops = new EcPairingMillerLoops();
+  // related to Blake
+  private final IncrementingModule blakeEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLAKE_EFFECTIVE_CALLS);
+  private final BlakeRounds blakeRounds = new BlakeRounds();
 
-  @Getter
-  private final EcPairingFinalExponentiations ecPairingFinalExponentiations =
-      new EcPairingFinalExponentiations();
+  // Related to Bls
+  // TODO: remove me when Linea supports Cancun & Prague precompiles
+  private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL) {};
+  private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
 
-  @Getter private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall();
-
-  @Getter private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
-
-  @Getter private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
-  @Getter private final BlakeRounds blakeRounds = new BlakeRounds();
+  final IncrementingModule pointEvaluationEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_POINT_EVALUATION_EFFECTIVE_CALLS);
+  final IncrementingModule pointEvaluationFailureCall =
+      new IncrementingModule(PRECOMPILE_POINT_EVALUATION_FAILURE_EFFECTIVE_CALLS);
+  final IncrementingModule blsG1AddEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G1_ADD_EFFECTIVE_CALLS);
+  final IncrementingModule blsG1MsmEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G1_MSM_EFFECTIVE_CALLS);
+  final IncrementingModule blsG2AddEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G2_ADD_EFFECTIVE_CALLS);
+  final IncrementingModule blsG2MsmEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G2_MSM_EFFECTIVE_CALLS);
+  final CountingOnlyModule blsPairingCheckMillerLoops =
+      new CountingOnlyModule(PRECOMPILE_BLS_PAIRING_CHECK_MILLER_LOOPS);
+  final IncrementingModule blsPairingCheckFinalExponentiations =
+      new IncrementingModule(PRECOMPILE_BLS_FINAL_EXPONENTIATIONS);
+  final IncrementingModule blsG1MapFpToG1EffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_MAP_FP_TO_G1_EFFECTIVE_CALLS);
+  final IncrementingModule blsG1MapFp2ToG2EffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_MAP_FP2_TO_G2_EFFECTIVE_CALLS);
+  final IncrementingModule blsC1MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_C1_MEMBERSHIP_CHECKS);
+  final IncrementingModule blsC2MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_C2_MEMBERSHIP_CALLS);
+  final IncrementingModule blsG1MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_G1_MEMBERSHIP_CALLS);
+  final IncrementingModule blsG2MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_G2_MEMBERSHIP_CALLS);
 
   /** Those modules are used only by the sequencer, they don't have associated trace */
   public List<Module> getTracelessModules() {
@@ -278,24 +319,38 @@ public abstract class Hub implements Module {
         ecPairingMillerLoops,
         ecPairingFinalExponentiations,
         modexpEffectiveCall,
+        modexpLargeCall,
         ripemdBlocks,
         blakeEffectiveCall,
         blakeRounds,
+        pointEvaluationEffectiveCall,
+        pointEvaluationFailureCall,
+        blsG1AddEffectiveCall,
+        blsG1MsmEffectiveCall,
+        blsG2AddEffectiveCall,
+        blsG2MsmEffectiveCall,
+        blsPairingCheckMillerLoops,
+        blsPairingCheckFinalExponentiations,
+        blsG1MapFpToG1EffectiveCall,
+        blsG1MapFp2ToG2EffectiveCall,
+        blsC1MembershipCalls,
+        blsC2MembershipCalls,
+        blsG1MembershipCalls,
+        blsG2MembershipCalls,
         l1BlockSize,
-        l2L1Logs);
+        l2L1Logs,
+        pointEval,
+        bls);
   }
 
   /*
    * precompile-data modules
    * those module are traced (and could be count)
    */
-  @Getter private final ShakiraData shakiraData;
-
-  @Getter
+  private final ShakiraData shakiraData;
   private final BlakeModexpData blakeModexpData =
-      new BlakeModexpData(wcp, modexpEffectiveCall, blakeEffectiveCall, blakeRounds);
-
-  @Getter
+      new BlakeModexpData(
+          wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
   public final EcData ecData =
       new EcData(
           wcp,
@@ -306,54 +361,67 @@ public abstract class Hub implements Module {
           ecPairingG2MembershipCalls,
           ecPairingMillerLoops,
           ecPairingFinalExponentiations);
+  final Module blsData = setBlsData(this);
 
-  @Getter private final L1BlockSizeOld l1BlockSize;
-  @Getter private final L2L1Logs l2L1Logs;
+  private final L1BlockSize l1BlockSize;
+  private final IncrementingModule l2L1Logs;
 
   /** list of module than can be modified during execution */
-  @Getter private final List<Module> modules;
+  private final List<Module> modules;
 
   /** reference table modules */
   private final List<Module> refTableModules;
 
   /**
+   * The real modules, ie the ones that are traced and triggered during execution. It differs with
+   * the moduleToTrace() as it contains module traced for some fork only.
+   */
+  public List<Module> realModule() {
+    return List.of(
+        this,
+        add,
+        bin,
+        blakeModexpData,
+        blockdata,
+        blockhash,
+        blsData,
+        ecData,
+        exp,
+        ext,
+        euc,
+        gas,
+        logData,
+        logInfo,
+        mmu, // WARN: must be traced before the MMIO
+        mmio,
+        mod,
+        mul,
+        mxp,
+        oob,
+        rlpAddr,
+        rlpTxn,
+        rlpTxnRcpt,
+        rlpUtils,
+        rom,
+        romLex,
+        shakiraData,
+        shf,
+        stp,
+        trm,
+        txnData,
+        wcp);
+  }
+
+  /**
    * @return a list of all modules for which to generate traces
    */
   public List<Module> getModulesToTrace() {
-    return Stream.concat(
-            Stream.of(
-                this,
-                add,
-                bin,
-                blakeModexpData,
-                blockdata,
-                blockhash,
-                ecData,
-                exp,
-                ext,
-                euc,
-                gas,
-                logData,
-                logInfo,
-                mmu, // WARN: must be traced before the MMIO
-                mmio,
-                mod,
-                mul,
-                mxp,
-                oob,
-                rlpAddr,
-                rlpTxn,
-                rlpTxnRcpt,
-                rom,
-                romLex,
-                shakiraData,
-                shf,
-                stp,
-                trm,
-                txnData,
-                wcp),
-            refTableModules.stream())
-        .toList();
+    final List<Module> allModules =
+        new ArrayList<>(Stream.concat(realModule().stream(), refTableModules.stream()).toList());
+
+    // The coordinator requires to have the same set of module in counting whatever the fork. But we
+    // don't trace them.
+    return allModules.stream().filter(module -> !(module instanceof CountingOnlyModule)).toList();
   }
 
   /**
@@ -363,30 +431,38 @@ public abstract class Hub implements Module {
    * @return the modules to count
    */
   public List<Module> getModulesToCount() {
-    return Stream.concat(getModulesToTrace().stream(), getTracelessModules().stream()).toList();
+    return Stream.concat(realModule().stream(), getTracelessModules().stream()).toList();
   }
 
   public Hub(final ChainConfig chain) {
     fork = chain.fork;
-    checkState(chain.id.signum() >= 0);
+    gasCalculator = getGasCalculatorFromFork(fork);
+    opCodes = OpCodes.load(fork);
+    gasProjector = new GasProjector(fork, gasCalculator);
+    checkState(chain.id.signum() >= 0, "Hub constructor: chain id must be nonnegative");
     Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
     final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
     //
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
       log.info("WARN: Using default testing L2L1 contract address");
     }
-    l2L1Logs = new L2L1Logs();
+    l2L1Logs = new IncrementingModule(BLOCK_L2_L1_LOGS);
     keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
     l1BlockSize =
-        new L1BlockSizeOld(
+        new L1BlockSize(
             blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
+    trm = new Trm(fork);
+    rlpTxn = setRlpTxn(this);
     rlpAddr = new RlpAddr(this, trm, keccak);
     blockdata = setBlockData(this, wcp, euc, chain);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
-    refTableModules = List.of(new BinRt(), setInstructionDecoder(), new ShfRt());
+    refTableModules =
+        Stream.of(new BinRt(), setBlsRt(), setInstructionDecoder(), setPower())
+            .filter(Objects::nonNull)
+            .toList();
 
     modules =
         Stream.concat(
@@ -395,6 +471,7 @@ public abstract class Hub implements Module {
                     bin,
                     blakeModexpData,
                     blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
+                    blsData,
                     ecData,
                     euc,
                     ext,
@@ -409,6 +486,7 @@ public abstract class Hub implements Module {
                     rlpAddr,
                     rlpTxn,
                     rlpTxnRcpt,
+                    rlpUtils,
                     logData, /* WARN: must be called AFTER rlpTxnRcpt */
                     logInfo, /* WARN: must be called AFTER rlpTxnRcpt */
                     rom,
@@ -468,17 +546,31 @@ public abstract class Hub implements Module {
 
   @Override
   public void traceStartBlock(
-      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
+      WorldView world,
+      final ProcessableBlockHeader processableBlockHeader,
+      final Address miningBeneficiary) {
     state.firstAndLastStorageSlotOccurrences.add(new HashMap<>());
     blockStack.newBlock(processableBlockHeader, miningBeneficiary);
     txStack.resetBlock();
+    state.enterSectionsStack();
+    // Compute the line counting of the HUB of the current transaction TODO: this is ugly but will
+    // disappear with limitless refacto
     for (Module m : modules) {
-      m.traceStartBlock(processableBlockHeader, miningBeneficiary);
+      m.traceStartBlock(world, processableBlockHeader, miningBeneficiary);
     }
+    traceSysiTransactions(world, processableBlockHeader);
+    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
+
+    commitTransactionBundle();
   }
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    state.enterSectionsStack();
+    traceSystemFinalTransaction();
+    // Compute the line counting of the HUB of the current transaction TODO: this is ugly but will
+    // disappear with limitless refacto
+    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
     for (Module m : modules) {
       m.traceEndBlock(blockHeader, blockBody);
     }
@@ -486,16 +578,15 @@ public abstract class Hub implements Module {
   }
 
   public void traceStartTransaction(final WorldView world, final Transaction tx) {
+    state.transactionProcessingType(USER);
     pch.reset();
     txStack.enterTransaction(this, world, tx);
-
     final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
-
     state.enterTransaction();
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.processingPhase(TX_SKIP);
-      new TxSkipSection(this, world, transactionProcessingMetadata, transients);
+      setSkipSection(this, world, transactionProcessingMetadata, transients);
     } else {
       if (transactionProcessingMetadata.requiresPrewarming()) {
         state.processingPhase(TX_WARM);
@@ -533,7 +624,8 @@ public abstract class Hub implements Module {
       m.traceEndTx(txStack.current());
     }
 
-    // Compute the line counting of the HUB of the current transaction
+    // Compute the line counting of the HUB of the current transaction and add the exceptional
+    // fragment
     state.lineCounter().add(state.currentTransactionHubSections().lineCount());
   }
 
@@ -544,7 +636,9 @@ public abstract class Hub implements Module {
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
       if (state.processingPhase() == TX_SKIP) {
-        checkState(currentTraceSection() instanceof TxSkipSection);
+        checkState(
+            currentTraceSection() instanceof TxSkipSection,
+            "traceContextEnter of Hub: expected a skip section");
         ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);
       }
       final TransactionProcessingMetadata currentTransaction = transients().tx();
@@ -553,15 +647,24 @@ public abstract class Hub implements Module {
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
       final Wei value = frame.getValue();
       final long initiallyAvailableGas = frame.getRemainingGas();
+      final Transaction tx = currentTransaction.getBesuTransaction();
 
       checkArgument(
-          recipientAddress.equals(effectiveToAddress(currentTransaction.getBesuTransaction())));
-      checkArgument(senderAddress.equals(currentTransaction.getBesuTransaction().getSender()));
-      checkArgument(isDeployment == currentTransaction.getBesuTransaction().getTo().isEmpty());
+          recipientAddress.equals(effectiveToAddress(tx)),
+          "Mismatch between frame and transaction recipient");
       checkArgument(
-          value.equals(
-              Wei.of(currentTransaction.getBesuTransaction().getValue().getAsBigInteger())));
-      checkArgument(frame.getRemainingGas() == currentTransaction.getInitiallyAvailableGas());
+          senderAddress.equals(tx.getSender()), "Mismatch between frame and transaction sender");
+      checkArgument(
+          isDeployment == tx.getTo().isEmpty(),
+          "Mismatch between frame and transaction deployment info");
+      checkArgument(
+          value.equals(Wei.of(tx.getValue().getAsBigInteger())),
+          "Mismatch between frame and transaction value");
+      checkArgument(
+          frame.getRemainingGas() == currentTransaction.getInitiallyAvailableGas(),
+          "Frame gas available at the beginning of the tx %s != transaction initially available gas %s",
+          frame.getRemainingGas(),
+          currentTransaction.getInitiallyAvailableGas());
 
       final boolean copyTransactionCallData = currentTransaction.copyTransactionCallData();
       if (copyTransactionCallData) {
@@ -592,14 +695,19 @@ public abstract class Hub implements Module {
 
     // internal transaction (CALL) or internal deployment (CREATE)
     if (frame.getDepth() > 0) {
-      final OpCode currentOpCode = callStack.currentCallFrame().opCode();
+      final OpCodeData currentOpCode = opCodes.of(callStack.currentCallFrame().opCode());
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
 
-      checkState(currentOpCode.isCall() || currentOpCode.isCreate());
+      checkState(
+          currentOpCode.isCall() || currentOpCode.isCreate(),
+          "trace context enter at positive depth must be call or create");
       checkState(
           currentTraceSection() instanceof CallSection
-              || currentTraceSection() instanceof CreateSection);
-      checkState(currentTraceSection() instanceof CreateSection == isDeployment);
+              || currentTraceSection() instanceof CreateSection,
+          "trace context enter at positive depth must have in call or create section as most recent trace section");
+      checkState(
+          currentTraceSection() instanceof CreateSection == isDeployment,
+          "trace context enter at positive depth must have a create section as most recent trace section iff it is a deployment");
 
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
@@ -661,12 +769,12 @@ public abstract class Hub implements Module {
 
       if (state.processingPhase() != TX_SKIP) {
         state.processingPhase(TX_FINL);
-        new TxFinalizationSection(this);
+        setFinalizationSection(this);
       }
     }
 
     defers.resolveUponContextExit(this, this.currentFrame());
-    if (this.currentFrame().opCode() == REVERT || Exceptions.any(pch.exceptions())) {
+    if (this.opCode() == REVERT || Exceptions.any(pch.exceptions())) {
       defers.resolveUponRollback(this, frame, this.currentFrame());
     }
 
@@ -684,9 +792,8 @@ public abstract class Hub implements Module {
 
   public void tracePreExecution(final MessageFrame frame) {
     checkArgument(
-        this.state().processingPhase() == TX_EXEC,
+        state().processingPhase() == TX_EXEC,
         "There can't be any execution if the HUB is not in execution phase");
-
     this.processStateExec(frame);
   }
 
@@ -720,7 +827,7 @@ public abstract class Hub implements Module {
 
     defers.resolvePostExecution(this, frame, operationResult);
 
-    if (isExceptional() || !opCode().isCallOrCreate()) {
+    if (isExceptional() || !opCodeData().isCallOrCreate()) {
       this.unlatchStack(frame, currentSection);
     }
   }
@@ -738,11 +845,10 @@ public abstract class Hub implements Module {
    * deployment in the sense that it updates the relevant deployment information.
    */
   private void exitDeploymentFromDeploymentInfoPov(MessageFrame frame) {
-
-    // sanity check
-    final Address bytecodeAddress = this.currentFrame().byteCodeAddress();
-    checkArgument(bytecodeAddress.equals(frame.getContractAddress()));
-    checkArgument(bytecodeAddress.equals(this.bytecodeAddress()));
+    final Address bytecodeAddress = currentFrame().byteCodeAddress();
+    checkArgument(
+        bytecodeAddress.equals(bytecodeAddress()),
+        "bytecode address mismatch between frame / callFrame at exit from deployment");
 
     /**
      * Explanation: if the current address isn't under deployment there is nothing to do.
@@ -751,7 +857,8 @@ public abstract class Hub implements Module {
      * immediately set to the deployed state
      */
     if (state.processingPhase() == TX_SKIP) {
-      checkArgument(!deploymentStatusOfBytecodeAddress());
+      checkArgument(
+          !deploymentStatusOfBytecodeAddress(), "TX_SKIP: deployments must have empty code");
       return;
     }
     /**
@@ -784,9 +891,9 @@ public abstract class Hub implements Module {
 
     final boolean emptyDeployment = messageFrame().getCode().getBytes().isEmpty();
 
-    // empty deployments are immediately considered as 'deployed' i.e.
-    // deploymentStatus = false
-    checkArgument(deploymentStatusOfBytecodeAddress() == !emptyDeployment);
+    checkArgument(
+        deploymentStatusOfBytecodeAddress() == !emptyDeployment,
+        "empty deployments are immediately considered as 'deployed'");
 
     if (emptyDeployment) return;
     // from here on out nonempty deployments
@@ -832,24 +939,39 @@ public abstract class Hub implements Module {
     return state.stamps().hub();
   }
 
+  /**
+   * Return information about the opcode being executed in the current call frame.
+   *
+   * @return
+   */
   public OpCodeData opCodeData() {
-    return this.currentFrame().opCodeData();
+    return opCodes.of(this.currentFrame().opCode());
+  }
+
+  /**
+   * Return information about the opcode being executed in a given message frame.
+   *
+   * @param frame
+   * @return
+   */
+  public OpCodeData opCodeData(MessageFrame frame) {
+    return opCodes.of(frame.getCurrentOperation().getOpcode());
   }
 
   public OpCode opCode() {
-    return this.currentFrame().opCode();
+    return opCodeData().mnemonic();
   }
 
   public TraceSection currentTraceSection() {
     return state.currentTransactionHubSections().currentSection();
   }
 
-  public TraceSection previousTraceSection() {
-    return state.currentTransactionHubSections().previousSection();
+  public TraceSection lastUserTransactionSection() {
+    return lastUserTransactionSection(1);
   }
 
-  public TraceSection previousTraceSection(int n) {
-    return state.currentTransactionHubSections().previousSection(n);
+  public TraceSection lastUserTransactionSection(int n) {
+    return state.lastUserTransactionHubSections().previousSection(n);
   }
 
   public void addTraceSection(TraceSection section) {
@@ -936,7 +1058,7 @@ public abstract class Hub implements Module {
           case RETURN -> new ReturnSection(this, frame);
           case REVERT -> new RevertSection(this, frame);
           case STOP -> new StopSection(this);
-          case SELFDESTRUCT -> new SelfdestructSection(this, frame);
+          case SELFDESTRUCT -> setSelfdestructSection(this, frame);
         }
         final boolean returnFromDeployment =
             (this.opCode() == RETURN && this.currentFrame().isDeployment());
@@ -962,16 +1084,17 @@ public abstract class Hub implements Module {
               "Invalid instruction: " + this.opCode().toString() + " not in the COPY family");
         }
       }
+      case MCOPY -> setMcopySection(this);
       case TRANSACTION -> new TransactionSection(this);
       case STACK_RAM -> {
-        switch (this.currentFrame().opCode()) {
+        switch (this.opCode()) {
           case CALLDATALOAD -> new CallDataLoadSection(this);
           case MLOAD, MSTORE, MSTORE8 -> new StackRamSection(this);
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
       }
       case STORAGE -> {
-        switch (this.currentFrame().opCode()) {
+        switch (this.opCode()) {
           case SSTORE -> new SstoreSection(this, frame.getWorldUpdater());
           case SLOAD -> new SloadSection(this, frame.getWorldUpdater());
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
@@ -1039,21 +1162,46 @@ public abstract class Hub implements Module {
     return blockStack.getBlockByRelativeBlockNumber(relativeBlockNumber).coinbaseAddress();
   }
 
-  protected abstract GasCalculator setGasCalculator();
+  protected abstract Module setBlsData(Hub hub);
 
-  protected abstract TransactionStack setTransactionStack();
+  protected abstract BlsRt setBlsRt();
 
-  protected abstract TxnData setTxnData();
+  protected abstract TxnData<? extends TxnDataOperation> setTxnData();
+
+  protected abstract Mxp setMxp();
 
   protected abstract Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain);
 
+  protected abstract RlpTxn setRlpTxn(Hub hub);
+
+  protected abstract Module setRlpUtils(Wcp wcp);
+
   protected abstract InstructionDecoder setInstructionDecoder();
 
+  protected abstract PowerRt setPower();
+
+  protected abstract void setSkipSection(
+      Hub hub,
+      WorldView world,
+      TransactionProcessingMetadata transactionProcessingMetadata,
+      Transients transients);
+
   protected abstract void setInitializationSection(WorldView world);
+
+  protected abstract void setFinalizationSection(Hub hub);
 
   protected abstract boolean coinbaseWarmthAtTxEnd();
 
   protected abstract void setCreateSection(final Hub hub, final MessageFrame frame);
 
   protected abstract void setTransientSection(Hub hub);
+
+  protected abstract void setMcopySection(Hub hub);
+
+  protected abstract void traceSysiTransactions(
+      WorldView world, ProcessableBlockHeader blockHeader);
+
+  protected abstract void traceSystemFinalTransaction();
+
+  protected abstract void setSelfdestructSection(Hub hub, final MessageFrame frame);
 }

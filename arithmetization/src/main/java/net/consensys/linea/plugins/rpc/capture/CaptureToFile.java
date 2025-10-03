@@ -15,18 +15,20 @@
 
 package net.consensys.linea.plugins.rpc.capture;
 
+import static net.consensys.linea.zktracer.Fork.getForkFromBesuBlockchainService;
+
 import com.google.common.base.Stopwatch;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.blockcapture.BlockCapturer;
+import net.consensys.linea.zktracer.Fork;
 import org.hyperledger.besu.plugin.ServiceManager;
 import org.hyperledger.besu.plugin.services.TraceService;
 import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /**
- * Sets up an RPC endpoint for generating conflated file trace. This class provides an RPC endpoint
- * named 'generateConflatedTracesToFileV0' under the 'rollup' namespace. When this endpoint is
- * called, it triggers the execution of the 'execute' method, which generates conflated file traces
- * based on the provided request parameters and writes them to a file.
+ * Sets up an RPC endpoint for capturing a replay file. This includes all information needed to
+ * replay a given conflation of blocks. For example, it includes the values of all storage locations
+ * read whilst executing the conflation, the balances of all accounts accessed, etc.
  */
 @Slf4j
 public class CaptureToFile {
@@ -59,7 +61,11 @@ public class CaptureToFile {
     CaptureParams params = CaptureParams.createTraceParams(request.getParams());
     final long fromBlock = params.fromBlock();
     final long toBlock = params.toBlock();
-    final BlockCapturer tracer = new BlockCapturer();
+
+    // Retrieve fork from Besu plugin API with block number
+    final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock, toBlock);
+
+    final BlockCapturer tracer = new BlockCapturer(fork);
 
     Stopwatch sw = Stopwatch.createStarted();
     traceService.trace(

@@ -15,15 +15,18 @@
 
 package net.consensys.linea.zktracer.module.trm;
 
+import static net.consensys.linea.zktracer.module.ModuleName.TRM;
+
 import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -33,17 +36,17 @@ import org.hyperledger.besu.datatypes.Address;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class Trm implements OperationSetModule<TrmOperation> {
-  private final Wcp wcp;
+  private final Fork fork;
   private final ModuleOperationStackedSet<TrmOperation> operations =
       new ModuleOperationStackedSet<>();
 
   @Override
-  public String moduleKey() {
-    return "TRM";
+  public ModuleName moduleKey() {
+    return TRM;
   }
 
   public Address callTrimming(final Bytes32 rawAddress) {
-    operations.add(new TrmOperation(EWord.of(rawAddress), wcp));
+    operations.add(new TrmOperation(fork, EWord.of(rawAddress)));
     return Address.extract(rawAddress);
   }
 

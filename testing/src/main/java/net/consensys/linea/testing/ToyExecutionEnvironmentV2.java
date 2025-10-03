@@ -15,9 +15,14 @@
 
 package net.consensys.linea.testing;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.reporting.TracerTestBase.chainConfig;
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.Fork.LONDON;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Trace.LINEA_BASE_FEE;
+import static net.consensys.linea.zktracer.container.module.IncrementAndDetectModule.ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX;
+import static net.consensys.linea.zktracer.module.ModuleName.*;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -29,11 +34,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
@@ -51,14 +56,18 @@ public class ToyExecutionEnvironmentV2 {
       Address.fromHexString("0xc019ba5e00000000c019ba5e00000000c019ba5e");
   public static final long DEFAULT_BLOCK_NUMBER = 6678980;
 
-  private static final long DEFAULT_TIME_STAMP = 1347310;
-  private static final Hash DEFAULT_HASH =
+  public static final long DEFAULT_TIME_STAMP = 1347310;
+  public static final Hash DEFAULT_HASH =
       Hash.fromHexStringLenient("0xdeadbeef123123666dead666dead666");
+
+  public static final Bytes32 DEFAULT_BEACON_ROOT = Bytes32.fromHexStringLenient("cc".repeat(32));
 
   @Builder.Default private final List<ToyAccount> accounts = Collections.emptyList();
   @Builder.Default private final Address coinbase = DEFAULT_COINBASE_ADDRESS;
   @Builder.Default public static final Wei DEFAULT_BASE_FEE = Wei.of(LINEA_BASE_FEE);
   @Builder.Default private final Boolean runWithBesuNode = false;
+  @Builder.Default private String customBesuNodeGenesis = null;
+  @Builder.Default private Boolean oneTxPerBlockOnBesuNode = false;
 
   @Singular private final List<Transaction> transactions;
 
@@ -76,33 +85,105 @@ public class ToyExecutionEnvironmentV2 {
 
   @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
 
-  private ZkTracer tracer;
+  ZkTracer tracer;
   @Setter @Getter public ZkCounter zkCounter;
 
   public static ToyExecutionEnvironmentV2.ToyExecutionEnvironmentV2Builder builder(
-      TestInfoWithChainConfig testInfo) {
+      ChainConfig chainConfig, TestInfo testInfo) {
     return new ToyExecutionEnvironmentV2Builder()
-        .unitTestsChain(testInfo.chainConfig)
-        .testInfo(testInfo.testInfo)
-        .tracer(new ZkTracer(testInfo.chainConfig));
+        .unitTestsChain(chainConfig)
+        .testInfo(testInfo)
+        .tracer(new ZkTracer(chainConfig));
   }
 
   public void run() {
     if (runWithBesuNode || System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
-      new BesuExecutionTools(
-              Optional.of(testInfo), unitTestsChain, coinbase, accounts, transactions)
-          .executeTest();
+      BesuExecutionTools besuExecTools =
+          new BesuExecutionTools(
+              Optional.of(testInfo),
+              unitTestsChain,
+              coinbase,
+              accounts,
+              transactions,
+              oneTxPerBlockOnBesuNode,
+              customBesuNodeGenesis);
+      besuExecTools.executeTest();
     } else {
-      ProtocolSpec protocolSpec =
+      final ProtocolSpec protocolSpec =
           ExecutionEnvironment.getProtocolSpec(unitTestsChain.id, unitTestsChain.fork);
       final GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
           this.buildGeneralStateTestCaseSpec(protocolSpec);
-      ToyExecutionTools.executeTest(
-          generalStateTestCaseEipSpec,
-          protocolSpec,
-          tracer,
-          transactionProcessingResultValidator,
-          zkTracerValidator);
+
+      // TODO: remove the try catch once we don't exclude BLS precompiles
+      try {
+        ToyExecutionTools.executeTest(
+            generalStateTestCaseEipSpec,
+            protocolSpec,
+            tracer,
+            transactionProcessingResultValidator,
+            zkTracerValidator,
+            testInfo);
+
+        if (isPostCancun(tracer.getHub().fork)) {
+          // This is to check that the light counter is really counting more than the full tracer
+          final ZkTracer tracer = this.tracer;
+
+          final Map<String, Integer> tracerCount = tracer.getModulesLineCount();
+
+          final ToyExecutionEnvironmentV2 copyEnvironment =
+              ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+                  .transactionProcessingResultValidator(
+                      TransactionProcessingResultValidator.EMPTY_VALIDATOR)
+                  .accounts(accounts)
+                  .zkTracerValidator(zkTracerValidator)
+                  .transactions(transactions)
+                  .build();
+          copyEnvironment.runForCounting();
+          final Map<String, Integer> lightCounterCount =
+              copyEnvironment.zkCounter.getModulesLineCount();
+
+          final List<String> moduleToCheck =
+              copyEnvironment.zkCounter.checkedModules().stream()
+                  .map(module -> module.moduleKey().toString())
+                  .toList();
+
+          // There is no point to check for conflation where an excluded PRC has been triggered:
+          if (lightCounterCount.get(POINT_EVAL.toString()) != 0
+              || lightCounterCount.get(BLS.toString()) != 0
+              || lightCounterCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString()) != 0
+              || lightCounterCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()) != 0) {
+            return;
+          }
+
+          for (String module : moduleToCheck) {
+            checkArgument(
+                tracerCount.get(module) <= lightCounterCount.get(module),
+                "Module "
+                    + module
+                    + " has more lines in full tracer: "
+                    + tracerCount.get(module)
+                    + " than in light counter: "
+                    + lightCounterCount.get(module));
+
+            // TODO: how to make it smart ?
+
+            // Note: we compare to twice the (tracer count +1) to not get exceptions when tracer
+            // module is empty (GAS for SKIP tx for example)
+            // checkArgument(
+            //     lightCounterCount.get(module) <= 2 * (tracerCount.get(module) + 1),
+            //     "Module "
+            //         + module
+            //         + " has more than twice line counts in light tracer: "
+            //         + lightCounterCount.get(module)
+            //         + " than in full counter: "
+            //         + tracerCount.get(module));
+          }
+        }
+      } catch (Exception e) {
+        // Tmp: we ignore this error, as BLS precompiles are excluded in prod, but not in test
+        checkArgument(
+            e.getMessage().contains(ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX), e.getMessage());
+      }
     }
   }
 
@@ -118,7 +199,8 @@ public class ToyExecutionEnvironmentV2 {
         protocolSpec,
         zkCounter,
         transactionProcessingResultValidator,
-        zkTracerValidator);
+        zkTracerValidator,
+        testInfo);
   }
 
   public long runForGasCost() {

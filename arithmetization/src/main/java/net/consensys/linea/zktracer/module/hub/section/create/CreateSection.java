@@ -25,6 +25,7 @@ import java.util.Optional;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
@@ -61,6 +62,8 @@ public abstract class CreateSection extends TraceSection
         PostRollbackDefer,
         ContextReEntryDefer,
         EndTransactionDefer {
+
+  public static final short NB_ROWS_HUB_CREATE = 11;
 
   private final Address creatorAddress;
   private final Address createeAddress;
@@ -104,7 +107,7 @@ public abstract class CreateSection extends TraceSection
     hubStamp = hub.stamp();
 
     creatorAddress = frame.getRecipientAddress();
-    createeAddress = getDeploymentAddress(frame);
+    createeAddress = getDeploymentAddress(frame, hub.opCodeData(frame));
     value = Wei.of(UInt256.fromBytes(frame.getStackItem(0)));
 
     scenarioFragment = new CreateScenarioFragment();
@@ -133,9 +136,11 @@ public abstract class CreateSection extends TraceSection
     }
 
     // MXPX case
-    final MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     imcFragment.callMxp(mxpCall);
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "CREATE(2): mxp and hub disagree on MXPX");
     if (mxpCall.mxpx) {
       return;
     }
@@ -143,17 +148,18 @@ public abstract class CreateSection extends TraceSection
     // OOGX case
     final StpCall stpCall = new StpCall(hub, frame, mxpCall.getGasMxp());
     imcFragment.callStp(stpCall);
-    checkArgument(stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));
+    checkArgument(
+        stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions),
+        "CREATE(2): stp and hub disagree on OOGX");
     if (Exceptions.outOfGasException(exceptions)) {
       return;
     }
 
     // The CREATE(2) is now unexceptional
-    checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions), "CREATE(2): unexpectedly exceptional");
     hub.currentFrame().childSpanningSection(this);
 
-    final CreateOobCall oobCall = createOobCall();
-    imcFragment.callOob(oobCall);
+    final CreateOobCall oobCall = (CreateOobCall) imcFragment.callOob(createOobCall());
 
     firstCreator = AccountSnapshot.canonical(hub, frame.getWorldUpdater(), creatorAddress);
     firstCreatee = AccountSnapshot.canonical(hub, frame.getWorldUpdater(), createeAddress);
@@ -163,7 +169,8 @@ public abstract class CreateSection extends TraceSection
     final boolean emptyInitCode =
         scenarioFragment.getScenario() == CREATE_EMPTY_INIT_CODE_WONT_REVERT;
 
-    checkArgument(oobCall.isAbortingCondition() == aborts);
+    checkArgument(
+        oobCall.isAbortingCondition() == aborts, "CREATE(2): oob and hub disagree on ABORT");
     if (aborts) {
       this.traceAbort(hub);
       return;
@@ -237,7 +244,8 @@ public abstract class CreateSection extends TraceSection
         accountFragmentFactory.make(
             firstCreator,
             firstCreatorNew,
-            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
+            TransactionProcessingType.USER);
     creatorAccountFragment.rlpAddrSubFragment(rlpAddrSubFragment);
 
     final AccountFragment createeAccountFragment =
@@ -245,7 +253,8 @@ public abstract class CreateSection extends TraceSection
             firstCreatee,
             firstCreateeNew,
             createeAddress.trimLeadingZeros(),
-            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1),
+            TransactionProcessingType.USER);
 
     createeAccountFragment.requiresRomlex(requiresRomLex);
 
@@ -260,8 +269,18 @@ public abstract class CreateSection extends TraceSection
 
     switch (scenario) {
       case CREATE_FAILURE_CONDITION_WONT_REVERT, CREATE_EMPTY_INIT_CODE_WONT_REVERT -> {
-        if (scenario == CREATE_FAILURE_CONDITION_WONT_REVERT) checkState(!success);
-        if (scenario == CREATE_EMPTY_INIT_CODE_WONT_REVERT) checkState(success);
+        if (scenario == CREATE_FAILURE_CONDITION_WONT_REVERT)
+          checkState(
+              !success,
+              "CreateSection: %s scenario requires CREATE failure, yet success = %s",
+              CREATE_FAILURE_CONDITION_WONT_REVERT,
+              success);
+        if (scenario == CREATE_EMPTY_INIT_CODE_WONT_REVERT)
+          checkState(
+              success,
+              "CreateSection: %s scenario requires CREATE success, yet success = %s",
+              CREATE_EMPTY_INIT_CODE_WONT_REVERT,
+              success);
 
         firstCreatorNew =
             AccountSnapshot.canonical(hub, frame.frame().getWorldUpdater(), creatorAddress);
@@ -272,7 +291,8 @@ public abstract class CreateSection extends TraceSection
             accountFragmentFactory.make(
                 firstCreator,
                 firstCreatorNew,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
+                TransactionProcessingType.USER);
         firstCreatorFragment.rlpAddrSubFragment(rlpAddrSubFragment);
 
         final AccountFragment firstCreateeFragment =
@@ -280,7 +300,8 @@ public abstract class CreateSection extends TraceSection
                 firstCreatee,
                 firstCreateeNew,
                 createeAddress.trimLeadingZeros(),
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1),
+                TransactionProcessingType.USER);
 
         this.addFragments(firstCreatorFragment, firstCreateeFragment);
       }
@@ -302,14 +323,16 @@ public abstract class CreateSection extends TraceSection
                 secondCreator,
                 secondCreatorNew,
                 DomSubStampsSubFragment.revertsWithChildDomSubStamps(
-                    this.hubStamp(), childRevertStamp, 0));
+                    this.hubStamp(), childRevertStamp, 0),
+                TransactionProcessingType.USER);
 
         final AccountFragment undoCreateeAfterFailedDeployment =
             accountFragmentFactory.make(
                 secondCreatee,
                 secondCreateeNew,
                 DomSubStampsSubFragment.revertsWithChildDomSubStamps(
-                    this.hubStamp(), childRevertStamp, 1));
+                    this.hubStamp(), childRevertStamp, 1),
+                TransactionProcessingType.USER);
 
         this.addFragments(undoCreatorAfterFailedDeployment, undoCreateeAfterFailedDeployment);
       }
@@ -329,7 +352,9 @@ public abstract class CreateSection extends TraceSection
                 CREATE_FAILURE_CONDITION_WONT_REVERT,
                 CREATE_EMPTY_INIT_CODE_WONT_REVERT,
                 CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT,
-                CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT));
+                CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT),
+        "CreateSection: %s CREATE-scenario not allowed when resolving upon rollback",
+        scenarioFragment.getScenario());
 
     final int revertStamp = callFrame.revertStamp();
 
@@ -359,13 +384,15 @@ public abstract class CreateSection extends TraceSection
         accountFragmentFactory.make(
             secondCreator,
             secondCreatorNew,
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 0));
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 0),
+            TransactionProcessingType.USER);
 
     final AccountFragment undoCreatee =
         accountFragmentFactory.make(
             secondCreatee,
             secondCreateeNew,
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 1));
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 1),
+            TransactionProcessingType.USER);
 
     this.addFragments(undoCreator, undoCreatee);
   }
@@ -382,13 +409,15 @@ public abstract class CreateSection extends TraceSection
         accountFragmentFactory.make(
             thirdCreator,
             thirdCreatorNew,
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 2));
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 2),
+            TransactionProcessingType.USER);
 
     final AccountFragment undoCreateeFinal =
         accountFragmentFactory.make(
             thirdCreatee,
             thirdCreateeNew,
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 3));
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 3),
+            TransactionProcessingType.USER);
 
     this.addFragments(undoCreatorFinal, undoCreateeFinal);
   }
@@ -400,7 +429,7 @@ public abstract class CreateSection extends TraceSection
     if (abort.any()) {
       return 7;
     }
-    return 11; // Note: could be lower for unreverted successful CREATE(s)
+    return NB_ROWS_HUB_CREATE; // Note: could be lower for unreverted successful CREATE(s)
   }
 
   private void traceAbort(final Hub hub) {
@@ -408,7 +437,8 @@ public abstract class CreateSection extends TraceSection
         accountFragmentFactory.make(
             firstCreator,
             firstCreator,
-            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
+            TransactionProcessingType.USER);
 
     finalContextFragmentSquashesReturnData(hub);
 
@@ -489,7 +519,10 @@ public abstract class CreateSection extends TraceSection
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
-    checkState(scenarioFragment.isAbortedCreate());
+    checkState(
+        scenarioFragment.isAbortedCreate(),
+        "CreateSection: we resolve a CREATE(2) post execution only if it's an aborted CREATE(2), yet scenario = %s",
+        scenarioFragment.getScenario());
     hub.unlatchStack(frame, this);
   }
 

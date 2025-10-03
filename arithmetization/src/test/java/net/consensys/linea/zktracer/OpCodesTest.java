@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer;
 
-import static net.consensys.linea.zktracer.opcode.OpCodes.loadOpcodes;
-
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -24,24 +22,24 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(UnitTestWatcher.class)
 public class OpCodesTest extends TracerTestBase {
 
   @Test
-  public void AllOpCodesTest() {
-    BytecodeRunner bytecodeRunner = BytecodeRunner.of(getAllOpCodesProgram());
-    bytecodeRunner.run(testInfo);
+  public void AllOpCodesTest(TestInfo testInfo) {
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(getAllOpCodesProgram(testInfo));
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
-  private Bytes getAllOpCodesProgram() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
-    loadOpcodes(testInfo.chainConfig.fork);
-    for (OpCodeData opCodeData : OpCodes.iterator()) {
+  private Bytes getAllOpCodesProgram(TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
+    //
+    for (OpCodeData opCodeData : opcodes.iterator()) {
       if (opCodeData != null) {
         if (opCodeData.instructionFamily() != InstructionFamily.HALT
             && opCodeData.instructionFamily() != InstructionFamily.JUMP) {

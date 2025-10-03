@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.types;
 
-import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.types.Checks.checkArgument;
 
 import java.math.BigInteger;
 
@@ -24,7 +24,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class Conversions {
-  public static final Bytes ZERO = Bytes.EMPTY;
+  public static final Bytes ZERO = Bytes.of(0);
   public static final Bytes ONE = Bytes.of(1);
   public static final BigInteger UNSIGNED_LONG_MASK =
       BigInteger.ONE.shiftLeft(Long.SIZE).subtract(BigInteger.ONE);
@@ -46,12 +46,24 @@ public class Conversions {
     return bytes;
   }
 
+  public static Bytes32 bigIntegerToBytes32(final BigInteger input) {
+    return Bytes32.leftPad(bigIntegerToBytes(input));
+  }
+
+  public static Bytes16 bigIntegerToBytes16(final BigInteger input) {
+    return Bytes16.leftPad(bigIntegerToBytes(input));
+  }
+
   public static BigInteger booleanToBigInteger(final boolean input) {
     return input ? BigInteger.ONE : BigInteger.ZERO;
   }
 
   public static int booleanToInt(final boolean input) {
     return input ? 1 : 0;
+  }
+
+  public static long booleanToLong(final boolean input) {
+    return input ? 1L : 0L;
   }
 
   public static boolean bigIntegerToBoolean(BigInteger n) {
@@ -97,7 +109,15 @@ public class Conversions {
   }
 
   public static long bytesToLong(final Bytes input) {
-    return input.trimLeadingZeros().toLong();
+    final Bytes trimmedBytes = input.trimLeadingZeros();
+    checkArgument(trimmedBytes.size() <= 8, "Input bytes must be at most 8 bytes long");
+    return trimmedBytes.toLong();
+  }
+
+  public static short bytesToShort(final Bytes input) {
+    final Bytes trimmedBytes = input.trimLeadingZeros();
+    checkArgument(trimmedBytes.size() <= 2, "Input bytes must be at most 2 bytes long");
+    return (short) trimmedBytes.toInt();
   }
 
   public static BigInteger hiPart(final BigInteger input) {

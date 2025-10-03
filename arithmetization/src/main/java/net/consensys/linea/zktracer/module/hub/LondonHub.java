@@ -15,28 +15,39 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.LondonBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.create.LondonCreateSection;
+import net.consensys.linea.zktracer.module.hub.section.finalization.LondonFinalizationSection;
+import net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.LondonSelfdestructSection;
+import net.consensys.linea.zktracer.module.hub.section.skip.LondonTxSkipSection;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.LondonInitializationSection;
-import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
-import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
+import net.consensys.linea.zktracer.module.hub.transients.Transients;
+import net.consensys.linea.zktracer.module.mxp.module.LondonMxp;
+import net.consensys.linea.zktracer.module.mxp.module.Mxp;
+import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
+import net.consensys.linea.zktracer.module.rlptxn.london.LondonRlpTxn;
+import net.consensys.linea.zktracer.module.tables.PowerRt;
+import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.LondonInstructionDecoder;
-import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
-import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import net.consensys.linea.zktracer.module.txndata.TxnData;
+import net.consensys.linea.zktracer.module.txndata.TxnDataOperation;
+import net.consensys.linea.zktracer.module.txndata.london.LondonTxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.gascalculator.GasCalculator;
-import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class LondonHub extends Hub {
   public LondonHub(ChainConfig chain) {
@@ -44,17 +55,19 @@ public class LondonHub extends Hub {
   }
 
   @Override
-  protected GasCalculator setGasCalculator() {
-    return new LondonGasCalculator();
+  protected Module setBlsData(Hub hub) {
+    // Bls is not used in London
+    return new CountingOnlyModule(BLS_DATA);
   }
 
   @Override
-  protected TransactionStack setTransactionStack() {
-    return new LondonTransactionStack();
+  protected BlsRt setBlsRt() {
+    // BlsRt is not used in London
+    return null;
   }
 
   @Override
-  protected TxnData setTxnData() {
+  protected TxnData<? extends TxnDataOperation> setTxnData() {
     return new LondonTxnData(this, wcp(), euc());
   }
 
@@ -64,8 +77,39 @@ public class LondonHub extends Hub {
   }
 
   @Override
+  protected RlpTxn setRlpTxn(Hub hub) {
+    return new LondonRlpTxn(hub.romLex());
+  }
+
+  @Override
+  protected Module setRlpUtils(Wcp wcp) {
+    // RlpUtils is not used in London, it is only used in Cancun
+    return new CountingOnlyModule(RLP_UTILS);
+  }
+
+  @Override
+  protected Mxp setMxp() {
+    return new LondonMxp();
+  }
+
+  @Override
   protected InstructionDecoder setInstructionDecoder() {
-    return new LondonInstructionDecoder();
+    return new LondonInstructionDecoder(this.opCodes());
+  }
+
+  @Override
+  protected PowerRt setPower() {
+    // PowerRt is not used in London, it is only used in Cancun
+    return null;
+  }
+
+  @Override
+  protected void setSkipSection(
+      Hub hub,
+      WorldView world,
+      TransactionProcessingMetadata transactionProcessingMetadata,
+      Transients transients) {
+    new LondonTxSkipSection(hub, world, transactionProcessingMetadata, transients);
   }
 
   @Override
@@ -74,16 +118,21 @@ public class LondonHub extends Hub {
   }
 
   @Override
+  protected void setFinalizationSection(Hub hub) {
+    new LondonFinalizationSection(hub);
+  }
+
+  @Override
   protected boolean coinbaseWarmthAtTxEnd() {
     final TransactionProcessingMetadata currentTx = txStack().current();
     if (currentTx.senderIsCoinbase()
         || currentTx.recipientIsCoinbase()
-        || isPrecompile(currentTx.getCoinbaseAddress())) {
+        || isPrecompile(this.fork, currentTx.getCoinbaseAddress())) {
       return true;
     }
     return isExceptional() || opCode() == REVERT
         ? currentTx.isCoinbasePreWarmed()
-        : isAddressWarm(messageFrame(), coinbaseAddress());
+        : isAddressWarm(this.fork, messageFrame(), coinbaseAddress());
   }
 
   @Override
@@ -94,5 +143,25 @@ public class LondonHub extends Hub {
   @Override
   protected void setTransientSection(final Hub hub) {
     throw new IllegalStateException("Transient opcodes appear in Cancun");
+  }
+
+  @Override
+  protected void setMcopySection(Hub hub) {
+    throw new IllegalStateException("MCOPY opcode appears in Cancun");
+  }
+
+  @Override
+  protected void traceSysiTransactions(WorldView world, ProcessableBlockHeader blockHeader) {
+    // Nothing to do, appears in Cancun
+  }
+
+  @Override
+  protected void traceSystemFinalTransaction() {
+    // Nothing to do, appears in Cancun
+  }
+
+  @Override
+  protected void setSelfdestructSection(final Hub hub, final MessageFrame frame) {
+    new LondonSelfdestructSection(hub, frame);
   }
 }

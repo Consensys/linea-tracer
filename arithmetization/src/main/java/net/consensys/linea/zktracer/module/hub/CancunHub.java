@@ -15,17 +15,41 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.SYSF;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.SYSI;
+
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
+import net.consensys.linea.zktracer.module.blsdata.BlsData;
 import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.hub.section.McopySection;
+import net.consensys.linea.zktracer.module.hub.section.finalization.CancunFinalizationSection;
+import net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.CancunSelfdestructSection;
+import net.consensys.linea.zktracer.module.hub.section.skip.CancunTxSkipSection;
+import net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection;
+import net.consensys.linea.zktracer.module.hub.section.systemTransaction.SysfNoopSection;
 import net.consensys.linea.zktracer.module.hub.section.transients.TLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection;
+import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.CancunInitializationSection;
+import net.consensys.linea.zktracer.module.hub.transients.Transients;
+import net.consensys.linea.zktracer.module.mxp.module.CancunMxp;
+import net.consensys.linea.zktracer.module.mxp.module.Mxp;
+import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
+import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.CancunRlpTxn;
+import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.CancunInstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
+import net.consensys.linea.zktracer.module.txndata.TxnData;
+import net.consensys.linea.zktracer.module.txndata.TxnDataOperation;
+import net.consensys.linea.zktracer.module.txndata.cancun.CancunTxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import org.hyperledger.besu.evm.gascalculator.CancunGasCalculator;
-import org.hyperledger.besu.evm.gascalculator.GasCalculator;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class CancunHub extends ShanghaiHub {
   public CancunHub(ChainConfig chain) {
@@ -33,8 +57,33 @@ public class CancunHub extends ShanghaiHub {
   }
 
   @Override
-  protected GasCalculator setGasCalculator() {
-    return new CancunGasCalculator();
+  protected BlsData setBlsData(Hub hub) {
+    return new BlsData(
+        hub.wcp(),
+        pointEvaluationEffectiveCall,
+        pointEvaluationFailureCall,
+        blsG1AddEffectiveCall,
+        blsG1MsmEffectiveCall,
+        blsG2AddEffectiveCall,
+        blsG2MsmEffectiveCall,
+        blsPairingCheckMillerLoops,
+        blsPairingCheckFinalExponentiations,
+        blsG1MapFpToG1EffectiveCall,
+        blsG1MapFp2ToG2EffectiveCall,
+        blsC1MembershipCalls,
+        blsC2MembershipCalls,
+        blsG1MembershipCalls,
+        blsG2MembershipCalls);
+  }
+
+  @Override
+  protected Mxp setMxp() {
+    return new CancunMxp();
+  }
+
+  @Override
+  protected TxnData<? extends TxnDataOperation> setTxnData() {
+    return new CancunTxnData(this, wcp(), euc());
   }
 
   @Override
@@ -43,8 +92,42 @@ public class CancunHub extends ShanghaiHub {
   }
 
   @Override
+  protected RlpTxn setRlpTxn(Hub hub) {
+    return new CancunRlpTxn((RlpUtils) hub.rlpUtils(), hub.trm());
+  }
+
+  @Override
+  protected RlpUtils setRlpUtils(Wcp wcp) {
+    return new RlpUtils(wcp);
+  }
+
+  @Override
   protected InstructionDecoder setInstructionDecoder() {
-    return new CancunInstructionDecoder();
+    return new CancunInstructionDecoder(this.opCodes());
+  }
+
+  @Override
+  protected PowerRt setPower() {
+    return new PowerRt();
+  }
+
+  @Override
+  protected void setSkipSection(
+      Hub hub,
+      WorldView world,
+      TransactionProcessingMetadata transactionProcessingMetadata,
+      Transients transients) {
+    new CancunTxSkipSection(hub, world, transactionProcessingMetadata, transients);
+  }
+
+  @Override
+  protected void setInitializationSection(WorldView world) {
+    new CancunInitializationSection(this, world);
+  }
+
+  @Override
+  protected void setFinalizationSection(Hub hub) {
+    new CancunFinalizationSection(hub);
   }
 
   @Override
@@ -55,5 +138,33 @@ public class CancunHub extends ShanghaiHub {
       default -> throw new IllegalStateException(
           "invalid operation in family TRANSIENT: " + hub.opCode());
     }
+  }
+
+  @Override
+  protected void setMcopySection(Hub hub) {
+    new McopySection(hub);
+  }
+
+  @Override
+  protected void traceSysiTransactions(WorldView world, ProcessableBlockHeader blockHeader) {
+    state.transactionProcessingType(SYSI);
+    state.incrementSysiTransactionNumber();
+    state.processingPhase(TX_SKIP);
+    new EIP4788BeaconBlockRootSection(this, world, blockHeader);
+  }
+
+  @Override
+  protected void traceSystemFinalTransaction() {
+    state.transactionProcessingType(SYSF);
+    // TODO: the two following should be done at the beginning of the none section, but requires
+    // java > 21
+    state.incrementSysfTransactionNumber();
+    state.processingPhase(TX_SKIP);
+    new SysfNoopSection(this);
+  }
+
+  @Override
+  protected void setSelfdestructSection(final Hub hub, final MessageFrame frame) {
+    new CancunSelfdestructSection(hub, frame);
   }
 }

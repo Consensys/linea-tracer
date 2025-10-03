@@ -17,8 +17,7 @@ package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.PRE_WARMING;
-import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
-import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
+import static net.consensys.linea.zktracer.types.AddressUtils.*;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +27,7 @@ import java.util.Set;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
@@ -53,6 +53,13 @@ public class TxPreWarmingMacroSection {
         .ifPresent(
             accessList -> {
               if (!accessList.isEmpty()) {
+                List<Address> precompileAddress =
+                    switch (hub.fork) {
+                      case LONDON, PARIS, SHANGHAI -> precompileAddressLondon;
+                      case CANCUN -> precompileAddressCancun;
+                      case PRAGUE -> precompileAddressPrague;
+                      default -> throw new IllegalArgumentException("Unknown fork: " + hub.fork);
+                    };
                 final Set<Address> seenAddresses = new HashSet<>(precompileAddress);
                 final HashMap<Address, Set<Bytes32>> seenKeys = new HashMap<>();
 
@@ -98,7 +105,8 @@ public class TxPreWarmingMacroSection {
                               preWarmingAccountSnapshot,
                               postWarmingAccountSnapshot,
                               address,
-                              domSubStampsSubFragment));
+                              domSubStampsSubFragment,
+                              TransactionProcessingType.USER));
 
                   final List<Bytes32> keys = entry.storageKeys();
                   for (Bytes32 k : keys) {

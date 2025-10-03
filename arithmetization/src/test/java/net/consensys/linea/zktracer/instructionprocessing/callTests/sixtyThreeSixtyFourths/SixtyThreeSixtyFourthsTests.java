@@ -16,17 +16,12 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeSixtyFourths;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_CALL_STIPEND;
-import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_CALL_VALUE;
-import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_NEW_ACCOUNT;
-import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_WARM_ACCESS;
-import static net.consensys.linea.zktracer.Trace.PRC_BLAKE2F_SIZE;
-import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
+import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
+import static net.consensys.linea.zktracer.module.oob.OobOperation.computeExponentLog;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.opcode.OpCode.MLOAD;
 import static net.consensys.linea.zktracer.opcode.OpCode.POP;
-import static net.consensys.linea.zktracer.precompiles.LowGasStipendPrecompileCallTests.computeExponentLog;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.generateModexpInput;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getBLAKE2FCost;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getECADDCost;
@@ -40,6 +35,7 @@ import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
 import static org.hyperledger.besu.datatypes.Address.BLAKE2B_F_COMPRESSION;
 import static org.hyperledger.besu.datatypes.Address.ECREC;
 import static org.hyperledger.besu.datatypes.Address.ID;
+import static org.hyperledger.besu.datatypes.Address.KZG_POINT_EVAL;
 import static org.hyperledger.besu.datatypes.Address.MODEXP;
 import static org.hyperledger.besu.datatypes.Address.RIPEMD160;
 import static org.hyperledger.besu.datatypes.Address.SHA256;
@@ -59,6 +55,7 @@ import net.consensys.linea.testing.ToyAccount;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -79,6 +76,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 
 public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
+  // TODO: add BLS precompiles beyond POINT_EVALUATION
 
   /*
   Cases to cover:
@@ -129,7 +127,8 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
               ALTBN128_ADD,
               ALTBN128_MUL,
               ALTBN128_PAIRING,
-              BLAKE2B_F_COMPRESSION)
+              BLAKE2B_F_COMPRESSION,
+              KZG_POINT_EVAL)
           .collect(
               Collectors.toMap(
                   address -> address,
@@ -141,13 +140,15 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
                               BytecodeRunner.of(preCallProgram(address, false, false, 0))
                                   .runOnlyForGasCost(
                                       address == MODEXP ? additionalAccounts : List.of(),
-                                      testInfo));
+                                      chainConfig,
+                                      null));
                           put(
                               true,
                               BytecodeRunner.of(preCallProgram(address, false, true, 0))
                                   .runOnlyForGasCost(
                                       address == MODEXP ? additionalAccounts : List.of(),
-                                      testInfo));
+                                      chainConfig,
+                                      null));
                         }
                       }));
 
@@ -164,20 +165,21 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
    */
   @ParameterizedTest
   @MethodSource("fixedCostEcAddTestSource")
-  void fixedCostEcAddTest(long gasLimit, boolean insufficientGasForPrecompileExpected) {
+  void fixedCostEcAddTest(
+      long gasLimit, boolean insufficientGasForPrecompileExpected, TestInfo testInfo) {
     // Whenever transferValue = true, gas is enough
     // so we only test the case in which transferValue = false
 
-    final BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    final BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     program.immediate(preCallProgram(ALTBN128_ADD, false, false, 0)).op(CALL);
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
-    bytecodeRunner.run(gasLimit, testInfo);
+    bytecodeRunner.run(gasLimit, chainConfig, testInfo);
 
     assertNotEquals(
         OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   static Stream<Arguments> fixedCostEcAddTestSource() {
@@ -217,16 +219,18 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
       boolean insufficientGasForPrecompileExpected,
       boolean transfersValue,
       boolean targetAddressExists,
-      int cds) {
-    final BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+      int cds,
+      TestInfo testInfo) {
+    final BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program.immediate(preCallProgram(address, transfersValue, targetAddressExists, cds)).op(CALL);
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
-    bytecodeRunner.run(gasLimit, address == MODEXP ? additionalAccounts : List.of(), testInfo);
+    bytecodeRunner.run(
+        gasLimit, address == MODEXP ? additionalAccounts : List.of(), chainConfig, testInfo);
 
     assertNotEquals(
         OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   static Stream<Arguments> costGEQStipendTest() {
@@ -240,7 +244,8 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
             MODEXP,
             ALTBN128_MUL,
             ALTBN128_PAIRING,
-            BLAKE2B_F_COMPRESSION)) {
+            BLAKE2B_F_COMPRESSION,
+            KZG_POINT_EVAL)) {
       final int cds = getCallDataSize(address);
       final long targetCalleeGas =
           address == BLAKE2B_F_COMPRESSION
@@ -273,7 +278,7 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
   // Support methods
   static Bytes preCallProgram(
       Address address, boolean transfersValue, boolean targetAddressExists, int cds) {
-    return BytecodeCompiler.newProgram(testInfo)
+    return BytecodeCompiler.newProgram(chainConfig)
         .immediate(expandMemoryTo2048Words())
         .immediate(targetAddressExists ? successfullySummonIntoExistence(address) : Bytes.EMPTY)
         .immediate(
@@ -289,7 +294,7 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
 
   static Bytes expandMemoryTo(int words) {
     checkArgument(words >= 1);
-    return BytecodeCompiler.newProgram(testInfo)
+    return BytecodeCompiler.newProgram(chainConfig)
         .push((words - 1) * WORD_SIZE)
         .op(MLOAD)
         .op(POP)
@@ -301,20 +306,23 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
         INFINITE_GAS,
         address,
         address == BLAKE2B_F_COMPRESSION
-            ? PRC_BLAKE2F_SIZE
-            : 0, // For BLAKE2F we need a meaningful cds for the call to succeed
+            ? PRECOMPILE_CALL_DATA_SIZE___BLAKE2F
+            : address == KZG_POINT_EVAL
+                ? PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION
+                : 0, // For BLAKE2F and POINT_EVALUATION we need a meaningful cds for the call to
+        // succeed
         true);
   }
 
   static Bytes call(Bytes gas, Address address, int cds, boolean transfersValue) {
-    return BytecodeCompiler.newProgram(testInfo)
+    return BytecodeCompiler.newProgram(chainConfig)
         .immediate(pushCallArguments(gas, address, cds, transfersValue))
         .op(CALL)
         .compile();
   }
 
   static Bytes pushCallArguments(Bytes gas, Address address, int cds, boolean transfersValue) {
-    return BytecodeCompiler.newProgram(testInfo)
+    return BytecodeCompiler.newProgram(chainConfig)
         .push(0) // returnAtCapacity
         .push(0) // returnAtOffset
         .push(cds) // callDataSize
@@ -386,8 +394,10 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
     } else if (address == MODEXP) {
       return 96 + bbs + ebs + mbs; // Ensures cost is greater than stipend with non-zero non-trivial
     } else if (address == BLAKE2B_F_COMPRESSION) {
-      return PRC_BLAKE2F_SIZE; // Ensures cost is greater than stipend with non-zero non-trivial
-      // input
+      return PRECOMPILE_CALL_DATA_SIZE___BLAKE2F; // Ensures cost is greater than stipend with
+      // non-zero non-trivial input
+    } else if (address == KZG_POINT_EVAL) {
+      return PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION;
     } else {
       return 0;
     }

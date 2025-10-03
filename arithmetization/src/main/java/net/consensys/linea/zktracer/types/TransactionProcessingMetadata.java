@@ -16,35 +16,35 @@
 package net.consensys.linea.zktracer.types;
 
 import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static org.hyperledger.besu.datatypes.TransactionType.FRONTIER;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.TimeAndExistence;
+import net.consensys.linea.zktracer.module.hub.fragment.transaction.UserTransactionFragment;
 import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruct;
 import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-public abstract class TransactionProcessingMetadata {
+public class TransactionProcessingMetadata {
 
-  final int absoluteTransactionNumber;
+  final Hub hub;
+
+  final int userTransactionNumber;
   final int relativeTransactionNumber;
   final int relativeBlockNumber;
 
@@ -68,6 +68,8 @@ public abstract class TransactionProcessingMetadata {
   final long dataCost;
   final long initCodeCost;
   final long accessListCost;
+  final long floorCost;
+  final long floorCostPrague;
 
   /* g in the EYP, defined by g = TG - g0 */
   final long initiallyAvailableGas;
@@ -127,15 +129,64 @@ public abstract class TransactionProcessingMetadata {
 
   @Accessors(fluent = true)
   @Getter
-  private final TransactionFragment transactionFragment;
+  private final UserTransactionFragment userTransactionFragment;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final Map<Address, TimeAndExistence> hadCodeInitiallyMap = new HashMap<>();
+
+  @Accessors(fluent = true)
+  @Getter
+  private final int type;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final Bytes chainId;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final Bytes gasPrice;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final Bytes maxPriorityFeePerGas;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final Bytes maxFeePerGas;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final boolean yParity;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final boolean replayProtection;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final int numberOfZeroBytesInPayload;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final int numberOfNonzeroBytesInPayload;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final int numberOfWarmedAddresses;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final int numberOfWarmedStorageKeys;
 
   public TransactionProcessingMetadata(
       final Hub hub,
       final WorldView world,
       final Transaction transaction,
       final int relativeTransactionNumber,
-      final int absoluteTransactionNumber) {
-    this.absoluteTransactionNumber = absoluteTransactionNumber;
+      final int userTransactionNumber) {
+    this.hub = hub;
+    this.userTransactionNumber = userTransactionNumber;
     relativeBlockNumber = hub.blockStack().currentRelativeBlockNumber();
     coinbaseAddress = hub.coinbaseAddress();
     baseFee = hub.blockStack().currentBlock().baseFee().toLong();
@@ -144,31 +195,83 @@ public abstract class TransactionProcessingMetadata {
     this.relativeTransactionNumber = relativeTransactionNumber;
 
     isDeployment = transaction.getTo().isEmpty();
-    requiresEvmExecution = computeRequiresEvmExecution(world);
+    requiresEvmExecution = computeRequiresEvmExecution(world, besuTransaction);
     copyTransactionCallData = computeCopyCallData();
 
     initialBalance = getInitialBalance(world);
+
+    numberOfZeroBytesInPayload = Math.toIntExact(besuTransaction.getPayloadZeroBytes());
+    numberOfNonzeroBytesInPayload =
+        besuTransaction.getPayload().size() - numberOfZeroBytesInPayload;
 
     // Note: Besu's dataCost computation contains
     // - the 21_000 transaction cost (we deduce it)
     // - the contract creation cost in case of deployment
     // - the baseline gas (gas for access lists and 7702 authorizations) is set to zero, because we
     // only consider the cost of the transaction payload
-    initCodeCost = hub.gasCalculator.initcodeCost(besuTransaction.getPayload().size());
-    dataCost =
-        hub.gasCalculator.transactionIntrinsicGasCost(besuTransaction, 0)
-            - GAS_CONST_G_TRANSACTION
-            - (isDeployment ? GAS_CONST_G_CREATE : 0)
-            - (isDeployment ? initCodeCost : 0);
+    initCodeCost =
+        isDeployment ? hub.gasCalculator.initcodeCost(besuTransaction.getPayload().size()) : 0;
+    dataCost = 4 * weightedByteCount();
     accessListCost =
         besuTransaction.getAccessList().map(hub.gasCalculator::accessListGasCost).orElse(0L);
+    floorCost =
+        // the value below will not work in the Cancun TXN_DATA module (where it spits out 0,
+        // but we still carry out the computation with the Prague value).
+        hub.gasCalculator.transactionFloorCost(
+            getBesuTransaction().getPayload(), numberOfZeroBytesInPayload);
+    floorCostPrague = GAS_CONST_G_TRANSACTION + this.weightedByteCount() * FLOOR_TOKEN_COST;
     initiallyAvailableGas = getInitiallyAvailableGas();
 
     effectiveRecipient = effectiveToAddress(besuTransaction);
 
     effectiveGasPrice = computeEffectiveGasPrice();
 
-    transactionFragment = new TransactionFragment(this);
+    userTransactionFragment = new UserTransactionFragment(this);
+
+    type = getTxTypeAsInt(besuTransaction.getType());
+    chainId =
+        besuTransaction.getChainId().isPresent()
+            ? bigIntegerToBytes(besuTransaction.getChainId().get())
+            : Bytes.EMPTY;
+    gasPrice =
+        besuTransaction.getType().supports1559FeeMarket()
+            ? Bytes.EMPTY
+            : bigIntegerToBytes(besuTransaction.getGasPrice().get().getAsBigInteger());
+    maxPriorityFeePerGas =
+        besuTransaction.getMaxPriorityFeePerGas().isPresent()
+            ? bigIntegerToBytes(besuTransaction.getMaxPriorityFeePerGas().get().getAsBigInteger())
+            : Bytes.EMPTY;
+    maxFeePerGas =
+        besuTransaction.getMaxFeePerGas().isPresent()
+            ? bigIntegerToBytes(besuTransaction.getMaxFeePerGas().get().getAsBigInteger())
+            : Bytes.EMPTY;
+    replayProtection = besuTransaction.getChainId().isPresent();
+    yParity = retrieveYParity();
+    final List<AccessListEntry> accessList =
+        besuTransaction.getAccessList().orElse(new ArrayList<>());
+    numberOfWarmedAddresses = accessList.size();
+    numberOfWarmedStorageKeys =
+        accessList.stream().mapToInt(entry -> entry.storageKeys().size()).sum();
+  }
+
+  private boolean retrieveYParity() {
+    // For non-legacy transactions, the Y parity is directly accessible
+    if (besuTransaction.getType() != FRONTIER) {
+      return bigIntegerToBoolean(besuTransaction.getYParity());
+    }
+
+    // For legacy transactions, we need to compute the Y parity based on the V value
+    if (replayProtection) {
+      // case chain protected, the V = 35 + 2 * chain id * Y
+      return besuTransaction
+          .getV()
+          .equals(
+              BigInteger.valueOf(PROTECTED_BASE_V_PO)
+                  .add(besuTransaction.getChainId().get().multiply(BigInteger.valueOf(2))));
+    }
+
+    // case chain less, the V = 27 + Y
+    return besuTransaction.getV().equals(BigInteger.valueOf(UNPROTECTED_V_PO));
   }
 
   public void setPreFinalisationValues(
@@ -207,14 +310,14 @@ public abstract class TransactionProcessingMetadata {
     return requiresEvmExecution && !isDeployment && !besuTransaction.getData().get().isEmpty();
   }
 
-  private boolean computeRequiresEvmExecution(WorldView world) {
-    if (!isDeployment) {
-      return Optional.ofNullable(world.get(this.besuTransaction.getTo().get()))
+  public static boolean computeRequiresEvmExecution(WorldView world, Transaction tx) {
+    if (!tx.isContractCreation()) {
+      return Optional.ofNullable(world.get(tx.getTo().get()))
           .map(a -> !a.getCode().isEmpty())
           .orElse(false);
     }
 
-    return !besuTransaction.getInit().get().isEmpty();
+    return !tx.getInit().get().isEmpty();
   }
 
   private BigInteger getInitialBalance(WorldView world) {
@@ -231,12 +334,12 @@ public abstract class TransactionProcessingMetadata {
   }
 
   public long getInitiallyAvailableGas() {
-    return besuTransaction.getGasLimit() - getUpfrontGasCost();
+    return getGasLimit() - getUpfrontGasCost();
   }
 
   private long computeRefundEffective() {
-    final long maxRefundableAmount = getGasUsed() / MAX_REFUND_QUOTIENT;
-    return Math.min(maxRefundableAmount, refundCounterMax);
+    final long upperBoundForRefunds = getGasUsed() / MAX_REFUND_QUOTIENT;
+    return Math.min(upperBoundForRefunds, refundCounterMax);
   }
 
   private long computeEffectiveGasPrice() {
@@ -252,7 +355,8 @@ public abstract class TransactionProcessingMetadata {
         final long maxFeePerGas = tx.getMaxFeePerGas().get().getAsBigInteger().longValueExact();
         return Math.min(baseFee + maxPriorityFee, maxFeePerGas);
       }
-      default -> throw new IllegalArgumentException("Transaction type not supported");
+      default -> throw new IllegalArgumentException(
+          "Transaction type not supported: " + tx.getType());
     }
   }
 
@@ -270,17 +374,22 @@ public abstract class TransactionProcessingMetadata {
 
   /* Tg - g' in the EYP*/
   public long computeGasUsed() {
-    return besuTransaction.getGasLimit() - leftoverGas;
+    return getGasLimit() - leftoverGas;
   }
 
   /* g* in the EYP */
   public long computeRefunded() {
-    return leftoverGas + refundEffective;
+
+    final long leftoverGasPlusEffectiveRefund = leftoverGas + refundEffective;
+    final long executionCostAfterRefunds = getGasLimit() - leftoverGasPlusEffectiveRefund;
+    final long finalTransactionCost = Math.max(floorCost, executionCostAfterRefunds);
+
+    return getGasLimit() - finalTransactionCost;
   }
 
   /* Tg - g* in the EYP */
   public long computeTotalGasUsed() {
-    return besuTransaction.getGasLimit() - getGasRefunded();
+    return getGasLimit() - getGasRefunded();
   }
 
   public long feeRateForCoinbase() {
@@ -300,20 +409,6 @@ public abstract class TransactionProcessingMetadata {
     return Wei.of(BigInteger.valueOf(gasRefunded).multiply(BigInteger.valueOf(effectiveGasPrice)));
   }
 
-  public int numberWarmedAddress() {
-    return besuTransaction.getAccessList().isPresent()
-        ? besuTransaction.getAccessList().get().size()
-        : 0;
-  }
-
-  public int numberWarmedKey() {
-    return besuTransaction.getAccessList().isPresent()
-        ? besuTransaction.getAccessList().get().stream()
-            .mapToInt(accessListEntry -> accessListEntry.storageKeys().size())
-            .sum()
-        : 0;
-  }
-
   private void determineSelfDestructTimeStamp() {
     for (Map.Entry<EphemeralAccount, List<AttemptedSelfDestruct>> entry :
         unexceptionalSelfDestructMap.entrySet()) {
@@ -325,13 +420,17 @@ public abstract class TransactionProcessingMetadata {
       // the time in which the first unexceptional and un-reverted SELFDESTRUCT occurs
       // Then we add this value in a new map
       for (AttemptedSelfDestruct attemptedSelfDestruct : attemptedSelfDestructs) {
-        if (attemptedSelfDestruct.callFrame().revertStamp() == 0) {
+        if (attemptedSelfDestruct.callFrame().wontRevert()) {
           final int selfDestructTime = attemptedSelfDestruct.hubStamp();
           effectiveSelfDestructMap.put(ephemeralAccount, selfDestructTime);
           break;
         }
       }
     }
+  }
+
+  public long weightedByteCount() {
+    return 4 * numberOfNonzeroBytesInPayload + numberOfZeroBytesInPayload;
   }
 
   public void captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(Hub hub) {
@@ -363,5 +462,27 @@ public abstract class TransactionProcessingMetadata {
 
   public boolean coinbaseAddressCollision() {
     return senderIsCoinbase() || recipientIsCoinbase();
+  }
+
+  public void updateHadCodeInitially(Address address, int domStamp, int subStamp, boolean hadCode) {
+
+    final TimeAndExistence newOccurrence = new TimeAndExistence(domStamp, subStamp, hadCode);
+
+    if (hadCodeInitiallyMap.containsKey(address)) {
+      final TimeAndExistence oldOccurrence = hadCodeInitiallyMap.get(address);
+      if (oldOccurrence.needsUpdate(newOccurrence)) {
+        hadCodeInitiallyMap.replace(address, oldOccurrence, newOccurrence);
+      }
+    } else {
+      hadCodeInitiallyMap.put(address, newOccurrence);
+    }
+  }
+
+  public long getGasLimit() {
+    return besuTransaction.getGasLimit();
+  }
+
+  public boolean isMessageCall() {
+    return !isDeployment;
   }
 }

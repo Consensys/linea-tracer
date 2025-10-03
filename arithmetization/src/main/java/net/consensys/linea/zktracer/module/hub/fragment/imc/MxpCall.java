@@ -15,44 +15,107 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc;
 
+import static net.consensys.linea.zktracer.module.mxp.MxpUtils.*;
+
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.state.State;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.*;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
-@RequiredArgsConstructor
-public class MxpCall implements TraceSubFragment {
+/**
+ * This is the parent class for all MXP Calls. The fork dependent classes extending this are located
+ * in Mxp module (LondonMxpCall, CancunMxpCall, ...).
+ */
+public abstract class MxpCall implements TraceSubFragment {
 
   public final Hub hub;
 
-  // filled in by MXP module
-  @Getter @Setter public OpCodeData opCodeData;
-  @Getter @Setter public boolean deploys;
-  @Getter @Setter public EWord offset1 = EWord.ZERO;
-  @Getter @Setter public EWord size1 = EWord.ZERO;
-  @Getter @Setter public EWord offset2 = EWord.ZERO;
-  @Getter @Setter public EWord size2 = EWord.ZERO;
-  @Setter public boolean mayTriggerNontrivialMmuOperation;
+  /** The following properties will be filled in by MXP module * */
+  /** - don't necessitate computation * */
+  @Getter public OpCodeData opCodeData;
+
+  @Getter public boolean deploys;
+  @Getter public long memorySizeInWords;
+  @Getter public EWord offset1;
+  @Getter public EWord size1;
+  @Getter public EWord offset2;
+  @Getter public EWord size2;
+
+  /** - filled after computation by the module */
+  @Getter @Setter public boolean mayTriggerNontrivialMmuOperation;
 
   /** mxpx is short of Memory eXPansion eXception */
   @Getter @Setter public boolean mxpx;
 
-  @Getter @Setter public long memorySizeInWords;
   @Getter @Setter public long gasMxp;
 
-  public static MxpCall build(Hub hub) {
-    return new MxpCall(hub);
+  public MxpCall(Hub hub) {
+    this.hub = hub;
+    final MessageFrame frame = this.hub.messageFrame();
+    // set opCodeData
+    this.opCodeData = this.hub.opCodeData();
+    // set deploys
+    this.deploys =
+        this.opCodeData.mnemonic() == OpCode.RETURN & this.hub.currentFrame().isDeployment();
+    // set memorySizeInWords
+    this.memorySizeInWords = this.hub.messageFrame().memoryWordSize();
+    // set sizes and offsets
+    final EWord[] sizesAndOffsets = getSizesAndOffsets(frame, this.opCodeData);
+    this.size1 = sizesAndOffsets[0];
+    this.offset1 = sizesAndOffsets[1];
+    this.size2 = sizesAndOffsets[2];
+    this.offset2 = sizesAndOffsets[3];
   }
 
-  static boolean getMemoryExpansionException(Hub hub) {
-    return Exceptions.memoryExpansionException(hub.pch().exceptions());
+  public static MxpCall newMxpCall(Hub hub) {
+    switch (hub.fork) {
+      case LONDON, PARIS, SHANGHAI -> {
+        return new LondonMxpCall(hub);
+      }
+      case CANCUN, PRAGUE -> {
+        return getCancunMxpCall(hub);
+      }
+      default -> throw new IllegalArgumentException("Unsupported fork: " + hub.fork);
+    }
+  }
+
+  /**
+   * User from Cancun fork - Get the correct Mxp scenarii: CancunMSizeMxpCall, CancunTrivialMxpCall,
+   * CancunMxpxMxpCall, CancunStateUpdateWordPricingMxpCall or CancunStateUpdateBytePricingMxpCall.
+   *
+   * @param hub instance of Hub used to create the CancunMxpCall
+   * @return CancunMxpCall instance corresponding to the Mxp scenario
+   */
+  public static CancunMxpCall getCancunMxpCall(Hub hub) {
+    final OpCodeData opCodeData = hub.opCodeData();
+    if (opCodeData.isMSize()) {
+      return new CancunMSizeMxpCall(hub);
+    }
+    final EWord[] sizesAndOffsets = getSizesAndOffsets(hub.messageFrame(), opCodeData);
+    final EWord size1 = sizesAndOffsets[0];
+    final EWord size2 = sizesAndOffsets[2];
+    if (size1.isZero() && size2.isZero()) {
+      return new CancunTrivialMxpCall(hub);
+    }
+    final CancunNotMSizeNorTrivialMxpCall cancunNotMSizeNorTrivialMxpCall =
+        new CancunNotMSizeNorTrivialMxpCall(hub);
+    if (cancunNotMSizeNorTrivialMxpCall.mxpx) {
+      return new CancunMxpxMxpCall(hub, cancunNotMSizeNorTrivialMxpCall.mxpx);
+    } else {
+      if (opCodeData.isWordPricing()) {
+        return new CancunStateUpdateWordPricingMxpCall(hub);
+      }
+      return new CancunStateUpdateBytePricingMxpCall(hub);
+    }
   }
 
   public boolean getSize1NonZeroNoMxpx() {
@@ -63,8 +126,26 @@ public class MxpCall implements TraceSubFragment {
     return !this.mxpx && !this.size2.isZero();
   }
 
+  public int getCostBy(BillingRate billingRate) {
+    return getOpCodeData().billing().billingRate() == billingRate
+        ? getOpCodeData().billing().perUnit().cost()
+        : 0;
+  }
+
+  protected void setMayTriggerNontrivialMmuOperation() {}
+
+  // Method only filled for LondonMxpCall
+  public abstract void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace);
+
+  // Method only filled for LondonMxpCall
+  public abstract void traceMxpWords(Trace.Hub trace);
+
   public Trace.Hub trace(Trace.Hub trace, State hubState) {
     hubState.incrementMxpStamp();
+    // Legacy for LondonMxpCall
+    traceMayTriggerNonTrivialMmuOperationFromMxpx(trace);
+    // Conditional from Cancun
+    traceMxpWords(trace);
     return trace
         .pMiscMxpFlag(true)
         .pMiscMxpInst(this.opCodeData.value())
@@ -77,11 +158,9 @@ public class MxpCall implements TraceSubFragment {
         .pMiscMxpOffset2Lo(this.offset2.lo())
         .pMiscMxpSize2Hi(this.size2.hi())
         .pMiscMxpSize2Lo(this.size2.lo())
-        .pMiscMxpMtntop(this.mayTriggerNontrivialMmuOperation)
         .pMiscMxpSize1NonzeroNoMxpx(this.getSize1NonZeroNoMxpx())
         .pMiscMxpSize2NonzeroNoMxpx(this.getSize2NonZeroNoMxpx())
         .pMiscMxpMxpx(this.mxpx)
-        .pMiscMxpWords(Bytes.ofUnsignedLong(this.memorySizeInWords))
         .pMiscMxpGasMxp(Bytes.ofUnsignedLong(this.gasMxp));
   }
 }

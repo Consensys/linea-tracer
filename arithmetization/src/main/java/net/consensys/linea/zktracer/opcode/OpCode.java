@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.opcode;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Trace.*;
 
-import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 /** Represents the entire set of opcodes that are required by the arithmetization process. */
@@ -171,7 +170,8 @@ public enum OpCode {
   STATICCALL(EVM_INST_STATICCALL),
   REVERT(EVM_INST_REVERT),
   INVALID(EVM_INST_INVALID),
-  SELFDESTRUCT(EVM_INST_SELFDESTRUCT);
+  SELFDESTRUCT(EVM_INST_SELFDESTRUCT),
+  MCOPY(EVM_INST_MCOPY);
 
   private final int opcode;
 
@@ -194,30 +194,12 @@ public enum OpCode {
   }
 
   /**
-   * Retrieves {@link OpCode} metadata of type {@link OpCodeData}.
+   * Returns the {@link OpCode}'s opcode value as a byte.
    *
-   * @return the current {@link OpCode}'s {@link OpCodeData}
-   */
-  public OpCodeData getData() {
-    return OpCodes.of(this);
-  }
-
-  /**
-   * Retrieves the {@link OpCode} corresponding to a given value.
-   *
-   * @return the {@link OpCode}
-   */
-  public static OpCode of(final int value) {
-    return OpCodes.of(value).mnemonic();
-  }
-
-  /**
-   * Returns the {@link OpCode}'s long value as a byte type.
-   *
-   * @return the {@link OpCode}'s value as a byte
+   * @return the {@link OpCode}'s opcode value as a byte
    */
   public byte byteValue() {
-    return (byte) this.getData().value();
+    return (byte) this.opcode;
   }
 
   /**
@@ -227,59 +209,6 @@ public enum OpCode {
    */
   public UnsignedByte unsignedByteValue() {
     return UnsignedByte.of(byteValue());
-  }
-
-  /** Returns true for PUSH-type instructions */
-  public boolean isNonTrivialPush() {
-    return getData().isNonTrivialPush();
-  }
-
-  public boolean isPushZero() {
-    return getData().isPushZero();
-  }
-
-  /** Returns true for JUMP-type instructions */
-  public boolean isJump() {
-    return getData().isJump();
-  }
-
-  public boolean isLog() {
-    return getData().isLog();
-  }
-
-  /** Returns whether the {@link OpCode} entails a contract creation. */
-  public boolean isCreate() {
-    return getData().isCreate();
-  }
-
-  /** Returns whether the {@link OpCode} is one of the CALL opcodes */
-  public boolean isCall() {
-    return getData().isCall();
-  }
-
-  public boolean isHalt() {
-    return getData().isHalt();
-  }
-
-  public boolean isCallOrCreate() {
-    return isCall() || isCreate();
-  }
-
-  public boolean callHasValueArgument() {
-    checkArgument(isCall(), "Expected any CALL opcode, got %s", this);
-    return this == CALL || this == CALLCODE;
-  }
-
-  public short callCdoStackIndex() {
-    return (short) (callHasValueArgument() ? 3 : 2);
-  }
-
-  public short callCdsStackIndex() {
-    return (short) (callHasValueArgument() ? 4 : 3);
-  }
-
-  public short callReturnAtCapacityStackIndex() {
-    return (short) (callHasValueArgument() ? 6 : 5);
   }
 
   /**
@@ -296,25 +225,5 @@ public enum OpCode {
     }
 
     return false;
-  }
-
-  public short numberOfStackRows() {
-    return (short) (this.getData().numberOfStackRows());
-  }
-
-  public boolean mayTriggerStackUnderflow() {
-    return this.getData().stackSettings().delta() > 0;
-  }
-
-  public boolean mayTriggerStackOverflow() {
-    return this.getData().stackSettings().alpha() > 0;
-  }
-
-  public boolean mayTriggerStaticException() {
-    return this.getData().stackSettings().forbiddenInStatic();
-  }
-
-  public boolean mayTriggerMemoryExpansionException() {
-    return this != MSIZE && this.getData().billing().type() != MxpType.NONE;
   }
 }

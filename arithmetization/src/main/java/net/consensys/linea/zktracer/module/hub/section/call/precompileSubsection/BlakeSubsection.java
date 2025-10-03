@@ -39,8 +39,8 @@ public class BlakeSubsection extends PrecompileSubsection {
   public BlakeSubsection(Hub hub, CallSection callSection) {
     super(hub, callSection);
 
-    blakeCdsOobCall = new Blake2fCallDataSizeOobCall();
-    firstImcFragment.callOob(blakeCdsOobCall);
+    blakeCdsOobCall =
+        (Blake2fCallDataSizeOobCall) firstImcFragment.callOob(new Blake2fCallDataSizeOobCall());
 
     if (!blakeCdsOobCall.isHubSuccess()) {
       this.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
@@ -69,10 +69,10 @@ public class BlakeSubsection extends PrecompileSubsection {
     secondImcFragment = ImcFragment.empty(hub);
     fragments.add(secondImcFragment);
 
-    blake2fParamsOobCall = new Blake2fParamsOobCall(calleeGas);
-    secondImcFragment.callOob(blake2fParamsOobCall);
+    blake2fParamsOobCall =
+        (Blake2fParamsOobCall) secondImcFragment.callOob(new Blake2fParamsOobCall(calleeGas));
 
-    checkArgument(blake2fParamsOobCall.isRamSuccess() == blakeSuccess);
+    checkArgument(blake2fParamsOobCall.isRamSuccess() == blakeSuccess, "BLAKE2f success mismatch");
   }
 
   @Override
@@ -80,8 +80,9 @@ public class BlakeSubsection extends PrecompileSubsection {
     super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity checks
-    checkArgument(blakeCdsOobCall.isHubSuccess() == (callDataSize() == 213));
-    checkArgument(callSuccess == blakeSuccess);
+    checkArgument(
+        blakeCdsOobCall.isHubSuccess() == (callDataSize() == 213), "BLAKE2f hub success mismatch");
+    checkArgument(callSuccess == blakeSuccess, "BLAKE2f call success mismatch");
     this.sanityCheck();
 
     if (!callSuccess) {

@@ -40,6 +40,9 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Getter
 public class SstoreSection extends TraceSection implements PostRollbackDefer {
 
+  public static final short NB_ROWS_HUB_STORAGE = 5;
+  // 1 stack + 1 CON + 1 IMC + 1 STO + 1 STO (rollback) = 5 + potentially 1 CON if exception
+
   final WorldView world;
   final Address accountAddress;
   final int accountAddressDeploymentNumber;
@@ -51,10 +54,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
   final int hubStamp;
 
   public SstoreSection(Hub hub, WorldView worldView) {
-    super(
-        hub,
-        (short)
-            (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 5 : 4)));
+    super(hub, (short) (NB_ROWS_HUB_STORAGE + (Exceptions.any(hub.pch().exceptions()) ? 1 : 0)));
 
     world = worldView;
     hubStamp = hub.stamp();
@@ -91,7 +91,9 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
       return;
     }
 
-    checkArgument(Exceptions.outOfGasException(exceptions) || Exceptions.none(exceptions));
+    checkArgument(
+        Exceptions.outOfGasException(exceptions) || Exceptions.none(exceptions),
+        "SSTORE may only throw STATICX, SSTOREX or OOGX exceptions, in that order of priority");
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
 
@@ -110,7 +112,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     // set the refundDelta
     commonValues.refundDelta(
         hub.gasProjector
-            .of(hub.currentFrame().frame(), hub.opCode())
+            .of(hub.currentFrame().frame(), hub.opCodeData())
             .refund()); // Note: we can't use Besu's refund value, as our is only for non-reverting
     // context
   }

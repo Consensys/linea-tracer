@@ -30,6 +30,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(UnitTestWatcher.class)
@@ -42,11 +43,11 @@ public class OobRdcTest extends TracerTestBase {
       BigInteger.ONE.shiftLeft(128).subtract(BigInteger.valueOf(100));
 
   @Test
-  void testReturnDataCopyMaxPosZero() {
+  void testReturnDataCopyMaxPosZero(TestInfo testInfo) {
     // maxPos = offset + size = 0 + 0 < rds = 32
     BytecodeCompiler program = initReturnDataCopyProgram(BigInteger.ZERO, BigInteger.ZERO);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
@@ -54,12 +55,12 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void testReturnDataCopyMaxPosRds() {
+  void testReturnDataCopyMaxPosRds(TestInfo testInfo) {
     // maxPos = offset + size = 12 + 20 = rds = 32
     BytecodeCompiler program =
         initReturnDataCopyProgram(BigInteger.valueOf(12), BigInteger.valueOf(20));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
@@ -67,12 +68,12 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void testReturnDataCopyMaxPosSmallerThanRds() {
+  void testReturnDataCopyMaxPosSmallerThanRds(TestInfo testInfo) {
     // maxPos = offset + size = 3 + 4 < rds = 32
     BytecodeCompiler program =
         initReturnDataCopyProgram(BigInteger.valueOf(3), BigInteger.valueOf(4));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
@@ -80,12 +81,12 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void testReturnDataCopyMaxPosSmallerThanRdsAndOffsetZero() {
+  void testReturnDataCopyMaxPosSmallerThanRdsAndOffsetZero(TestInfo testInfo) {
     // maxPos = offset + size = 0 + 4 < rds = 32
     BytecodeCompiler program =
         initReturnDataCopyProgram(BigInteger.valueOf(0), BigInteger.valueOf(4));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
@@ -93,12 +94,12 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void testReturnDataCopyMaxPosSmallerThanRdsAndSizeZero() {
+  void testReturnDataCopyMaxPosSmallerThanRdsAndSizeZero(TestInfo testInfo) {
     // maxPos = offset + size = 3 + 0 < rds = 32
     BytecodeCompiler program =
         initReturnDataCopyProgram(BigInteger.valueOf(3), BigInteger.valueOf(0));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
@@ -109,244 +110,245 @@ public class OobRdcTest extends TracerTestBase {
 
   // offset smaller cases
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetSmallerAndSizeSmall() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetSmallerAndSizeSmall(TestInfo testInfo) {
     // maxPos = offset + size = 10 + 23 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgram(BigInteger.valueOf(10), BigInteger.valueOf(23));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigLeft() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigLeft(TestInfo testInfo) {
     // maxPos = offset + size = 10 + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(BigInteger.valueOf(10), TWO_POW_128_LEFT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigRight() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigRight(TestInfo testInfo) {
     // maxPos = offset + size = 10 + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(BigInteger.valueOf(10), TWO_POW_128_RIGHT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   // offset just greater cases
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeZero() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeZero(TestInfo testInfo) {
     // maxPos = offset + size = 33 + 0 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgram(BigInteger.valueOf(33), BigInteger.valueOf(0));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeSmall() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeSmall(TestInfo testInfo) {
     // maxPos = offset + size = 33 + 23 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgram(BigInteger.valueOf(33), BigInteger.valueOf(23));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigLeft() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigLeft(TestInfo testInfo) {
     // maxPos = offset + size = 33 + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(BigInteger.valueOf(33), TWO_POW_128_LEFT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigRight() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigRight(
+      TestInfo testInfo) {
     // maxPos = offset + size = 33 + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(BigInteger.valueOf(33), TWO_POW_128_RIGHT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   // offset big left cases
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeZero() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeZero(TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + 0 > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(TWO_POW_128_LEFT, BigInteger.valueOf(0));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeSmall() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeSmall(TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + 23 > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(TWO_POW_128_LEFT, BigInteger.valueOf(23));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigLeft() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigLeft(TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(TWO_POW_128_LEFT, TWO_POW_128_LEFT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigRight() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigRight(TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(TWO_POW_128_LEFT, TWO_POW_128_RIGHT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   // offset big right cases
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigRightAndSizeZero() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigRightAndSizeZero(TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_RIGHT + 0 > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(TWO_POW_128_RIGHT, BigInteger.valueOf(0));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigRightAndSizeSmall() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigRightAndSizeSmall(TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_RIGHT + 23 > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(TWO_POW_128_RIGHT, BigInteger.valueOf(23));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigLeft() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigLeft(TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_Right + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(TWO_POW_128_RIGHT, TWO_POW_128_LEFT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigRight() {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigRight(TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_RIGHT + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(TWO_POW_128_RIGHT, TWO_POW_128_RIGHT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   // Same cases but using identity precompile
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosZero() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosZero(TestInfo testInfo) {
     // maxPos = offset + size = 0 + 0 < rds = 32
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(BigInteger.ZERO, BigInteger.ZERO);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
@@ -354,13 +356,13 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosRds() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosRds(TestInfo testInfo) {
     // maxPos = offset + size = 12 + 20 = rds = 32
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(
             BigInteger.valueOf(12), BigInteger.valueOf(20));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
     System.out.println(bytecodeRunner.getHub().currentFrame().frame().getReturnData());
@@ -369,13 +371,13 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosSmallerThanRds() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosSmallerThanRds(TestInfo testInfo) {
     // maxPos = offset + size = 3 + 4 < rds = 32
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(
             BigInteger.valueOf(3), BigInteger.valueOf(4));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
@@ -383,13 +385,14 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosSmallerThanRdsAndOffsetZero() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosSmallerThanRdsAndOffsetZero(
+      TestInfo testInfo) {
     // maxPos = offset + size = 0 + 4 < rds = 32
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(
             BigInteger.valueOf(0), BigInteger.valueOf(4));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
@@ -397,13 +400,13 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosSmallerThanRdsAndSizeZero() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosSmallerThanRdsAndSizeZero(TestInfo testInfo) {
     // maxPos = offset + size = 3 + 0 < rds = 32
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(
             BigInteger.valueOf(3), BigInteger.valueOf(0));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
@@ -414,13 +417,14 @@ public class OobRdcTest extends TracerTestBase {
 
   // offset smaller cases
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeSmall() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeSmall(
+      TestInfo testInfo) {
     // maxPos = offset + size = 10 + 23 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(
             BigInteger.valueOf(10), BigInteger.valueOf(23));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
     System.out.println(bytecodeRunner.getHub().currentFrame().frame().getReturnData());
@@ -428,252 +432,259 @@ public class OobRdcTest extends TracerTestBase {
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigLeft() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigLeft(
+      TestInfo testInfo) {
     // maxPos = offset + size = 10 + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(BigInteger.valueOf(10), TWO_POW_128_LEFT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigRight() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigRight(
+      TestInfo testInfo) {
     // maxPos = offset + size = 10 + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(BigInteger.valueOf(10), TWO_POW_128_RIGHT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   // offset just greater cases
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeZero() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeZero(
+      TestInfo testInfo) {
     // maxPos = offset + size = 33 + 0 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(
             BigInteger.valueOf(33), BigInteger.valueOf(0));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
   void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeSmall() {
+      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeSmall(
+          TestInfo testInfo) {
     // maxPos = offset + size = 33 + 23 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(
             BigInteger.valueOf(33), BigInteger.valueOf(23));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
   void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigLeft() {
+      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigLeft(
+          TestInfo testInfo) {
     // maxPos = offset + size = 33 + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(BigInteger.valueOf(33), TWO_POW_128_LEFT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
   void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigRight() {
+      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigRight(
+          TestInfo testInfo) {
     // maxPos = offset + size = 33 + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(BigInteger.valueOf(33), TWO_POW_128_RIGHT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   // offset big left cases
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeZero() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeZero(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + 0 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_LEFT, BigInteger.valueOf(0));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeSmall() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeSmall(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + 23 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_LEFT, BigInteger.valueOf(23));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigLeft() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigLeft(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_LEFT, TWO_POW_128_LEFT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigRight() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigRight(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_LEFT, TWO_POW_128_RIGHT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   // offset big right cases
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeZero() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeZero(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_RIGHT + 0 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_RIGHT, BigInteger.valueOf(0));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeSmall() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeSmall(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_RIGHT + 23 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_RIGHT, BigInteger.valueOf(23));
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigLeft() {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigLeft(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_Right + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_RIGHT, TWO_POW_128_LEFT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   @Test
   void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigRight() {
+      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigRight(
+          TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_RIGHT + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_RIGHT, TWO_POW_128_RIGHT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
 
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
     assertEquals(
         RETURN_DATA_COPY_FAULT,
-        bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
   }
 
   // Support methods
   BytecodeCompiler initReturnDataCopyProgram(BigInteger offset, BigInteger size) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     // Creates a constructor that creates a contract which returns 32 FF
     program
@@ -720,7 +731,7 @@ public class OobRdcTest extends TracerTestBase {
 
   BytecodeCompiler initReturnDataCopyProgramUsingIdentityPrecompile(
       BigInteger offset, BigInteger size) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     // First place the parameters in memory
     program

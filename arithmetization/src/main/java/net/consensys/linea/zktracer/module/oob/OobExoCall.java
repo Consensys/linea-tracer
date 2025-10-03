@@ -16,7 +16,10 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.ADD;
 import static net.consensys.linea.zktracer.types.Conversions.*;
+
+import java.math.BigInteger;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +27,9 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.mod.Mod;
+import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
@@ -36,6 +41,7 @@ public class OobExoCall {
   @Builder.Default private final boolean addFlag = false;
   @Builder.Default private final boolean modFlag = false;
   @Builder.Default private final boolean wcpFlag = false;
+  @Builder.Default private final boolean blsRtFlag = false;
   @Builder.Default private final int instruction = 0;
   @Builder.Default private final Bytes32 arg1 = Bytes32.ZERO;
   @Builder.Default private final Bytes32 arg2 = Bytes32.ZERO;
@@ -52,6 +58,10 @@ public class OobExoCall {
         .outgoingData3(arg2.slice(0, LLARGE))
         .outgoingData4(arg2.slice(LLARGE, LLARGE))
         .outgoingResLo(addFlag ? ZERO : result);
+    // Prague
+    if (blsRtFlag) {
+      trace.blsRefTableFlag(true);
+    }
   }
 
   public static OobExoCall callToADD(final Add add, final Bytes arg1, final Bytes arg2) {
@@ -63,7 +73,7 @@ public class OobExoCall {
         .instruction(EVM_INST_ADD)
         .arg1(arg1B32)
         .arg2(arg2B32)
-        .result(bigIntegerToBytes(add.callADD(arg1B32, arg2B32)))
+        .result(bigIntegerToBytes(add.call(ADD, arg1B32, arg2B32)))
         .build();
   }
 
@@ -150,6 +160,15 @@ public class OobExoCall {
         .arg1(arg1B32)
         .arg2(arg2B32)
         .result(bigIntegerToBytes(mod.callMOD(arg1B32, arg2B32)))
+        .build();
+  }
+
+  public static OobExoCall callToBlsRefTable(final int instruction, final int numInputs) {
+    return OobExoCall.builder()
+        .blsRtFlag(true)
+        .instruction(instruction)
+        .arg1(EWord.of(BigInteger.valueOf(numInputs), BigInteger.ZERO).toBytes())
+        .result(Bytes.ofUnsignedInt(BlsRt.getMsmDiscount(instruction, numInputs)))
         .build();
   }
 }

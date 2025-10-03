@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.container.module;
 import java.util.List;
 
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
@@ -28,7 +29,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public interface Module {
-  String moduleKey();
+  ModuleName moduleKey();
 
   default void traceStartConflation(final long blockCount) {}
 
@@ -37,7 +38,9 @@ public interface Module {
   }
 
   default void traceStartBlock(
-      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {}
+      WorldView world,
+      final ProcessableBlockHeader processableBlockHeader,
+      final Address miningBeneficiary) {}
 
   default void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
 
@@ -85,6 +88,6 @@ public interface Module {
   List<Trace.ColumnHeader> columnHeaders(Trace trace);
 
   default void commit(Trace trace) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("Can't trace module " + moduleKey());
   }
 }

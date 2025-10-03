@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.CommonPrecompileOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.shaRipId.RipOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.shaRipId.Sha2OobCall;
@@ -34,13 +35,15 @@ import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
 public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
+  public static final short NB_ROWS_HUB_PRC_SHARIP = 4;
+
   final CommonPrecompileOobCall oobCall;
 
   public ShaTwoOrRipemdSubSection(Hub hub, CallSection callSection) {
     super(hub, callSection);
 
     final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
-    oobCall =
+    final OobCall call =
         switch (flag()) {
           case PRC_SHA2_256 -> new Sha2OobCall(BigInteger.valueOf(calleeGas));
           case PRC_RIPEMD_160 -> new RipOobCall(BigInteger.valueOf(calleeGas));
@@ -48,7 +51,7 @@ public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
               String.format(
                   "Precompile address %s not supported by constructor", this.flag().toString()));
         };
-    firstImcFragment.callOob(oobCall);
+    oobCall = (CommonPrecompileOobCall) firstImcFragment.callOob(call);
 
     if (!oobCall.isHubSuccess()) {
       this.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
@@ -60,7 +63,10 @@ public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
     super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity check
-    checkArgument(callSuccess == oobCall.isHubSuccess());
+    checkArgument(
+        callSuccess == oobCall.isHubSuccess(),
+        "oob and hub disagree on precompile %s success",
+        flag());
 
     if (!callSuccess) {
       return;
@@ -102,7 +108,7 @@ public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
   // 4 = 1 + 3 (scenario row + up to 3 miscellaneous fragments)
   @Override
   protected short maxNumberOfLines() {
-    return 4;
+    return NB_ROWS_HUB_PRC_SHARIP;
     // Note: we don't have the callSuccess available at the moment
     // and can't provide the "real" value (2 in case of FKTH.)
   }

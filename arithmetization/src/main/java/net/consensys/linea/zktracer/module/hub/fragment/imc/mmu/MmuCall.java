@@ -27,8 +27,7 @@ import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.MBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.longToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
@@ -39,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.blsdata.BlsDataOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
@@ -96,6 +96,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
   protected boolean exoIsRipSha = false;
   protected boolean exoIsBlakeModexp = false;
   protected boolean exoIsEcData = false;
+  protected boolean exoIsBlsData = false;
   private int exoSum = 0;
 
   public void dontTraceMe() {
@@ -137,6 +138,10 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
   final MmuCall setEcData() {
     return this.exoIsEcData(true).updateExoSum(EXO_SUM_WEIGHT_ECDATA);
+  }
+
+  final MmuCall setBlsData() {
+    return this.exoIsBlsData(true).updateExoSum(EXO_SUM_WEIGHT_BLSDATA);
   }
 
   public MmuCall(final Hub hub, final int instruction) {
@@ -289,7 +294,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
   public static MmuCall txInit(final Hub hub) {
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-        .sourceId(hub.txStack().current().getAbsoluteTransactionNumber())
+        .sourceId(hub.txStack().current().getUserTransactionNumber())
         .exoBytes(Optional.of(hub.txStack().current().getBesuTransaction().getPayload()))
         .targetId(hub.stamp())
         .targetRamBytes(Optional.of(Bytes.EMPTY))
@@ -319,7 +324,11 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
     final int precompileContextNumber = subsection.exoModuleOperationId();
 
-    checkState(subsection.returnDataRange.getRange().size() == TOTAL_SIZE_ECRECOVER_RESULT);
+    checkState(
+        subsection.returnDataRange.getRange().size() == TOTAL_SIZE_ECRECOVER_RESULT,
+        String.format(
+            "MmuCall: Ecrecover return data size is %d but is expected to be %d",
+            subsection.returnDataRange.getRange().size(), TOTAL_SIZE_ECRECOVER_RESULT));
 
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(precompileContextNumber)
@@ -353,7 +362,12 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
     final PrecompileScenarioFragment.PrecompileFlag flag =
         subsection.precompileScenarioFragment().flag;
-    checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
+    checkArgument(
+        flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160),
+        "Unexpected precompile %s, only accept %s and %s",
+        flag,
+        PRC_SHA2_256,
+        PRC_RIPEMD_160);
 
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
@@ -372,7 +386,12 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
     final PrecompileScenarioFragment.PrecompileFlag flag =
         subsection.precompileScenarioFragment().flag;
-    checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
+    checkArgument(
+        flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160),
+        "Unexpected precompile %s, only accept %s and %s",
+        flag,
+        PRC_SHA2_256,
+        PRC_RIPEMD_160);
 
     final boolean isShaTwo = flag == PRC_SHA2_256;
 
@@ -400,8 +419,15 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     final PrecompileScenarioFragment.PrecompileFlag flag =
         subsection.precompileScenarioFragment().flag;
 
-    checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
-    checkArgument(!subsection.getReturnAtRange().isEmpty());
+    checkArgument(
+        flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160),
+        "Unexpected precompile %s, only accept %s and %s",
+        flag,
+        PRC_SHA2_256,
+        PRC_RIPEMD_160);
+    checkArgument(
+        !subsection.getReturnAtRange().isEmpty(),
+        "Partial copy of return data cannot be done if the `returnAtRange` is empty");
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(subsection.returnDataContextNumber())
@@ -430,8 +456,12 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
   public static MmuCall partialCopyOfReturnDataForIdentity(
       final Hub hub, final PrecompileSubsection subsection) {
 
-    checkState(subsection.callDataSize() == subsection.returnDataSize());
-    checkState(subsection.returnDataOffset() == 0);
+    checkState(
+        subsection.callDataSize() == subsection.returnDataSize(),
+        "MmuCall: the IDENTITY precompile should have <call data size> == <return data size>");
+    checkState(
+        subsection.returnDataOffset() == 0,
+        "MmuCall: the IDENTITY precompile store its <return data> starting at offset 0");
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(subsection.exoModuleOperationId())
@@ -542,6 +572,59 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .successBit(successBit)
         .setEcData()
         .phase(PHASE_ECPAIRING_DATA);
+  }
+
+  public static MmuCall callDataExtractionForBlsPrecompiles(
+      Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
+    final int precompileContextNumber = subsection.exoModuleOperationId();
+    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING) // Note: there will be no padding
+        .sourceId(hub.currentFrame().contextNumber())
+        .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
+        .targetId(precompileContextNumber)
+        .exoBytes(Optional.of(subsection.extractCallData()))
+        .sourceOffset(EWord.of(subsection.callDataOffset()))
+        .size(subsection.callDataSize())
+        .referenceSize(subsection.callDataSize())
+        // constant
+        .successBit(successBit)
+        .setBlsData()
+        .phase(subsection.flag().dataPhase());
+  }
+
+  public static MmuCall fullReturnDataTransferForBlsPrecompiles(
+      final Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
+
+    final int precompileContextNumber = subsection.exoModuleOperationId();
+
+    final long expectedReturnDataSize = BlsDataOperation.expectedReturnDataSize(subsection.flag());
+    checkState(
+        subsection.returnDataRange.getRange().size() == expectedReturnDataSize,
+        "The return data size for BLS precompile does not match our expectation of it");
+
+    return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+        .sourceId(precompileContextNumber)
+        .exoBytes(Optional.of(subsection.returnDataRange.extract()))
+        .targetId(precompileContextNumber)
+        .targetRamBytes(Optional.of(Bytes.EMPTY))
+        .size(expectedReturnDataSize)
+        .phase(subsection.flag().resultPhase())
+        .successBit(successBit)
+        .setBlsData();
+  }
+
+  public static MmuCall partialCopyOfReturnDataForBlsPrecompiles(
+      final Hub hub, PrecompileSubsection subsection) {
+    final int precompileContextNumber = subsection.exoModuleOperationId();
+    final int returnDataSize = (int) subsection.returnDataRange.getRange().size();
+
+    return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
+        .sourceId(precompileContextNumber)
+        .sourceRamBytes(Optional.of(subsection.returnDataRange.extract()))
+        .targetId(hub.currentFrame().contextNumber())
+        .targetRamBytes(Optional.of(subsection.rawCallerMemory()))
+        .size(returnDataSize)
+        .referenceOffset(subsection.returnAtOffset())
+        .referenceSize(subsection.returnAtCapacity());
   }
 
   /**
@@ -780,6 +863,38 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .size(modExpMetadata.mbs().toInt())
         .referenceOffset(subsection.returnAtOffset())
         .referenceSize(subsection.returnAtCapacity());
+  }
+
+  public static MmuCall mcopyCopy(Hub hub, CallFrame callFrame) {
+    final EWord sourceOffset = EWord.of(callFrame.frame().getStackItem(1));
+    final long size = clampedToLong(callFrame.frame().getStackItem(2));
+    return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
+        .sourceId(callFrame.contextNumber())
+        .sourceRamBytes(
+            Optional.of(
+                extractContiguousLimbsFromMemory(
+                    callFrame.frame(), Range.fromOffsetAndSize(sourceOffset.toLong(), size))))
+        .targetId(newIdentifierFromStamp(hub.stamp()))
+        .sourceOffset(sourceOffset)
+        .size(size)
+        .referenceSize(size);
+  }
+
+  public static MmuCall mcopyPaste(Hub hub, CallFrame callFrame) {
+    final long size = clampedToLong(callFrame.frame().getStackItem(2));
+    final long sourceOffset = clampedToLong(callFrame.frame().getStackItem(1));
+    final Bytes currentMemory =
+        hub.currentFrame().frame().shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize());
+    final Bytes slicedCurrentMemory =
+        rightPaddedSlice(currentMemory, (int) sourceOffset, (int) size);
+    return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
+        .sourceId(newIdentifierFromStamp(hub.stamp()))
+        .sourceRamBytes(Optional.of(slicedCurrentMemory))
+        .targetId(callFrame.contextNumber())
+        .targetRamBytes(Optional.of(currentMemory))
+        .size(size)
+        .referenceOffset(clampedToLong(callFrame.frame().getStackItem(0)))
+        .referenceSize(size);
   }
 
   @Override

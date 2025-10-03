@@ -15,18 +15,26 @@
 
 package net.consensys.linea.zktracer.module.tables.instructionDecoder;
 
+import static net.consensys.linea.zktracer.module.ModuleName.INSTRUCTION_DECODER;
+
 import java.util.List;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
-import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 public abstract class InstructionDecoder implements Module {
+  private final OpCodes opCodes;
+
+  public InstructionDecoder(OpCodes opCodes) {
+    this.opCodes = opCodes;
+  }
+
   private void traceFamily(OpCodeData op, Trace.Instdecoder trace) {
     trace
         .familyAdd(op.instructionFamily() == InstructionFamily.ADD)
@@ -55,9 +63,16 @@ public abstract class InstructionDecoder implements Module {
         .familyHalt(op.instructionFamily() == InstructionFamily.HALT)
         .familyInvalid(op.instructionFamily() == InstructionFamily.INVALID);
     traceTransientFamily(op, trace);
+    traceMcopyFamily(op, trace);
   }
 
   protected abstract void traceTransientFamily(OpCodeData op, Trace.Instdecoder trace);
+
+  protected abstract void traceMcopyFamily(OpCodeData op, Trace.Instdecoder trace);
+
+  protected abstract void traceMxpFlag(OpCodeData op, Trace.Instdecoder trace);
+
+  protected abstract void traceMxpScenario(OpCodeData op, Trace.Instdecoder trace);
 
   private static void traceStackSettings(OpCodeData op, Trace.Instdecoder trace) {
     trace
@@ -72,7 +87,7 @@ public abstract class InstructionDecoder implements Module {
         .flag4(op.stackSettings().flag4());
   }
 
-  private static void traceBillingSettings(OpCodeData op, Trace.Instdecoder trace) {
+  private void traceBillingSettings(OpCodeData op, Trace.Instdecoder trace) {
     trace
         .billingPerWord(
             UnsignedByte.of(
@@ -83,18 +98,14 @@ public abstract class InstructionDecoder implements Module {
             UnsignedByte.of(
                 op.billing().billingRate() == BillingRate.BY_BYTE
                     ? op.billing().perUnit().cost()
-                    : 0))
-        .mxpType1(op.billing().type() == MxpType.TYPE_1)
-        .mxpType2(op.billing().type() == MxpType.TYPE_2)
-        .mxpType3(op.billing().type() == MxpType.TYPE_3)
-        .mxpType4(op.billing().type() == MxpType.TYPE_4)
-        .mxpType5(op.billing().type() == MxpType.TYPE_5)
-        .mxpFlag(op.isMxp());
+                    : 0));
+    traceMxpFlag(op, trace);
+    traceMxpScenario(op, trace);
   }
 
   @Override
-  public String moduleKey() {
-    return "INSTRUCTION_DECODER";
+  public ModuleName moduleKey() {
+    return INSTRUCTION_DECODER;
   }
 
   @Override
@@ -126,7 +137,7 @@ public abstract class InstructionDecoder implements Module {
   }
 
   private void traceOpcode(final int i, final Trace trace) {
-    final OpCodeData op = OpCode.of(i).getData();
+    final OpCodeData op = opCodes.of(i);
     traceFamily(op, trace.instdecoder());
     traceStackSettings(op, trace.instdecoder());
     traceBillingSettings(op, trace.instdecoder());

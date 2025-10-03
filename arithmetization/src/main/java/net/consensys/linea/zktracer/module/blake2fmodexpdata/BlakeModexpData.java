@@ -15,18 +15,21 @@
 
 package net.consensys.linea.zktracer.module.blake2fmodexpdata;
 
+import static net.consensys.linea.zktracer.module.ModuleName.BLAKE_MODEXP_DATA;
+
 import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.container.module.IncrementAndDetectModule;
+import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
-import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @RequiredArgsConstructor
@@ -34,8 +37,9 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 @Accessors(fluent = true)
 public class BlakeModexpData implements OperationListModule<BlakeModexpDataOperation> {
   private final Wcp wcp;
-  private final ModexpEffectiveCall modexpEffectiveCall;
-  private final BlakeEffectiveCall blakeEffectiveCall;
+  private final IncrementAndDetectModule modexpEffectiveCall;
+  private final IncrementingModule modexpLargeCall;
+  private final IncrementingModule blakeEffectiveCall;
   private final BlakeRounds blakeRounds;
 
   private final ModuleOperationStackedList<BlakeModexpDataOperation> operations =
@@ -44,13 +48,14 @@ public class BlakeModexpData implements OperationListModule<BlakeModexpDataOpera
   private long previousID = 0;
 
   @Override
-  public String moduleKey() {
-    return "BLAKE_MODEXP_DATA";
+  public ModuleName moduleKey() {
+    return BLAKE_MODEXP_DATA;
   }
 
   public void callModexp(final ModexpMetadata modexpMetaData, final int operationID) {
     operations.add(new BlakeModexpDataOperation(modexpMetaData, operationID));
     modexpEffectiveCall.updateTally(1);
+    modexpLargeCall.updateTally(modexpMetaData.largeModexp());
     callWcpForIdCheck(operationID);
   }
 

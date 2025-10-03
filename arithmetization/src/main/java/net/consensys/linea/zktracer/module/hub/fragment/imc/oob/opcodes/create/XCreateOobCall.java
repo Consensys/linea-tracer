@@ -18,12 +18,12 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.create;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.TraceShanghai.Oob.CT_MAX_XCREATE;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
-import static net.consensys.linea.zktracer.module.txndata.moduleOperation.ShanghaiTxndataOperation.MAX_INIT_CODE_SIZE_BYTES;
+import static net.consensys.linea.zktracer.module.txndata.shanghai.ShanghaiTxndataOperation.MAX_INIT_CODE_SIZE_BYTES;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.TraceShanghai;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
@@ -34,8 +34,10 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class XCreateOobCall extends OobCall {
-  EWord codeSize;
+  // Inputs
+  @EqualsAndHashCode.Include EWord codeSize;
 
   public XCreateOobCall() {
     super();
@@ -47,7 +49,7 @@ public class XCreateOobCall extends OobCall {
   }
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
     exoCalls.add(callToLT(wcp, MAX_INIT_CODE_SIZE_BYTES, codeSize));
   }
 
@@ -58,17 +60,11 @@ public class XCreateOobCall extends OobCall {
 
   @Override
   public Trace.Oob trace(Trace.Oob trace) {
-    try {
-      // At this stage, we use Shanghai trace columns so we cast the trace to Shanghai trace
-      var traceOobShanghai = (TraceShanghai.Oob) trace;
-      return traceOobShanghai
-          .isXcreate(true)
-          .oobInst(OOB_INST_XCREATE)
-          .data1(codeSize.hi())
-          .data2(codeSize.lo());
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Trace argument is not of type TraceShanghai.Oob", e);
-    }
+    return trace
+        .isXcreate(true)
+        .oobInst(OOB_INST_XCREATE)
+        .data1(codeSize.hi())
+        .data2(codeSize.lo());
   }
 
   @Override

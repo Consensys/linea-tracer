@@ -15,18 +15,16 @@
 
 package net.consensys.linea.zktracer.container.stacked;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import static net.consensys.linea.zktracer.container.stacked.ModuleOperationAdder.existingOperation;
+import static net.consensys.linea.zktracer.container.stacked.ModuleOperationAdder.newOperation;
+
+import java.util.*;
 import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Implements a system of pseudo-stacked squashed sets where {@link
@@ -69,7 +67,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
 
   public Set<E> getAll() {
     Preconditions.checkState(conflationFinished, "Conflation not finished");
-    return operationsCommitedToTheConflation();
+    return operationsCommitedToTheConflation().keySet();
   }
 
   public boolean isEmpty() {
@@ -77,36 +75,33 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   }
 
   public boolean contains(Object o) {
-    return operationsInTransactionBundle().contains(o)
-        || operationsCommitedToTheConflation().contains(o);
+    return operationsInTransactionBundle().containsKey(o)
+        || operationsCommitedToTheConflation().containsKey(o);
   }
 
   public boolean add(E e) {
-    if (!operationsCommitedToTheConflation().contains(e)) {
-      final boolean isNew = operationsInTransactionBundle().add(e);
-      if (isNew) {
+    if (!operationsCommitedToTheConflation().containsKey(e)) {
+      final E isNew = operationsInTransactionBundle().putIfAbsent(e, e);
+      if (isNew == null) {
         lineCounter.add(e.lineCount());
       }
-      return isNew;
+      return (isNew == null);
     }
     return false;
   }
 
-  public boolean containsAll(@NotNull Collection<?> c) {
-    for (var x : c) {
-      if (!contains(x)) {
-        return false;
-      }
-    }
-    return true;
-  }
+  public ModuleOperationAdder addAndGet(E e) {
+    // First search if the operation is already present
+    final E existing = operationsInTransactionBundle().get(e);
+    if (existing != null) return existingOperation(existing);
 
-  public boolean addAll(@NotNull Collection<? extends E> c) {
-    boolean r = false;
-    for (var x : c) {
-      r |= add(x);
-    }
-    return r;
+    final E existingInCommitted = operationsCommitedToTheConflation().get(e);
+    if (existingInCommitted != null) return existingOperation(existingInCommitted);
+
+    // Not found, add it
+    operationsInTransactionBundle().put(e, e);
+    lineCounter.add(e.lineCount());
+    return newOperation(e);
   }
 
   public void clear() {
@@ -117,7 +112,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
 
   public void finishConflation() {
     conflationFinished = true;
-    operationsCommitedToTheConflation().addAll(operationsInTransactionBundle());
+    operationsCommitedToTheConflation().putAll(operationsInTransactionBundle());
     operationsInTransactionBundle().clear();
     lineCounter.commitTransactionBundle(); // this is not mandatory but it is more consistent
   }

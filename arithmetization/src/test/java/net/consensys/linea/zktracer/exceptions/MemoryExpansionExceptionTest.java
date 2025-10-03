@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.exceptions;
 
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.MEMORY_EXPANSION_EXCEPTION;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType2;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType3;
@@ -32,8 +33,10 @@ import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.mxp.MxpTestUtils;
+import net.consensys.linea.zktracer.module.mxp.moduleOperation.LondonMxpOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -44,37 +47,51 @@ public class MemoryExpansionExceptionTest extends TracerTestBase {
 
   @ParameterizedTest
   @MethodSource("memoryExpansionExceptionTestSource")
-  public void memoryExpansionExceptionTest(boolean triggerRoob, OpCode opCode) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+  public void memoryExpansionExceptionTest(boolean triggerRoob, OpCode opCode, TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     boolean triggerMaxCodeSizeException = false;
-    new MxpTestUtils()
+    new MxpTestUtils(opcodes)
         .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
-            program, triggerRoob, triggerMaxCodeSizeException, opCode);
+            fork, program, triggerRoob, triggerMaxCodeSizeException, opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
     assertEquals(
         MEMORY_EXPANSION_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
+
     assertTrue(bytecodeRunner.getHub().mxp().operations().getLast().getMxpCall().isMxpx());
-    assertEquals(triggerRoob, bytecodeRunner.getHub().mxp().operations().getLast().isRoob());
+
+    // Check to do prior to Cancun fork
+    if (!isPostCancun(fork)) {
+      LondonMxpOperation londonMxpOperation =
+          (LondonMxpOperation) bytecodeRunner.getHub().mxp().operations().getLast();
+      assertEquals(triggerRoob, londonMxpOperation.isRoob());
+    }
   }
 
   @Test
-  public void soloMemoryExpansionTest() {
+  public void soloMemoryExpansionTest(TestInfo testInfo) {
     boolean triggerRoob = false;
     boolean triggerMaxCodeSizeException = false;
     OpCode opCode = OpCode.CODECOPY;
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
-    new MxpTestUtils()
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
+    new MxpTestUtils(opcodes)
         .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
-            program, triggerRoob, triggerMaxCodeSizeException, opCode);
+            fork, program, triggerRoob, triggerMaxCodeSizeException, opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
     assertEquals(
         MEMORY_EXPANSION_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+        bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
+
     assertTrue(bytecodeRunner.getHub().mxp().operations().getLast().getMxpCall().isMxpx());
-    assertEquals(triggerRoob, bytecodeRunner.getHub().mxp().operations().getLast().isRoob());
+
+    // Check to do prior to Cancun fork
+    if (!isPostCancun(fork)) {
+      LondonMxpOperation londonMxpOperation =
+          (LondonMxpOperation) bytecodeRunner.getHub().mxp().operations().getLast();
+      assertEquals(triggerRoob, londonMxpOperation.isRoob());
+    }
   }
 
   private static Stream<Arguments> memoryExpansionExceptionTestSource() {

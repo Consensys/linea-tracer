@@ -27,17 +27,16 @@ import java.math.RoundingMode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
-import net.consensys.linea.zktracer.module.mod.Mod;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
+@Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class OobOperation extends ModuleOperation {
   @EqualsAndHashCode.Include @Setter public OobCall oobCall;
@@ -50,32 +49,27 @@ public class OobOperation extends ModuleOperation {
     return ctMax() + 1;
   }
 
-  public OobOperation(
-      OobCall oobCall,
-      final Hub hub,
-      final MessageFrame frame,
-      final Add add,
-      final Mod mod,
-      final Wcp wcp) {
+  public OobOperation(OobCall oobCall, final Hub hub, final MessageFrame frame) {
     this.oobCall = oobCall;
-
     oobCall.setInputData(frame, hub);
-    oobCall.callExoModules(add, mod, wcp);
   }
 
   // Support method for MODEXP
   public static int computeExponentLog(ModexpMetadata metadata, int cds) {
     final int bbs = metadata.bbsInt();
     final int ebs = metadata.ebsInt();
+    return computeExponentLog(metadata.callData(), cds, bbs, ebs);
+  }
 
-    // pad CallData to 96 + bbs + ebs
-    final Bytes doublePaddedCallData =
+  public static int computeExponentLog(Bytes callData, int cds, int bbs, int ebs) {
+    // pad callData to 96 + bbs + ebs
+    final Bytes paddedCallData =
         cds < BASE_MIN_OFFSET + bbs + ebs
-            ? rightPadTo(metadata.callData(), BASE_MIN_OFFSET + bbs + ebs)
-            : metadata.callData();
+            ? rightPadTo(callData, BASE_MIN_OFFSET + bbs + ebs)
+            : callData;
 
     final BigInteger leadingBytesOfExponent =
-        doublePaddedCallData
+        paddedCallData
             .slice(BASE_MIN_OFFSET + bbs, min(ebs, EBS_MIN_OFFSET))
             .toUnsignedBigInteger();
 

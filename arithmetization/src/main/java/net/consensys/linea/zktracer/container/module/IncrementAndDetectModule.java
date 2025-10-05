@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.container.module;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.ModuleName;
 
+import static com.google.common.base.Preconditions.checkState;
+
 public class IncrementAndDetectModule extends IncrementingModule {
 
   public static final String ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX =
@@ -31,7 +33,7 @@ public class IncrementAndDetectModule extends IncrementingModule {
 
   @Override
   public void commitTransactionBundle() {
-    // checkState(!eventDetected, ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX);
+    checkState(!eventDetected, ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX);
     super.commitTransactionBundle();
   }
 

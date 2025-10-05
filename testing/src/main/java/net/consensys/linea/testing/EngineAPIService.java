@@ -174,7 +174,7 @@ public class EngineAPIService {
     return switch (fork) {
       case PARIS -> createEngineCall("engine_forkchoiceUpdatedV1", params);
       case SHANGHAI -> createEngineCall("engine_forkchoiceUpdatedV2", params);
-      case CANCUN, PRAGUE -> createEngineCall("engine_forkchoiceUpdatedV3", params);
+      case CANCUN, PRAGUE, OSAKA -> createEngineCall("engine_forkchoiceUpdatedV3", params);
       default -> throw new IllegalArgumentException(
           "Unsupported fork for createForkChoiceRequest: " + fork);
     };

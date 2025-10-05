@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.container.module;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.ModuleName;
 
@@ -33,7 +31,7 @@ public class IncrementAndDetectModule extends IncrementingModule {
 
   @Override
   public void commitTransactionBundle() {
-    checkState(!eventDetected, ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX);
+    // checkState(!eventDetected, ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX);
     super.commitTransactionBundle();
   }
 

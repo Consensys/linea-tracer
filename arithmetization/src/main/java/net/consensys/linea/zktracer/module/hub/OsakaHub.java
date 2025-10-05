@@ -15,5 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-public class OsakaHub {
+import net.consensys.linea.zktracer.ChainConfig;
+
+public class OsakaHub extends PragueHub {
+  public OsakaHub(ChainConfig chain) {
+    super(chain);
+  }
 }

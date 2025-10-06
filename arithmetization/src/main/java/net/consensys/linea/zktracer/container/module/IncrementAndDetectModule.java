@@ -15,10 +15,10 @@
 
 package net.consensys.linea.zktracer.container.module;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.ModuleName;
-
-import static com.google.common.base.Preconditions.checkState;
 
 public class IncrementAndDetectModule extends IncrementingModule {
 

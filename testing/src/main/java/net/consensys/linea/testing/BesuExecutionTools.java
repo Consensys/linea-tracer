@@ -368,7 +368,7 @@ public class BesuExecutionTools {
     var shanghaiTime = genesisConfigBuilder.getShanghaiTime();
     var cancunTime = genesisConfigBuilder.getCancunTime();
     var pragueTime = genesisConfigBuilder.getPragueTime();
-    var osakaTime = genesisConfigBuilder.getPragueTime();
+    var osakaTime = genesisConfigBuilder.getOsakaTime();
 
     // No fork switch specified in the genesis file, stay in London
     if (TTD == null && shanghaiTime == null && cancunTime == null && pragueTime == null) {

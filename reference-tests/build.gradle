@@ -103,7 +103,7 @@ tasks.register('referenceBlockchainTests', Test) {
 tasks.register('referenceExecutionSpecBlockchainTests', Test) {
   finalizedBy(jacocoReferenceBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
-  dependsOn generateBlockchainReferenceTests
+  dependsOn generateExecutionSpecBlockchainTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 
   it.configure {
@@ -156,7 +156,6 @@ dependencies {
 
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
   testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
-  // testImplementation 'ethereum:execution-spec-tests:4.5.0:fixtures_develop@tar.gz'
 
   implementation project(":arithmetization")
   implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'

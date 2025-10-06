@@ -586,20 +586,20 @@ public class BlockchainReferenceTestTools {
   public static Collection<Object[]> generateTestParametersForConfig(
       final String[] filePath, final String testSrcPath) {
     Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
-    log.info(String.valueOf(Paths.get(testSrcPath + filePath[0]).toFile()));
     return PARAMS.generate(
         Arrays.stream(filePath).map(f -> Paths.get(testSrcPath + "/" + f).toFile()).toList());
   }
 
   public static Collection<Object[]> generateTestParametersForConfigForFailedTests(
-      final String[] filePath, String failedModule, String failedConstraint)
+      final String[] filePath,
+      final String testSrcPath,
+      String failedModule,
+      String failedConstraint)
       throws ExecutionException, InterruptedException {
     Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
     Collection<Object[]> params =
         PARAMS.generate(
-            Arrays.stream(filePath)
-                .map(f -> Paths.get("build/execution-spec-tests/" + f).toFile())
-                .toList());
+            Arrays.stream(filePath).map(f -> Paths.get(testSrcPath + "/" + f).toFile()).toList());
 
     return getRecordedFailedTestsFromJson(failedModule, failedConstraint)
         .thenApply(

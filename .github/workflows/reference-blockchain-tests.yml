@@ -86,6 +86,11 @@ jobs:
       - name: Setup Test Environment
         uses: ./.github/actions/setup-environment
 
+      - name: Download execution spec fixtures
+        run: ./gradlew :reference-tests:downloadExecutionSpecFixtures
+        env:
+          JAVA_OPTS: -Dorg.gradle.daemon=false
+
       - name: Generate execution spec blockchain reference tests
         run: ./gradlew :reference-tests:generateExecutionSpecBlockchainTests -Dorg.gradle.caching=true
         env:

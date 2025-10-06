@@ -1,3 +1,5 @@
+import de.undercouch.gradle.tasks.download.Download
+
 /*
  * Copyright Consensys Software Inc.
  *
@@ -35,6 +37,7 @@ configurations.configureEach {
 tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   refTestTemplateFilePath = "src/test/resources/templates/BlockchainReferenceTest.java.template"
   refTests = "src/test/resources/ethereum-tests/BlockchainTests"
+  refTestsSrcPath = "src/test/resources/ethereum-tests/"
   refTestJsonParamsDirectory = "BlockchainTests"
   refTestJsonParamsExcludedPath = "BlockchainTests/InvalidBlocks/bcExpectSection" // exclude test for test filling tool
   refTestNamePrefix = "BlockchainReferenceTest"
@@ -44,20 +47,26 @@ tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   failedConstraint = System.getenv('FAILED_CONSTRAINT') ?: ""
 }
 
-tasks.register("generateExecutionSpecTests", RefTestGenerationTask) {
-/*  def tarPath = configurations.tarConfig.files.find{ it.name.startsWith('execution-spec-tests')}
-    if (tarPath == null) {
-        throw new GradleException("Could not find execution-spec-tests tarball in configurations.tarConfig. Ensure you have run 'gradle :reference-tests:dependencies' to download it.")
-    }*/
+tasks.register("downloadExecutionSpecFixtures", Download)
+        {
+  src "https://github.com/ethereum/execution-spec-tests/releases/download/v5.2.0/fixtures_develop.tar.gz"
+  dest "./build/fixtures_develop.tar.gz"
+  overwrite false
+}
+
+
+tasks.register("generateExecutionSpecBlockchainTests", RefTestGenerationTask) {
+  dependsOn "downloadExecutionSpecFixtures"
   copy {
-    from tarTree("fixtures_develop.tar.gz")
-    into "$buildDir/execution-spec-tests"
+    from tarTree("./build/fixtures_develop.tar.gz")
+    into "./build/execution-spec-tests"
   }
   refTestTemplateFilePath = "src/test/resources/templates/BlockchainReferenceTest.java.template"
-  refTests = "$buildDir/execution-spec-tests/fixtures/blockchain_tests"
+  refTests = "./build/execution-spec-tests/fixtures/blockchain_tests"
+  refTestsSrcPath = "./build/execution-spec-tests/"
   refTestJsonParamsDirectory = "fixtures"
   refTestJsonParamsExcludedPath = "" // exclude test for test filling tool
-  refTestNamePrefix = "ExecutionSpecBlockchainTest"
+  refTestNamePrefix = "BlockchainTests"
   generatedRefTestsOutput = "src/test/java/net/consensys/linea/generated/blockchain"
   failedTestsFilePath = System.getenv('FAILED_TEST_JSON_DIRECTORY') ?: "../tmp/local/"
   failedModule = System.getenv('FAILED_MODULE') ?: ""
@@ -67,7 +76,34 @@ tasks.register("generateExecutionSpecTests", RefTestGenerationTask) {
 tasks.register('referenceBlockchainTests', Test) {
   finalizedBy(jacocoReferenceBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
-  dependsOn generateExecutionSpecTests
+  dependsOn generateBlockchainReferenceTests
+  environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
+
+  it.configure {
+    // Configure resource limits
+    boolean isCiServer = System.getenv().containsKey("CI")
+    minHeapSize = "256m"
+    maxHeapSize = isCiServer ? "32g" : "8g"
+    // Configure parallelism
+    environment.put("blockchain", System.getenv("blockchain") ?: "Ethereum")
+    systemProperty("junit.jupiter.execution.timeout.default", "15 m")
+    systemProperty("junit.jupiter.execution.parallel.enabled", "true")
+    systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+    systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+    systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+    systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
+            System.getenv().getOrDefault("REFERENCE_TESTS_PARALLELISM", "1").toInteger())
+  }
+
+  useJUnitPlatform {
+    includeTags("BlockchainReferenceTest")
+  }
+}
+
+tasks.register('referenceExecutionSpecBlockchainTests', Test) {
+  finalizedBy(jacocoReferenceBlockchainTestsReport)
+  description = 'Runs ETH reference blockchain tests.'
+  dependsOn generateBlockchainReferenceTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 
   it.configure {

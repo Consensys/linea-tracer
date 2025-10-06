@@ -14,23 +14,6 @@ plugins {
   id "org.sonarqube" version "4.3.1.3277"
 }
 
-repositories {
-  // ethereum execution spec tests fixtures. Exclusively for ethereum submodule to run ref tests
-  def ethExecSpecTestsRepo = ivy {
-    url = 'https://github.com'
-    patternLayout {
-      artifact '/[organisation]/[module]/releases/download/v[revision]/[classifier].[ext]'
-    }
-    metadataSources {
-      artifact()
-    }
-  }
-  exclusiveContent {
-    forRepositories(ethExecSpecTestsRepo)
-    filter { includeModule('reference-tests', 'execution-spec-tests')}
-  }
-}
-
 sonar {
   def tests = System.getProperty("tests")
   def xmlTestReport = ""

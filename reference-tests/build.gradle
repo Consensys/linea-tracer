@@ -65,7 +65,7 @@ tasks.register("generateExecutionSpecBlockchainTests", RefTestGenerationTask) {
   refTestsSrcPath = "./build/execution-spec-tests/"
   refTestJsonParamsDirectory = "fixtures"
   refTestJsonParamsExcludedPath = "" // exclude test for test filling tool
-  refTestNamePrefix = "BlockchainTests"
+  refTestNamePrefix = "BlockchainReferenceTest"
   generatedRefTestsOutput = "src/test/java/net/consensys/linea/generated/blockchain"
   failedTestsFilePath = System.getenv('FAILED_TEST_JSON_DIRECTORY') ?: "../tmp/local/"
   failedModule = System.getenv('FAILED_MODULE') ?: ""
@@ -100,7 +100,7 @@ tasks.register('referenceBlockchainTests', Test) {
 }
 
 tasks.register('referenceExecutionSpecBlockchainTests', Test) {
-  finalizedBy(jacocoReferenceBlockchainTestsReport)
+  finalizedBy(jacocoReferenceExecutionSpecBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
   dependsOn generateExecutionSpecBlockchainTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
@@ -133,6 +133,15 @@ tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
 
   sourceSets project(":arithmetization").sourceSets.main
   executionData(referenceBlockchainTests)
+}
+
+tasks.register("jacocoReferenceExecutionSpecBlockchainTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  sourceSets project(":arithmetization").sourceSets.main
+  executionData(referenceExecutionSpecBlockchainTests)
 }
 
 dependencies {

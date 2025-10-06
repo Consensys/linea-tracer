@@ -111,7 +111,7 @@ jobs:
         run: mv ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/failedBlockchainReferenceTests.json ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/failedBlockchainReferenceTests-input.json
 
       - name: Run reference execution spec blockchain tests
-        run: GOMAXPROCS=10 GOMEMLIMIT=20GiB ./gradlew referenceExecutionSpecBlockchainTests -x spotlessCheck --tests "${{ inputs.test_filter || 'ExecutionSpecBlockchainTest_*' }}"
+        run: GOMAXPROCS=10 GOMEMLIMIT=20GiB ./gradlew referenceExecutionSpecBlockchainTests -x spotlessCheck --tests "${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}"
         timeout-minutes: 360
         env:
           REFERENCE_TESTS_PARALLELISM: 3
@@ -127,28 +127,28 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: failedBlockchainReferenceTests-${{ inputs.zkevm_fork }}.json
+          name: failedBlockchainReferenceTests-PRAGUE.json
           path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
 
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: blockchain-refrence-tests-report-${{ inputs.zkevm_fork }}
+          name: blockchain-reference-tests-report-PRAGUE
           path: reference-tests/build/reports/tests/**/*
 
       - name: Upload jacoco blockchain tests coverage report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: jacoco-blockchain-tests-coverage-report-${{ inputs.zkevm_fork }}
+          name: jacoco-blockchain-tests-coverage-report-PRAGUE
           path: reference-tests/build/reports/jacoco/jacocoReferenceBlockchainTestsReport/**/*
 
       - name: Upload jacoco blockchain tests exec file
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: jacoco-blockchain-tests-exec-file-${{ inputs.zkevm_fork }}
+          name: jacoco-blockchain-tests-exec-file-PRAGUE
           path: reference-tests/build/jacoco/referenceBlockchainTests.exec
 
       - name: Extract Metrics

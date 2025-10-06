@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.stp;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.ModuleName.STP;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.StpCall;
 
 @RequiredArgsConstructor
@@ -45,8 +47,8 @@ public class Stp implements OperationSetModule<StpOperation> {
   }
 
   @Override
-  public String moduleKey() {
-    return "STP";
+  public ModuleName moduleKey() {
+    return STP;
   }
 
   @Override
@@ -61,9 +63,8 @@ public class Stp implements OperationSetModule<StpOperation> {
 
   @Override
   public void commit(Trace trace) {
-    int stamp = 0;
     for (StpOperation operation : operations.sortOperations(new StpOperationComparator())) {
-      operation.trace(trace.stp(), ++stamp);
+      operation.trace(trace.stp());
     }
   }
 }

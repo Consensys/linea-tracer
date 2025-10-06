@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.romlex;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.module.ModuleName.ROM_LEX;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
@@ -30,6 +31,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextEntryDefer;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -61,8 +63,8 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
   @Getter private final DeferRegistry createDefers = new DeferRegistry();
 
   @Override
-  public String moduleKey() {
-    return "ROM_LEX";
+  public ModuleName moduleKey() {
+    return ROM_LEX;
   }
 
   public int getCodeFragmentIndexByMetadata(

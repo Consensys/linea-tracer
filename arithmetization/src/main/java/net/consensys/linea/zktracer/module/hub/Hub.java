@@ -17,8 +17,9 @@ package net.consensys.linea.zktracer.module.hub;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT;
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Fork.getGasCalculatorFromFork;
 import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___STACK_STAMP;
+import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
@@ -26,7 +27,6 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
-import static net.consensys.linea.zktracer.module.limits.CountingModuleName.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
@@ -45,6 +45,7 @@ import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 import net.consensys.linea.zktracer.container.module.IncrementAndDetectModule;
 import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
@@ -77,7 +78,7 @@ import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
-import net.consensys.linea.zktracer.module.limits.L1BlockSizeOld;
+import net.consensys.linea.zktracer.module.limits.L1BlockSize;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
@@ -98,7 +99,9 @@ import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
+import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
+import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
@@ -142,7 +145,7 @@ public abstract class Hub implements Module {
   private final OpCodes opCodes;
 
   /** The {@link GasCalculator} used in this version of the arithmetization */
-  public final GasCalculator gasCalculator = setGasCalculator();
+  public final GasCalculator gasCalculator;
 
   public final GasProjector gasProjector;
 
@@ -174,8 +177,8 @@ public abstract class Hub implements Module {
   private final PlatformController pch = new PlatformController(this);
 
   @Override
-  public String moduleKey() {
-    return "HUB";
+  public ModuleName moduleKey() {
+    return HUB;
   }
 
   @Override
@@ -206,21 +209,21 @@ public abstract class Hub implements Module {
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
   private final Euc euc = new Euc(wcp);
-  private final Ext ext = new Ext(this);
+  private final Ext ext = new Ext();
   private final Gas gas = new Gas();
-  private final Mul mul = new Mul(this);
+  private final Mul mul = new Mul();
   private final Mod mod = new Mod();
   private final Shf shf = new Shf();
-  private final Trm trm = new Trm(this, wcp);
+  private final Trm trm;
   private final Module rlpUtils = setRlpUtils(wcp);
 
   // other
   private final Blockdata blockdata;
   private final RomLex romLex = new RomLex(this);
   private final Rom rom = new Rom(romLex);
-  private final RlpTxn rlpTxn = setRlpTxn(this);
+  private final RlpTxn rlpTxn;
   private final Mmio mmio;
-  private final TxnData<? extends TxnDataOperation> txnData = setTxnData();
+  @Getter final TxnData<? extends TxnDataOperation> txnData = setTxnData();
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -231,13 +234,13 @@ public abstract class Hub implements Module {
   private final Oob oob = new Oob(this, add, mod, wcp);
   private final Mmu mmu;
   private final Stp stp = new Stp();
-  private final Exp exp = new Exp(this, wcp);
+  private final Exp exp = new Exp();
 
   /*
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits
    */
-  private final BlockTransactions blockTransactions = new BlockTransactions(this);
+  private final BlockTransactions blockTransactions = new BlockTransactions();
   private final Keccak keccak;
   private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
@@ -258,6 +261,8 @@ public abstract class Hub implements Module {
   //  related to Modexp
   private final IncrementAndDetectModule modexpEffectiveCall =
       new IncrementAndDetectModule(PRECOMPILE_MODEXP_EFFECTIVE_CALLS);
+  private final IncrementingModule modexpLargeCall =
+      new IncrementingModule(PRECOMPILE_LARGE_MODEXP_EFFECTIVE_CALLS);
 
   // related to Rip
   private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
@@ -314,6 +319,7 @@ public abstract class Hub implements Module {
         ecPairingMillerLoops,
         ecPairingFinalExponentiations,
         modexpEffectiveCall,
+        modexpLargeCall,
         ripemdBlocks,
         blakeEffectiveCall,
         blakeRounds,
@@ -343,7 +349,8 @@ public abstract class Hub implements Module {
    */
   private final ShakiraData shakiraData;
   private final BlakeModexpData blakeModexpData =
-      new BlakeModexpData(wcp, modexpEffectiveCall, blakeEffectiveCall, blakeRounds);
+      new BlakeModexpData(
+          wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
   public final EcData ecData =
       new EcData(
           wcp,
@@ -356,7 +363,7 @@ public abstract class Hub implements Module {
           ecPairingFinalExponentiations);
   final Module blsData = setBlsData(this);
 
-  private final L1BlockSizeOld l1BlockSize;
+  private final L1BlockSize l1BlockSize;
   private final IncrementingModule l2L1Logs;
 
   /** list of module than can be modified during execution */
@@ -369,7 +376,7 @@ public abstract class Hub implements Module {
    * The real modules, ie the ones that are traced and triggered during execution. It differs with
    * the moduleToTrace() as it contains module traced for some fork only.
    */
-  private List<Module> realModule() {
+  public List<Module> realModule() {
     return List.of(
         this,
         add,
@@ -412,34 +419,9 @@ public abstract class Hub implements Module {
     final List<Module> allModules =
         new ArrayList<>(Stream.concat(realModule().stream(), refTableModules.stream()).toList());
 
-    // All modules are in this list for the coordinator to have the same set of module whatever the
-    // fork. But we don't trace them.
-    final List<Module> appearsInCancun =
-        allModules.stream().filter(module -> module instanceof CountingOnlyModule).toList();
-    /*       LONDON CANCUN PRAGUE
-    rlpUtils CO     Inst.
-    powerRT  CO     Inst.
-    blsRT    CO     CO     Inst.
-    blsData  CO     Inst.
-    */
-    if (!isPostCancun(fork)) {
-      checkArgument(
-          appearsInCancun.size() == 4,
-          "rlpUtils, powerRT, blsRT, blsData expected to be CountingOnly");
-    }
-    if (fork == Fork.CANCUN) {
-      checkArgument(appearsInCancun.size() == 1, "blsRT expected to be CountingOnly");
-    }
-    if (fork == Fork.PRAGUE) {
-      checkArgument(appearsInCancun.isEmpty(), "no modules expected to be CountingOnly");
-    }
-    /*
-    if (!appearsInCancun.isEmpty()) {
-      checkArgument(!isPostCancun(fork), "No modules to remove after Cancun");
-      checkArgument(appearsInCancun.size() == 4 ); // blsData, rlpUtils, PowerRefTable, blsRefTable
-    }
-     */
-    return allModules.stream().filter(module -> !appearsInCancun.contains(module)).toList();
+    // The coordinator requires to have the same set of module in counting whatever the fork. But we
+    // don't trace them.
+    return allModules.stream().filter(module -> !(module instanceof CountingOnlyModule)).toList();
   }
 
   /**
@@ -449,17 +431,15 @@ public abstract class Hub implements Module {
    * @return the modules to count
    */
   public List<Module> getModulesToCount() {
-    return Stream.concat(
-            Stream.concat(realModule().stream(), refTableModules.stream()),
-            getTracelessModules().stream())
-        .toList();
+    return Stream.concat(realModule().stream(), getTracelessModules().stream()).toList();
   }
 
   public Hub(final ChainConfig chain) {
     fork = chain.fork;
+    gasCalculator = getGasCalculatorFromFork(fork);
     opCodes = OpCodes.load(fork);
     gasProjector = new GasProjector(fork, gasCalculator);
-    checkState(chain.id.signum() >= 0);
+    checkState(chain.id.signum() >= 0, "Hub constructor: chain id must be nonnegative");
     Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
     final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
     //
@@ -469,15 +449,20 @@ public abstract class Hub implements Module {
     l2L1Logs = new IncrementingModule(BLOCK_L2_L1_LOGS);
     keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
     l1BlockSize =
-        new L1BlockSizeOld(
+        new L1BlockSize(
             blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
+    trm = new Trm(fork);
+    rlpTxn = setRlpTxn(this);
     rlpAddr = new RlpAddr(this, trm, keccak);
     blockdata = setBlockData(this, wcp, euc, chain);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
-    refTableModules = List.of(new BinRt(), setBlsRt(), setInstructionDecoder(), setPower());
+    refTableModules =
+        Stream.of(new BinRt(), setBlsRt(), setInstructionDecoder(), setPower())
+            .filter(Objects::nonNull)
+            .toList();
 
     modules =
         Stream.concat(
@@ -651,7 +636,9 @@ public abstract class Hub implements Module {
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
       if (state.processingPhase() == TX_SKIP) {
-        checkState(currentTraceSection() instanceof TxSkipSection);
+        checkState(
+            currentTraceSection() instanceof TxSkipSection,
+            "traceContextEnter of Hub: expected a skip section");
         ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);
       }
       final TransactionProcessingMetadata currentTransaction = transients().tx();
@@ -660,15 +647,24 @@ public abstract class Hub implements Module {
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
       final Wei value = frame.getValue();
       final long initiallyAvailableGas = frame.getRemainingGas();
+      final Transaction tx = currentTransaction.getBesuTransaction();
 
       checkArgument(
-          recipientAddress.equals(effectiveToAddress(currentTransaction.getBesuTransaction())));
-      checkArgument(senderAddress.equals(currentTransaction.getBesuTransaction().getSender()));
-      checkArgument(isDeployment == currentTransaction.getBesuTransaction().getTo().isEmpty());
+          recipientAddress.equals(effectiveToAddress(tx)),
+          "Mismatch between frame and transaction recipient");
       checkArgument(
-          value.equals(
-              Wei.of(currentTransaction.getBesuTransaction().getValue().getAsBigInteger())));
-      checkArgument(frame.getRemainingGas() == currentTransaction.getInitiallyAvailableGas());
+          senderAddress.equals(tx.getSender()), "Mismatch between frame and transaction sender");
+      checkArgument(
+          isDeployment == tx.getTo().isEmpty(),
+          "Mismatch between frame and transaction deployment info");
+      checkArgument(
+          value.equals(Wei.of(tx.getValue().getAsBigInteger())),
+          "Mismatch between frame and transaction value");
+      checkArgument(
+          frame.getRemainingGas() == currentTransaction.getInitiallyAvailableGas(),
+          "Frame gas available at the beginning of the tx %s != transaction initially available gas %s",
+          frame.getRemainingGas(),
+          currentTransaction.getInitiallyAvailableGas());
 
       final boolean copyTransactionCallData = currentTransaction.copyTransactionCallData();
       if (copyTransactionCallData) {
@@ -702,11 +698,16 @@ public abstract class Hub implements Module {
       final OpCodeData currentOpCode = opCodes.of(callStack.currentCallFrame().opCode());
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
 
-      checkState(currentOpCode.isCall() || currentOpCode.isCreate());
+      checkState(
+          currentOpCode.isCall() || currentOpCode.isCreate(),
+          "trace context enter at positive depth must be call or create");
       checkState(
           currentTraceSection() instanceof CallSection
-              || currentTraceSection() instanceof CreateSection);
-      checkState(currentTraceSection() instanceof CreateSection == isDeployment);
+              || currentTraceSection() instanceof CreateSection,
+          "trace context enter at positive depth must have in call or create section as most recent trace section");
+      checkState(
+          currentTraceSection() instanceof CreateSection == isDeployment,
+          "trace context enter at positive depth must have a create section as most recent trace section iff it is a deployment");
 
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
@@ -791,9 +792,8 @@ public abstract class Hub implements Module {
 
   public void tracePreExecution(final MessageFrame frame) {
     checkArgument(
-        this.state().processingPhase() == TX_EXEC,
+        state().processingPhase() == TX_EXEC,
         "There can't be any execution if the HUB is not in execution phase");
-
     this.processStateExec(frame);
   }
 
@@ -845,11 +845,10 @@ public abstract class Hub implements Module {
    * deployment in the sense that it updates the relevant deployment information.
    */
   private void exitDeploymentFromDeploymentInfoPov(MessageFrame frame) {
-
-    // sanity check
-    final Address bytecodeAddress = this.currentFrame().byteCodeAddress();
-    checkArgument(bytecodeAddress.equals(frame.getContractAddress()));
-    checkArgument(bytecodeAddress.equals(this.bytecodeAddress()));
+    final Address bytecodeAddress = currentFrame().byteCodeAddress();
+    checkArgument(
+        bytecodeAddress.equals(bytecodeAddress()),
+        "bytecode address mismatch between frame / callFrame at exit from deployment");
 
     /**
      * Explanation: if the current address isn't under deployment there is nothing to do.
@@ -858,7 +857,8 @@ public abstract class Hub implements Module {
      * immediately set to the deployed state
      */
     if (state.processingPhase() == TX_SKIP) {
-      checkArgument(!deploymentStatusOfBytecodeAddress());
+      checkArgument(
+          !deploymentStatusOfBytecodeAddress(), "TX_SKIP: deployments must have empty code");
       return;
     }
     /**
@@ -891,9 +891,9 @@ public abstract class Hub implements Module {
 
     final boolean emptyDeployment = messageFrame().getCode().getBytes().isEmpty();
 
-    // empty deployments are immediately considered as 'deployed' i.e.
-    // deploymentStatus = false
-    checkArgument(deploymentStatusOfBytecodeAddress() == !emptyDeployment);
+    checkArgument(
+        deploymentStatusOfBytecodeAddress() == !emptyDeployment,
+        "empty deployments are immediately considered as 'deployed'");
 
     if (emptyDeployment) return;
     // from here on out nonempty deployments
@@ -1164,9 +1164,7 @@ public abstract class Hub implements Module {
 
   protected abstract Module setBlsData(Hub hub);
 
-  protected abstract Module setBlsRt();
-
-  protected abstract GasCalculator setGasCalculator();
+  protected abstract BlsRt setBlsRt();
 
   protected abstract TxnData<? extends TxnDataOperation> setTxnData();
 
@@ -1180,7 +1178,7 @@ public abstract class Hub implements Module {
 
   protected abstract InstructionDecoder setInstructionDecoder();
 
-  protected abstract Module setPower();
+  protected abstract PowerRt setPower();
 
   protected abstract void setSkipSection(
       Hub hub,

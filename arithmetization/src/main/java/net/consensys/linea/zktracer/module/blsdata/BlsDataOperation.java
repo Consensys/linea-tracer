@@ -129,7 +129,10 @@ public class BlsDataOperation extends ModuleOperation {
       Bytes callData,
       Bytes returnData,
       boolean successBit) {
-    checkArgument(precompileFlag.isBlsPrecompile(), "invalid BLS type");
+    checkArgument(
+        precompileFlag.isBlsPrecompile(),
+        "BlsDataOperation: precompile %s isn't of BLS type",
+        precompileFlag);
 
     this.precompileFlag = precompileFlag;
     this.callData = callData;
@@ -162,8 +165,12 @@ public class BlsDataOperation extends ModuleOperation {
     // Set successBit
     this.successBit = successBit;
     final int returnDataSize = returnData.toArray().length;
+    final int expectedReturnDataSize = (successBit ? expectedReturnDataSize(precompileFlag) : 0);
     Preconditions.checkArgument(
-        returnDataSize == (successBit ? expectedReturnDataSize(precompileFlag) : 0));
+        returnDataSize == expectedReturnDataSize,
+        "BLS precompile return data size %s does not agree with the expected value %s",
+        returnDataSize,
+        expectedReturnDataSize);
   }
 
   public static int expectedReturnDataSize(
@@ -251,6 +258,9 @@ public class BlsDataOperation extends ModuleOperation {
           isSmallPointOnCurve(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBit = wellFormedCoordinate && !isSmallPointOnCurve;
 
+      Preconditions.checkArgument(
+          mextBit == (wellFormedCoordinate && !successBit), "BLS_G1ADD: mext bit inconsistency");
+
       if (mextBit && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
           this.mextBit.set(indexOffset + j, true);
@@ -276,6 +286,9 @@ public class BlsDataOperation extends ModuleOperation {
       final boolean isSmallPointInSubgroup =
           isSmallPointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBit = wellFormedCoordinate && !isSmallPointInSubgroup;
+
+      Preconditions.checkArgument(
+          mextBit == (wellFormedCoordinate && !successBit), "BLS_G1MSM: mext bit inconsistency");
 
       if (mextBit && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
@@ -306,6 +319,9 @@ public class BlsDataOperation extends ModuleOperation {
           isLargePointOnCurve(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
       final boolean mextBit = wellFormedCoordinate && !isLargePointOnCurve;
 
+      Preconditions.checkArgument(
+          mextBit == (wellFormedCoordinate && !successBit), "BLS_G2ADD: mext bit inconsistency");
+
       if (mextBit && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
           this.mextBit.set(indexOffset + j, true);
@@ -335,6 +351,9 @@ public class BlsDataOperation extends ModuleOperation {
       final boolean isLargePointInSubgroup =
           isLargePointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
       final boolean mextBit = wellFormedCoordinate && !isLargePointInSubgroup;
+
+      Preconditions.checkArgument(
+          mextBit == (wellFormedCoordinate && !successBit), "BLS_G2MSM: mext bit inconsistency");
 
       if (mextBit && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
@@ -368,6 +387,10 @@ public class BlsDataOperation extends ModuleOperation {
           isSmallPointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBitSmall = wellFormedFpCoordinate && !isSmallPointInSubgroup;
 
+      Preconditions.checkArgument(
+          mextBitSmall == (wellFormedFpCoordinate && !successBit),
+          "BLS_PAIRING_CHECK: mext bit inconsistency for small point");
+
       if (mextBitSmall && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
           this.mextBit.set(indexOffset + j, true);
@@ -383,6 +406,10 @@ public class BlsDataOperation extends ModuleOperation {
           isLargePointInSubGroup(
               8 + indexOffset, callData.slice(8 * LLARGE + sizeOffset, SIZE_LARGE_POINT));
       final boolean mextBitLarge = wellFormedFp2Coordinate && !isLargePointInSubgroup;
+
+      Preconditions.checkArgument(
+          mextBitLarge == (wellFormedFp2Coordinate && !successBit),
+          "BLS_PAIRING_CHECK: mext bit inconsistency for large point");
 
       if (mextBitLarge && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {

@@ -43,6 +43,8 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  */
 public abstract class TxSkipSection extends TraceSection implements EndTransactionDefer {
 
+  public static final short NB_ROWS_HUB_SKIP = 4;
+
   final TransactionProcessingMetadata txMetadata;
 
   Address senderAddress;
@@ -62,7 +64,7 @@ public abstract class TxSkipSection extends TraceSection implements EndTransacti
       WorldView world,
       TransactionProcessingMetadata transactionProcessingMetadata,
       Transients transients) {
-    super(hub, (short) 4);
+    super(hub, NB_ROWS_HUB_SKIP);
     hub.defers().scheduleForEndTransaction(this);
 
     txMetadata = transactionProcessingMetadata;
@@ -83,8 +85,10 @@ public abstract class TxSkipSection extends TraceSection implements EndTransacti
 
     // deployments are local to a transaction, every address should have deploymentStatus == false
     // at the start of every transaction
-    checkArgument(!hub.deploymentStatusOf(senderAddress));
-    checkArgument(!hub.deploymentStatusOf(recipientAddress));
+    checkArgument(
+        !hub.deploymentStatusOf(senderAddress), "TX_SKIP: Sender address under deployment");
+    checkArgument(
+        !hub.deploymentStatusOf(recipientAddress), "TX_SKIP: Recipient address under deployment");
 
     // the updated deployment info appears in the "updated" account fragment
     if (txMetadata.isDeployment()) {
@@ -101,7 +105,8 @@ public abstract class TxSkipSection extends TraceSection implements EndTransacti
     coinbase =
         canonical(
             hub, frame.getWorldUpdater(), coinbaseAddress, isPrecompile(hub.fork, coinbaseAddress));
-    checkArgument(!hub.deploymentStatusOf(coinbaseAddress));
+    checkArgument(
+        !hub.deploymentStatusOf(coinbaseAddress), "TX_SKIP: Coinbase address under deployment");
   }
 
   @Override

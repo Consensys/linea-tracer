@@ -32,10 +32,12 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class TStoreSection extends TraceSection implements PostRollbackDefer {
 
+  public static final short NB_ROWS_HUB_TSTORE = 4; // stack + con + 2 STO
+
   TransientFragment tstoreDoing;
 
   public TStoreSection(Hub hub) {
-    super(hub, (short) 4);
+    super(hub, NB_ROWS_HUB_TSTORE);
 
     final short exceptions = hub.pch().exceptions();
     final ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
@@ -45,7 +47,7 @@ public class TStoreSection extends TraceSection implements PostRollbackDefer {
     if (Exceptions.any(exceptions)) {
       checkArgument(
           Exceptions.staticFault(exceptions) || Exceptions.outOfGasException(exceptions),
-          "The only possible exceptions are STATICX or OOGX");
+          "TSTORE: may only throw STATICX and OOGX exceptions");
       return;
     }
 

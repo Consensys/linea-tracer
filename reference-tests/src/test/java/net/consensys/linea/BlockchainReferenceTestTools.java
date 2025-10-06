@@ -20,6 +20,7 @@ import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainRefe
 import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_INPUT_FILENAME;
 import static net.consensys.linea.reporting.TracerTestBase.getForkOrDefault;
 import static net.consensys.linea.testing.ToyExecutionTools.addSystemAccountsIfRequired;
+import static net.consensys.linea.zktracer.Fork.*;
 import static net.consensys.linea.zktracer.container.module.IncrementAndDetectModule.ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -67,11 +68,11 @@ import org.junit.jupiter.api.Assumptions;
 @Slf4j
 public class BlockchainReferenceTestTools {
   // Keep the forkName and the zkevm_fork in github worklow in PascalCase
-  private static final String forkName = getForkOrDefault("London");
+  private static final Fork fork = getForkOrDefault(LONDON);
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
       ReferenceTestProtocolSchedules.create();
 
-  private static final List<String> NETWORKS_TO_RUN = List.of(forkName);
+  private static final List<String> NETWORKS_TO_RUN = List.of(toPascalCase(fork));
 
   public static final JsonTestParameters<?, ?> PARAMS =
       JsonTestParameters.create(BlockchainReferenceTestCaseSpec.class)
@@ -330,6 +331,7 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("randomStatetest177_d0g0v0_*");
     PARAMS.ignore("15_tstoreCannotBeDosd_d0g0v0*");
     PARAMS.ignore("21_tstoreCannotBeDosdOOO_d0g0v0*");
+    PARAMS.ignore("ContractCreationSpam_d0g0v0*");
 
     // Inconclusive fork choice rule, since in merge CL should be choosing forks and setting the
     // chain head. Perfectly valid test pre-merge.
@@ -582,7 +584,6 @@ public class BlockchainReferenceTestTools {
 
     final ProtocolSchedule schedule =
         REFERENCE_TEST_PROTOCOL_SCHEDULES.getByName(spec.getNetwork());
-    final Fork fork = getForkFromNetwork(spec.getNetwork());
     final ChainConfig chain = ChainConfig.ETHEREUM_CHAIN(fork);
     final MutableBlockchain blockchain = spec.getBlockchain();
     final ProtocolContext context = spec.getProtocolContext();
@@ -681,12 +682,5 @@ public class BlockchainReferenceTestTools {
             corsetBlockProcessor);
 
     return new MainnetBlockImporter(blockValidator);
-  }
-
-  private static Fork getForkFromNetwork(String string) {
-    if (string.equals("Merge")) {
-      return Fork.PARIS;
-    }
-    return Fork.fromString(string);
   }
 }

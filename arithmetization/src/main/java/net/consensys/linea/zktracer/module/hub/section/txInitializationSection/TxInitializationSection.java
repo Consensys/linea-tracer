@@ -41,6 +41,8 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public abstract class TxInitializationSection extends TraceSection implements EndTransactionDefer {
 
+  public static final short NB_ROWS_HUB_INIT = 9;
+
   @Getter private final int hubStamp;
   final AccountFragment.AccountFragmentFactory accountFragmentFactory;
 
@@ -72,7 +74,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
   private int domSubOffset = 0;
 
   public TxInitializationSection(Hub hub, WorldView world) {
-    super(hub, (short) 9);
+    super(hub, NB_ROWS_HUB_INIT);
     hub.defers().scheduleForEndTransaction(this);
 
     hubStamp = hub.stamp();
@@ -121,7 +123,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
 
     checkState(
         !recipientValueReception.deploymentStatus(),
-        "recipient should not have been undergoing deployment before transaction start");
+        "TxInitializationSection: recipient should not have been undergoing deployment before transaction start");
 
     recipientValueReceptionNew = recipientValueReception.deepCopy();
 
@@ -129,10 +131,10 @@ public abstract class TxInitializationSection extends TraceSection implements En
       if (recipientAccount != null) {
         checkState(
             recipientAccount.getCode().equals(Bytes.EMPTY),
-            "the recipient of a deployment transaction must have empty code");
+            "TxInitializationSection: the recipient of a deployment transaction must have empty code");
         checkState(
             recipientAccount.getNonce() == 0,
-            "the recipient of a deployment transaction must have zero nonce");
+            "TxInitializationSection: the recipient of a deployment transaction must have zero nonce");
       }
 
       deploymentInfo.newDeploymentWithExecutionAt(

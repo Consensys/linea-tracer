@@ -39,6 +39,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class ExtCodeCopySection extends TraceSection implements PostRollbackDefer {
 
+  public static final short NB_ROWS_HUB_EXT_CODE_COPY = 4; // 4 = 1 + 3
+
   final Bytes rawAddress;
   final Address address;
   final int incomingDeploymentNumber;
@@ -52,8 +54,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
   AccountSnapshot secondForeignNew;
 
   public ExtCodeCopySection(Hub hub, MessageFrame frame) {
-    // 4 = 1 + 3
-    super(hub, maxNumberOfRows(hub));
+    super(hub, NB_ROWS_HUB_EXT_CODE_COPY);
 
     rawAddress = frame.getStackItem(0);
     address = Address.extract(Bytes32.leftPad(rawAddress));
@@ -69,7 +70,9 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     imcFragment.callMxp(mxpCall);
 
     final short exceptions = hub.pch().exceptions();
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "EXTCODECOPY: mxp and hub disagree on MXPX");
 
     // The MXPX case
     if (mxpCall.mxpx) {
@@ -105,7 +108,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     }
 
     // The unexceptional case
-    checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions), "EXTCODECOPY: unexpected exception");
 
     final boolean triggerMmu = mxpCall.mayTriggerNontrivialMmuOperation;
     if (triggerMmu) {
@@ -158,9 +161,5 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
                 TransactionProcessingType.USER);
 
     this.addFragment(undoingAccountFragment);
-  }
-
-  private static short maxNumberOfRows(Hub hub) {
-    return (short) (hub.opCodeData().numberOfStackRows() + 3);
   }
 }

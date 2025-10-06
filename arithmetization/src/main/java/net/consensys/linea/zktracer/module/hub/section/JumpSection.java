@@ -33,10 +33,10 @@ import org.hyperledger.besu.datatypes.Address;
 
 public class JumpSection extends TraceSection {
 
+  public static final short NB_ROWS_HUB_JUMP = 5; // 5 = 1 + 4
+
   public JumpSection(Hub hub) {
-    // 5 = 1 + 4
-    // There are up to 4 NSR's
-    super(hub, (short) 5);
+    super(hub, NB_ROWS_HUB_JUMP);
 
     this.addStackAndFragments(hub);
 
@@ -51,7 +51,7 @@ public class JumpSection extends TraceSection {
     final Address codeAddress = hub.messageFrame().getContractAddress();
 
     final boolean warmth = hub.messageFrame().isAddressWarm(codeAddress);
-    checkArgument(warmth);
+    checkArgument(warmth, "Must be warm when doing a JUMP");
 
     final AccountSnapshot codeAccount = canonical(hub, codeAddress);
 

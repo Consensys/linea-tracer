@@ -28,9 +28,10 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 
 public class CallDataCopySection extends TraceSection {
 
+  public static final short NB_ROWS_HUB_CALL_DATA_COPY = 3; // 3 = 1 + 2
+
   public CallDataCopySection(Hub hub) {
-    // 3 = 1 + 2
-    super(hub, maxNumberOfRows(hub));
+    super(hub, NB_ROWS_HUB_CALL_DATA_COPY);
 
     final ImcFragment imcFragment = ImcFragment.empty(hub);
     this.addStack(hub);
@@ -47,7 +48,9 @@ public class CallDataCopySection extends TraceSection {
     ////////////////////////////////////
 
     final short exceptions = hub.pch().exceptions();
-    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions),
+        "CALLDATACOPY: mxp and hub disagree on MXPX");
 
     // The MXPX case
     if (mxpCall.mxpx) {
@@ -56,7 +59,7 @@ public class CallDataCopySection extends TraceSection {
 
     // The OOGX case
     if (Exceptions.any(exceptions)) {
-      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION, "CALLDATACOPY: unexpected exception");
       return;
     }
 
@@ -70,9 +73,5 @@ public class CallDataCopySection extends TraceSection {
       final MmuCall mmuCall = MmuCall.callDataCopy(hub);
       imcFragment.callMmu(mmuCall);
     }
-  }
-
-  private static short maxNumberOfRows(Hub hub) {
-    return (short) (hub.opCodeData().numberOfStackRows() + 2);
   }
 }

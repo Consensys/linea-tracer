@@ -39,6 +39,11 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class StopSection extends TraceSection implements PostRollbackDefer, EndTransactionDefer {
 
+  public static final short NB_ROWS_HUB_STOP_MSG_CALL =
+      3; // 3 = 1 + max_NON_STACK_ROWS in message call case
+  public static final short NB_ROWS_HUB_STOP_DEPLOYMENT =
+      5; // 5 = 1 + max_NON_STACK_ROWS in deployment case
+
   final int hubStamp;
   final Address address;
   final int deploymentNumber;
@@ -47,9 +52,11 @@ public class StopSection extends TraceSection implements PostRollbackDefer, EndT
   final ContextFragment parentContextReturnDataReset;
 
   public StopSection(Hub hub) {
-    // 3 = 1 + max_NON_STACK_ROWS in message call case
-    // 5 = 1 + max_NON_STACK_ROWS in deployment case
-    super(hub, hub.callStack().currentCallFrame().isMessageCall() ? (short) 3 : (short) 5);
+    super(
+        hub,
+        hub.callStack().currentCallFrame().isMessageCall()
+            ? NB_ROWS_HUB_STOP_MSG_CALL
+            : NB_ROWS_HUB_STOP_DEPLOYMENT);
     final short exceptions = hub.pch().exceptions();
     checkArgument(
         Exceptions.none(exceptions),
@@ -66,7 +73,9 @@ public class StopSection extends TraceSection implements PostRollbackDefer, EndT
     deploymentStatus = deploymentInfo.getDeploymentStatus(address);
     parentContextReturnDataReset = executionProvidesEmptyReturnData(hub);
 
-    checkArgument(hub.currentFrame().isDeployment() == deploymentStatus); // sanity check
+    checkArgument(
+        hub.currentFrame().isDeployment() == deploymentStatus,
+        "CallFrame and code running in frame disagree on deployment / deployment status of byte code"); // sanity check
 
     // Message call case
     if (!deploymentStatus) {
@@ -114,7 +123,9 @@ public class StopSection extends TraceSection implements PostRollbackDefer, EndT
       return;
     }
 
-    checkArgument(this.fragments().getLast() instanceof AccountFragment);
+    checkArgument(
+        this.fragments().getLast() instanceof AccountFragment,
+        "STOP's which trigger a rollback (in deployment context) should terminate on an fragment as last fragment before rollback");
 
     final AccountFragment lastAccountFragment = (AccountFragment) this.fragments().getLast();
     final DomSubStampsSubFragment undoingDomSubStamps =

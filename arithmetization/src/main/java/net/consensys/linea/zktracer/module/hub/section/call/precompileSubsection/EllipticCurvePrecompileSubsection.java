@@ -46,6 +46,9 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 
 public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
+
+  public static final short NB_ROWS_HUB_PRC_ELLIPTIC_CURVE = 4;
+
   final CommonPrecompileOobCall oobCall;
 
   public EllipticCurvePrecompileSubsection(Hub hub, CallSection callSection) {
@@ -90,16 +93,20 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
     // sanity checks
     switch (flag()) {
       case PRC_ECRECOVER -> {
-        checkArgument(oobCall.isHubSuccess() == callSuccess);
+        checkArgument(oobCall.isHubSuccess() == callSuccess, "ECRECOVER hub success mismatch");
         checkArgument(
             callSuccess
                 ? (returnData == Bytes.EMPTY || returnData.size() == WORD_SIZE)
-                : returnData == Bytes.EMPTY);
+                : returnData == Bytes.EMPTY,
+            "ECRECOVER return data size mismatch");
       }
       case PRC_ECPAIRING -> checkArgument(
-          returnDataRange.extract().size() == (callSuccess ? WORD_SIZE : 0));
+          returnDataRange.extract().size() == (callSuccess ? WORD_SIZE : 0),
+          "ECPAIRING return data size mismatch");
       case PRC_ECADD, PRC_ECMUL -> checkArgument(
-          returnDataRange.extract().size() == (callSuccess ? 2 * WORD_SIZE : 0));
+          returnDataRange.extract().size() == (callSuccess ? 2 * WORD_SIZE : 0),
+          "%s return data size mismatch",
+          flag());
       case PRC_POINT_EVALUATION,
           PRC_BLS_G1_ADD,
           PRC_BLS_G1_MSM,
@@ -133,7 +140,8 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
     // BLS precompiles do not accept empty call data
     // This checks should be redundant with OOB checks
     if (flag().isBlsPrecompile()) {
-      Preconditions.checkArgument(nonemptyCallData);
+      Preconditions.checkArgument(
+          nonemptyCallData, "BLS precompile %s called with empty call data", flag());
     }
 
     final boolean successBitMmuCall = flag() == PRC_ECRECOVER ? !returnData.isEmpty() : callSuccess;
@@ -237,5 +245,13 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
         thirdImcFragment.callMmu(thirdMmuCall);
       }
     }
+  }
+
+  // 4 = 1 + 3 (scenario row + 3 miscellaneous fragments)
+  @Override
+  protected short maxNumberOfLines() {
+    return NB_ROWS_HUB_PRC_ELLIPTIC_CURVE;
+    // Note: we don't have the successBit available at the moment
+    // and can't provide the "real" value (2 in case of FKTH.)
   }
 }

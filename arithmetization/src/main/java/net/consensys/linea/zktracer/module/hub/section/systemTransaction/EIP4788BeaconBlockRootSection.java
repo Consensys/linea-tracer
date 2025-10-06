@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section.systemTransaction;
 
+import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.SYSI;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment.systemTransactionStoring;
@@ -42,6 +43,8 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class EIP4788BeaconBlockRootSection extends TraceSection {
 
+  public static final short NB_ROWS_HUB_SYSI_EIP4788 = 5;
+
   public static final Address EIP4788_BEACONROOT_ADDRESS =
       AddressUtils.addressFromBytes(
           Bytes.concatenate(
@@ -53,15 +56,18 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
 
   public EIP4788BeaconBlockRootSection(
       Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
-    super(hub, (short) 5);
+    super(hub, NB_ROWS_HUB_SYSI_EIP4788);
     final AccountSnapshot beaconrootAccount =
         AccountSnapshot.canonical(hub, world, EIP4788_BEACONROOT_ADDRESS, false);
     final BigInteger timestamp = longToUnsignedBigInteger(blockHeader.getTimestamp());
     final boolean currentBlockIsGenesisBlock = blockHeader.getNumber() == 0;
     final boolean isNonTrivialOperation =
         !currentBlockIsGenesisBlock && !beaconrootAccount.code().isEmpty();
-    final Bytes32 beaconRoot =
-        isNonTrivialOperation ? blockHeader.getParentBeaconBlockRoot().get() : Bytes32.ZERO;
+    checkState(blockHeader.getParentBeaconBlockRoot().isPresent(), "Missing parentBeaconBlockRoot");
+    checkState(
+        !currentBlockIsGenesisBlock || blockHeader.getParentBeaconBlockRoot().get().isZero(),
+        "Genesis block must have a zero parentBeaconBlockRoot");
+    final Bytes32 beaconRoot = blockHeader.getParentBeaconBlockRoot().get();
 
     final Eip4788TransactionFragment transactionFragment =
         new Eip4788TransactionFragment(timestamp, beaconRoot, currentBlockIsGenesisBlock);

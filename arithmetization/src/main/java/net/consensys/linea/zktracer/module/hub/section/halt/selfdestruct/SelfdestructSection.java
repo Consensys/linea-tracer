@@ -55,6 +55,8 @@ public abstract class SelfdestructSection extends TraceSection
         EndTransactionDefer,
         AfterTransactionFinalizationDefer {
 
+  public static final short NB_ROWS_HUB_SELFDESTRUCT = 8; // up to 8 = 1 + 7 rows
+
   final int id;
   final int hubStamp;
   final TransactionProcessingMetadata transactionProcessingMetadata;
@@ -76,8 +78,7 @@ public abstract class SelfdestructSection extends TraceSection
   ContextFragment finalUnexceptionalContextFragment;
 
   public SelfdestructSection(Hub hub, MessageFrame frame) {
-    // up to 8 = 1 + 7 rows
-    super(hub, (short) 8);
+    super(hub, NB_ROWS_HUB_SELFDESTRUCT);
 
     // Init
     id = hub.currentFrame().id();
@@ -113,7 +114,10 @@ public abstract class SelfdestructSection extends TraceSection
 
     // OOGX case
     if (Exceptions.any(exceptions)) {
-      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      checkArgument(
+          exceptions == OUT_OF_GAS_EXCEPTION,
+          "SELFDESTRUCT: lowest priority exception should be %s",
+          OUT_OF_GAS_EXCEPTION);
 
       recipient =
           selfdestructTargetsItself()
@@ -181,7 +185,11 @@ public abstract class SelfdestructSection extends TraceSection
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
 
     final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
-    checkState(isDeployment == selfdestructor.deploymentStatus());
+    checkState(
+        isDeployment == selfdestructor.deploymentStatus(),
+        "SELFDESTRUCT inconsistency: frame deployment = %s but selfdestructor's deployment status = %s",
+        isDeployment,
+        selfdestructor.deploymentStatus());
 
     selfdestructorNew = AccountSnapshot.canonical(hub, selfdestructor.address());
     if (isDeployment) {
@@ -192,9 +200,15 @@ public abstract class SelfdestructSection extends TraceSection
     if (!selfdestructorNew.balance().isZero()) {
 
       // sanity checks
-      checkState(selfdestructTargetsItself());
-      checkState(softAccountWiping());
-      checkState(selfdestructorNew.balance().equals(selfdestructor.balance()));
+      checkState(
+          selfdestructTargetsItself(),
+          "If post SELFDESTRUCT the seldestructor's balance is nonzero then SELFDESTRUCT targets self");
+      checkState(
+          softAccountWiping(),
+          "If post SELFDESTRUCT the seldestructor's balance is nonzero then it is a soft account wipe");
+      checkState(
+          selfdestructorNew.balance().equals(selfdestructor.balance()),
+          "If post SELFDESTRUCT the seldestructor's balance is nonzero then the balance should not have changed");
 
       selfdestructorNew.setBalanceToZero();
     }
@@ -276,7 +290,9 @@ public abstract class SelfdestructSection extends TraceSection
     final EphemeralAccount ephemeralAccount =
         new EphemeralAccount(selfdestructor.address(), selfdestructorNew.deploymentNumber());
 
-    checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
+    checkArgument(
+        effectiveSelfDestructMap.containsKey(ephemeralAccount),
+        "If SELFDESTRUCT was not reverted, the effectiveSelfDestructMap should contain the selfdestructor");
 
     if (accountFragmentWiping()) {
       // This grabs the accounts right after the coinbase and sender got their gas money back
@@ -290,7 +306,9 @@ public abstract class SelfdestructSection extends TraceSection
       // We modify the account fragment to reflect the self-destruct time
       final int hubStampOfTheActionableSelfDestruct =
           effectiveSelfDestructMap.get(ephemeralAccount);
-      checkArgument(hubStamp >= hubStampOfTheActionableSelfDestruct);
+      checkArgument(
+          hubStamp >= hubStampOfTheActionableSelfDestruct,
+          "The hub stamp of any SELFDESTRUCT in need of resolving at transaction end should be >= the stamp of the actionable SELFDESTRUCT");
 
       if (hubStamp == hubStampOfTheActionableSelfDestruct) {
         selfdestructScenarioFragment.setScenario(SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);

@@ -127,13 +127,15 @@ public class PointEvaluationTest extends TracerTestBase {
     final String z = "65cec67f404f8c81ef4ff3b08dc93a7f643c84e31d2cf39d094e9fbfcab15c9a";
     final String y = "00371c441de8235d2d858ade58d833ac6c5c9460fd369aea0c9918b6d007ed47";
     Preconditions.condition(
-      (new BigInteger(z, 16)).compareTo(new BigInteger(POINT_EVALUATION_PRIME.toHexString().substring(2), 16)) < 0,
-      "z not in range"
-    );
+        (new BigInteger(z, 16))
+                .compareTo(new BigInteger(POINT_EVALUATION_PRIME.toHexString().substring(2), 16))
+            < 0,
+        "z not in range");
     Preconditions.condition(
-      (new BigInteger(y, 16)).compareTo(new BigInteger(POINT_EVALUATION_PRIME.toHexString().substring(2), 16)) < 0,
-      "y not in range"
-    );
+        (new BigInteger(y, 16))
+                .compareTo(new BigInteger(POINT_EVALUATION_PRIME.toHexString().substring(2), 16))
+            < 0,
+        "y not in range");
     BytecodeRunner bytecodeRunner =
         pointEvaluationProgram(
             "0125681886f7d39de0938c4f5d2fb4d94abac545d2c51d242b930c6d667982e4",

@@ -16,12 +16,10 @@
 package net.consensys.linea.zktracer.types;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.Trace.LLARGE;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.tuweni.bytes.Bytes;
 
@@ -43,6 +41,22 @@ public class Utils {
   public static Bytes rightPadTo(Bytes input, int wantedSize) {
     checkArgument(wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
     return Bytes.concatenate(input, Bytes.repeat((byte) 0, wantedSize - input.size()));
+  }
+
+  public static int fromDataSizeToLimbNbRows(int dataSize) {
+    checkArgument(dataSize >= 0, "Data size must be non-negative");
+    if (dataSize == 0) {
+      return 1;
+    }
+    final double result = Math.ceil((double) dataSize / LLARGE);
+    checkArgument(result <= Integer.MAX_VALUE, "LimbNbRows must fit in an integer");
+    return (int) result;
+  }
+
+  public static int fromDataSizeToLimbCtMax(int dataSize) {
+    final int result = (fromDataSizeToLimbNbRows(dataSize) - 1);
+    checkArgument(result >= 0, "LimbCtMax must be non-negative");
+    return result;
   }
 
   /**
@@ -99,34 +113,5 @@ public class Utils {
    */
   public static String addOffsetToHexString(int offset, String hexString) {
     return new BigInteger(hexString, 16).add(BigInteger.valueOf(offset)).toString(16);
-  }
-
-  /**
-   * Initializes an array with a specified value and size.
-   *
-   * @param <T> The type of the elements in the array.
-   * @param initValue The value to initialize each element of the array with.
-   * @param size The size of the array to be created.
-   * @return An array of the specified size, with each element initialized to the specified value.
-   */
-  @SuppressWarnings("unchecked")
-  public static <T> T[] initArray(T initValue, int size) {
-    return Stream.generate(() -> initValue)
-        .limit(size)
-        .toArray(i -> (T[]) java.lang.reflect.Array.newInstance(initValue.getClass(), i));
-  }
-
-  /**
-   * Initializes a list with a specified value and size.
-   *
-   * @param <T> The type of the elements in the list.
-   * @param initValue The value to initialize each element of the list with.
-   * @param size The size of the list to be created.
-   * @return A list of the specified size, with each element initialized to the specified value.
-   */
-  public static <T> List<T> initList(T initValue, int size) {
-    return Stream.generate(() -> initValue)
-        .limit(size)
-        .collect(Collectors.toCollection(ArrayList::new));
   }
 }

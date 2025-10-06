@@ -137,19 +137,19 @@ jobs:
           name: blockchain-reference-tests-report-PRAGUE
           path: reference-tests/build/reports/tests/**/*
 
-      - name: Upload jacoco blockchain tests coverage report
+      - name: Upload jacoco exec spec blockchain tests coverage report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: jacoco-blockchain-tests-coverage-report-PRAGUE
-          path: reference-tests/build/reports/jacoco/jacocoReferenceBlockchainTestsReport/**/*
+          path: reference-tests/build/reports/jacoco/jacocoReferenceExecutionSpecBlockchainTestsReport/**/*
 
       - name: Upload jacoco blockchain tests exec file
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: jacoco-blockchain-tests-exec-file-PRAGUE
-          path: reference-tests/build/jacoco/referenceBlockchainTests.exec
+          path: reference-tests/build/jacoco/referenceExecutionSpecBlockchainTests.exec
 
       - name: Extract Metrics
         if: ${{ failure() || cancelled() }}

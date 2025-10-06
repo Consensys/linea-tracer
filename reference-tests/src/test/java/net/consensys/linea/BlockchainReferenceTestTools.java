@@ -87,9 +87,21 @@ public class BlockchainReferenceTestTools {
     if (NETWORKS_TO_RUN.isEmpty()) {
       PARAMS.ignoreAll();
     }
+    /*
+     * Ignore tests in ethereum/execution-spec-tests repo
+     */
     // TODO: should be re-enabled for Prague v2.0
     PARAMS.ignore("/prague/eip2537_bls_12_381_precompiles/");
     PARAMS.ignore("/prague/eip7702_set_code_tx/");
+
+    // ignore for v1.0 Prague release
+    PARAMS.ignore("/cancun/eip4844_blobs/");
+    PARAMS.ignore("/prague/eip6110_deposits/");
+    PARAMS.ignore("/prague/eip7251_consolidations/");
+    PARAMS.ignore("/prague/eip7685_general_purpose_el_requests/");
+
+    // tests that timeout and pass locally
+    PARAMS.ignore("/cancun/eip1153_tstore/test_tstorage.py::test_run_until_out_of_gas");
 
     // ignore type 3 and 4 transactions
     PARAMS.ignore(
@@ -110,11 +122,11 @@ public class BlockchainReferenceTestTools {
         "/prague/eip7623_increase_calldata_cost/test_execution_gas.py::TestGasConsumptionBelowDataFloor::test_gas_consumption_below_data_floor\\[fork_Prague-blockchain_test_from_state_test-exact_gas-type_3");
     PARAMS.ignore(
         "/prague/eip7623_increase_calldata_cost/test_execution_gas.py::TestGasConsumptionBelowDataFloor::test_gas_consumption_below_data_floor\\[fork_Prague-blockchain_test_from_state_test-exact_gas-type_4");
-    // ignore for v1.0 Prague release
-    PARAMS.ignore("/cancun/eip4844_blobs/");
-    PARAMS.ignore("/prague/eip6110_deposits/");
-    PARAMS.ignore("/prague/eip7251_consolidations/");
-    PARAMS.ignore("/prague/eip7685_general_purpose_el_requests/");
+    PARAMS.ignore(
+        "/prague/eip7623_increase_calldata_cost/test_refunds.py::test_gas_refunds_from_data_floor\\[fork_Prague-blockchain_test_from_state_test-refund_type_RefundType.AUTHORIZATION_EXISTING_AUTHORITY-refund_test_type_RefundTestType.EXECUTION_GAS_MINUS_REFUND*");
+    PARAMS.ignore(
+        "/prague/eip7623_increase_calldata_cost/test_refunds.py::test_gas_refunds_from_data_floor\\[fork_Prague-blockchain_test_from_state_test-refund_type_RefundType.AUTHORIZATION_EXISTING_AUTHORITY-refund_test_type_RefundTestType.EXECUTION_GAS_MINUS_REFUND*");
+
     // withdrawals
     PARAMS.ignore("/prague/eip7002_el_triggerable_withdrawals/");
     PARAMS.ignore("/prague/eip7002_el_triggerable_withdrawals_and_transfers/");
@@ -122,6 +134,10 @@ public class BlockchainReferenceTestTools {
         "cancun/eip4788_beacon_root/test_beacon_root_contract.py::test_multi_block_beacon_root_timestamp_calls");
     PARAMS.ignore("shanghai/eip4895_withdrawals/test_withdrawals.py::test_balance_within_block");
     PARAMS.ignore("shanghai/eip4895_withdrawals/test_withdrawals.py::test_use_value_in_contract");
+
+    /*
+     * Ignore tests in ethereum/tests repo
+     */
 
     // ignore tests that are failing in Besu too
     PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_*");

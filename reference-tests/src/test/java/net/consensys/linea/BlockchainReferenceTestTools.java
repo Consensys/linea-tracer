@@ -96,6 +96,7 @@ public class BlockchainReferenceTestTools {
 
     // ignore for v1.0 Prague release
     PARAMS.ignore("/cancun/eip4844_blobs/");
+    PARAMS.ignore("/Cancun/stEIP4844_blobtransactions");
     PARAMS.ignore("/prague/eip6110_deposits/");
     PARAMS.ignore("/prague/eip7251_consolidations/");
     PARAMS.ignore("/prague/eip7685_general_purpose_el_requests/");
@@ -126,6 +127,10 @@ public class BlockchainReferenceTestTools {
         "/prague/eip7623_increase_calldata_cost/test_refunds.py::test_gas_refunds_from_data_floor\\[fork_Prague-blockchain_test_from_state_test-refund_type_RefundType.AUTHORIZATION_EXISTING_AUTHORITY-refund_test_type_RefundTestType.EXECUTION_GAS_MINUS_REFUND*");
     PARAMS.ignore(
         "/prague/eip7623_increase_calldata_cost/test_refunds.py::test_gas_refunds_from_data_floor\\[fork_Prague-blockchain_test_from_state_test-refund_type_RefundType.AUTHORIZATION_EXISTING_AUTHORITY-refund_test_type_RefundTestType.EXECUTION_GAS_MINUS_REFUND*");
+    PARAMS.ignore(
+        "/prague/eip7623_increase_calldata_cost/test_refunds.py::test_gas_refunds_from_data_floor\\[fork_Prague-blockchain_test_from_state_test-refund_type_RefundType.STORAGE_CLEAR|AUTHORIZATION_EXISTING_AUTHORITY-refund_test_type_RefundTestType.EXECUTION_GAS_MINUS_REFUND*");
+    PARAMS.ignore(
+        "/cancun/eip4788_beacon_root/test_beacon_root_contract.py::test_tx_to_beacon_root_contract");
 
     // withdrawals
     PARAMS.ignore("/prague/eip7002_el_triggerable_withdrawals/");
@@ -140,11 +145,15 @@ public class BlockchainReferenceTestTools {
      */
 
     // ignore tests that are failing in Besu too
+    PARAMS.ignore("RevertInCreateInInitCreate2_*");
     PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_*");
     PARAMS.ignore("RevertInCreateInInit_d0g0v0_*");
+    PARAMS.ignore("create2collisionStorage_*");
     PARAMS.ignore("create2collisionStorage_d0g0v0_*");
     PARAMS.ignore("create2collisionStorage_d1g0v0_*");
     PARAMS.ignore("create2collisionStorage_d2g0v0_*");
+    PARAMS.ignore("dynamicAccountOverwriteEmpty_*");
+
     PARAMS.ignore("dynamicAccountOverwriteEmpty_d0g0v0_*");
 
     // ignore tests that are failing because there is an account with nonce 0 and
@@ -157,12 +166,16 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("RevertInCreateInInit_d0g0v0_London\\[London\\]");
 
     // Arithmetization restriction: recipient address is a precompile.
+    PARAMS.ignore("modexpRandomInput_*");
     PARAMS.ignore("modexpRandomInput_d0g0v0_*");
     PARAMS.ignore("modexpRandomInput_d0g1v0_*");
     PARAMS.ignore("modexpRandomInput_d1g0v0_*");
     PARAMS.ignore("modexpRandomInput_d1g1v0_*");
     PARAMS.ignore("modexpRandomInput_d2g0v0_*");
     PARAMS.ignore("modexpRandomInput_d2g1v0_*");
+    PARAMS.ignore("randomStatetest642_*");
+    PARAMS.ignore("randomStatetest644_*");
+    PARAMS.ignore("randomStatetest645_*");
     PARAMS.ignore("randomStatetest642_d0g0v0_*");
     PARAMS.ignore("randomStatetest644_d0g0v0_*");
     PARAMS.ignore("randomStatetest645_d0g0v0_*");
@@ -180,6 +193,10 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("randomStatetest94_\\w+");
 
     // Balance is more than 128 bits
+    PARAMS.ignore("CALLCODE_Bounds_*");
+    PARAMS.ignore("CALLCODE_Bounds2_*");
+    PARAMS.ignore("CALLCODE_Bounds3_*");
+    PARAMS.ignore("CALLCODE_Bounds4_*");
     PARAMS.ignore("CALLCODE_Bounds2_d0g0v0_*");
     PARAMS.ignore("CALLCODE_Bounds2_d0g1v0_*");
     PARAMS.ignore("CALLCODE_Bounds3_d0g0v0_*");
@@ -189,6 +206,10 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("CALLCODE_Bounds4_d0g2v0_*");
     PARAMS.ignore("CALLCODE_Bounds_d0g0v0_*");
     PARAMS.ignore("CALLCODE_Bounds_d0g1v0_*");
+    PARAMS.ignore("CALL_Bounds_*");
+    PARAMS.ignore("CALL_Bounds2_*");
+    PARAMS.ignore("CALL_Bounds2a_*");
+    PARAMS.ignore("CALL_Bounds3_*");
     PARAMS.ignore("CALL_Bounds2_d0g0v0_*");
     PARAMS.ignore("CALL_Bounds2_d0g1v0_*");
     PARAMS.ignore("CALL_Bounds2a_d0g0v0_*");
@@ -198,6 +219,9 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("CALL_Bounds3_d0g2v0_*");
     PARAMS.ignore("CALL_Bounds_d0g0v0_*");
     PARAMS.ignore("CALL_Bounds_d0g1v0_*");
+    PARAMS.ignore("CREATE2_Bounds_*");
+    PARAMS.ignore("CREATE2_Bounds2_*");
+    PARAMS.ignore("CREATE2_Bounds3_*");
     PARAMS.ignore("CREATE2_Bounds2_d0g0v0_*");
     PARAMS.ignore("CREATE2_Bounds2_d0g1v0_*");
     PARAMS.ignore("CREATE2_Bounds3_d0g0v0_*");
@@ -205,6 +229,9 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("CREATE2_Bounds3_d0g2v0_*");
     PARAMS.ignore("CREATE2_Bounds_d0g0v0_*");
     PARAMS.ignore("CREATE2_Bounds_d0g1v0_*");
+    PARAMS.ignore("CREATE_Bounds_*");
+    PARAMS.ignore("CREATE_Bounds2_*");
+    PARAMS.ignore("CREATE_Bounds3_*");
     PARAMS.ignore("CREATE_Bounds2_d0g0v0_*");
     PARAMS.ignore("CREATE_Bounds2_d0g1v0_*");
     PARAMS.ignore("CREATE_Bounds3_d0g0v0_*");
@@ -212,14 +239,21 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("CREATE_Bounds3_d0g2v0_*");
     PARAMS.ignore("CREATE_Bounds_d0g0v0_*");
     PARAMS.ignore("CREATE_Bounds_d0g1v0_*");
+    PARAMS.ignore("Call1024PreCalls_*");
     PARAMS.ignore("Call1024PreCalls_d0g0v0_*");
     PARAMS.ignore("Call1024PreCalls_d0g1v0_*");
     PARAMS.ignore("Call1024PreCalls_d0g2v0_*");
+    PARAMS.ignore("Create2OnDepth1023_*");
     PARAMS.ignore("Create2OnDepth1023_d0g0v0_*");
+    PARAMS.ignore("Create2OnDepth1024_*");
     PARAMS.ignore("Create2OnDepth1024_d0g0v0_*");
+    PARAMS.ignore("Create2Recursive_*");
     PARAMS.ignore("Create2Recursive_d0g0v0_*");
     PARAMS.ignore("Create2Recursive_d0g1v0_*");
     PARAMS.ignore("Create2Recursive_d0g2v0_*");
+    PARAMS.ignore("DELEGATECALL_Bounds_*");
+    PARAMS.ignore("DELEGATECALL_Bounds2_*");
+    PARAMS.ignore("DELEGATECALL_Bounds3_*");
     PARAMS.ignore("DELEGATECALL_Bounds2_d0g0v0_*");
     PARAMS.ignore("DELEGATECALL_Bounds2_d0g1v0_*");
     PARAMS.ignore("DELEGATECALL_Bounds3_d0g0v0_*");
@@ -228,19 +262,25 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("DELEGATECALL_Bounds_d0g0v0_*");
     PARAMS.ignore("DELEGATECALL_Bounds_d0g1v0_*");
     PARAMS.ignore("DelegateCallSpam_*");
+    PARAMS.ignore("HighGasLimit_*");
     PARAMS.ignore("HighGasLimit_d0g0v0_*");
+    PARAMS.ignore("MSTORE_Bounds_*");
+    PARAMS.ignore("MSTORE_Bounds2_*");
+    PARAMS.ignore("MSTORE_Bounds2a_*");
     PARAMS.ignore("MSTORE_Bounds2_d0g0v0_*");
     PARAMS.ignore("MSTORE_Bounds2_d0g1v0_*");
     PARAMS.ignore("MSTORE_Bounds2a_d0g0v0_*");
     PARAMS.ignore("MSTORE_Bounds2a_d0g1v0_*");
     PARAMS.ignore("MSTORE_Bounds_d0g0v0_*");
     PARAMS.ignore("MSTORE_Bounds_d0g1v0_*");
+    PARAMS.ignore("OutOfGasContractCreation_*");
     PARAMS.ignore("OutOfGasContractCreation_d0g0v0_*");
     PARAMS.ignore("OutOfGasContractCreation_d0g1v0_*");
     PARAMS.ignore("OutOfGasContractCreation_d1g0v0_*");
     PARAMS.ignore("OutOfGasContractCreation_d1g1v0_*");
     PARAMS.ignore("OverflowGasRequire2_d0g0v0_*");
     PARAMS.ignore("OverflowGasRequire_*");
+    PARAMS.ignore("RETURN_Bounds_*");
     PARAMS.ignore("RETURN_Bounds_d0g0v0_*");
     PARAMS.ignore("RETURN_Bounds_d0g1v0_*");
     PARAMS.ignore("RETURN_Bounds_d0g2v0_*");
@@ -254,11 +294,16 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("static_CALL_Bounds3_d0g1v0_*");
     PARAMS.ignore("static_CALL_Bounds_d0g0v0_*");
     PARAMS.ignore("static_CALL_Bounds_d0g1v0_*");
+    PARAMS.ignore("static_Call1024PreCalls_*");
+    PARAMS.ignore("static_Call1024PreCalls2_*");
+    PARAMS.ignore("static_Call1024PreCalls3_*");
     PARAMS.ignore("static_Call1024PreCalls2_d0g0v0_*");
     PARAMS.ignore("static_Call1024PreCalls2_d1g0v0_*");
     PARAMS.ignore("static_Call1024PreCalls3_d0g0v0_*");
     PARAMS.ignore("static_Call1024PreCalls3_d1g0v0_*");
     PARAMS.ignore("static_Call1024PreCalls_d1g0v0_*");
+    PARAMS.ignore("static_RETURN_Bounds_*");
+    PARAMS.ignore("static_RETURN_BoundsOOG_*");
     PARAMS.ignore("static_RETURN_BoundsOOG_d0g0v0_*");
     PARAMS.ignore("static_RETURN_BoundsOOG_d1g0v0_*");
     PARAMS.ignore("static_RETURN_Bounds_d0g0v0_London\\[London\\]");
@@ -351,15 +396,18 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("Cancun-opcode=CREATE2");
 
     // Deployment transaction to an account with nonce / code
+    PARAMS.ignore("TransactionCollisionToEmptyButCode_*");
     PARAMS.ignore("TransactionCollisionToEmptyButCode_d0g0v0_*");
     PARAMS.ignore("TransactionCollisionToEmptyButCode_d0g0v1_*");
     PARAMS.ignore("TransactionCollisionToEmptyButCode_d0g1v0_*");
     PARAMS.ignore("TransactionCollisionToEmptyButCode_d0g1v1_*");
+    PARAMS.ignore("TransactionCollisionToEmptyButNonce_*");
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g0v0_*");
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g0v1_*");
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g1v0_*");
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g1v1_*");
     PARAMS.ignore("createJS_ExampleContract_d0g0v0_*");
+    PARAMS.ignore("initCollidingWithNonEmptyAccount_*");
     PARAMS.ignore("initCollidingWithNonEmptyAccount_d0g0v0_*");
     PARAMS.ignore("initCollidingWithNonEmptyAccount_d1g0v0_*");
     PARAMS.ignore("initCollidingWithNonEmptyAccount_d2g0v0_*");

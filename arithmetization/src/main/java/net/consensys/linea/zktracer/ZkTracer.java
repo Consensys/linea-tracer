@@ -96,6 +96,7 @@ public class ZkTracer implements LineCountingTracer {
           case SHANGHAI -> new ShanghaiHub(chain, blockchain);
           case CANCUN -> new CancunHub(chain, blockchain);
           case PRAGUE -> new PragueHub(chain, blockchain);
+          case OSAKA -> new OsakaHub(chain, blockchain);
           default -> throw new IllegalArgumentException("Unknown fork: " + chain.fork);
         };
     this.trace = getTraceFromFork(chain.fork);
@@ -150,7 +151,7 @@ public class ZkTracer implements LineCountingTracer {
       hub.traceStartConflation(numBlocksInConflation);
       this.debugMode.ifPresent(x -> x.traceStartConflation(numBlocksInConflation));
     } catch (final Exception e) {
-      this.tracingExceptions.add(e);
+      collectException(e);
     }
   }
 
@@ -160,7 +161,7 @@ public class ZkTracer implements LineCountingTracer {
       this.hub.traceEndConflation(state);
       this.debugMode.ifPresent(DebugMode::traceEndConflation);
     } catch (final Exception e) {
-      this.tracingExceptions.add(e);
+      collectException(e);
     }
 
     if (!this.tracingExceptions.isEmpty()) {
@@ -177,7 +178,7 @@ public class ZkTracer implements LineCountingTracer {
       this.hub.traceStartBlock(world, processableBlockHeader, miningBeneficiary);
       this.debugMode.ifPresent(DebugMode::traceEndConflation);
     } catch (final Exception e) {
-      this.tracingExceptions.add(e);
+      collectException(e);
     }
   }
 
@@ -191,7 +192,7 @@ public class ZkTracer implements LineCountingTracer {
       this.hub.traceStartBlock(world, blockHeader, miningBeneficiary);
       this.debugMode.ifPresent(x -> x.traceStartBlock(blockHeader, blockBody, miningBeneficiary));
     } catch (final Exception e) {
-      this.tracingExceptions.add(e);
+      collectException(e);
     }
   }
 
@@ -201,7 +202,7 @@ public class ZkTracer implements LineCountingTracer {
       this.hub.traceEndBlock(blockHeader, blockBody);
       this.debugMode.ifPresent(DebugMode::traceEndBlock);
     } catch (final Exception e) {
-      this.tracingExceptions.add(e);
+      collectException(e);
     }
   }
 
@@ -210,7 +211,7 @@ public class ZkTracer implements LineCountingTracer {
       this.debugMode.ifPresent(x -> x.tracePrepareTx(worldView, transaction));
       this.hub.traceStartTransaction(worldView, transaction);
     } catch (final Exception e) {
-      this.tracingExceptions.add(e);
+      collectException(e);
     }
   }
 
@@ -227,7 +228,7 @@ public class ZkTracer implements LineCountingTracer {
       this.debugMode.ifPresent(x -> x.traceEndTx(worldView, tx, status, output, logs, gasUsed));
       this.hub.traceEndTransaction(worldView, tx, status, logs, selfDestructs);
     } catch (final Exception e) {
-      this.tracingExceptions.add(e);
+      collectException(e);
     }
   }
 
@@ -247,7 +248,7 @@ public class ZkTracer implements LineCountingTracer {
         this.hub.tracePreExecution(frame);
         this.debugMode.ifPresent(x -> x.tracePreOpcode(frame));
       } catch (final Exception e) {
-        this.tracingExceptions.add(e);
+        collectException(e);
       }
     }
   }
@@ -265,7 +266,7 @@ public class ZkTracer implements LineCountingTracer {
         this.hub.tracePostExecution(frame, operationResult);
         this.debugMode.ifPresent(x -> x.tracePostOpcode(frame, operationResult));
       } catch (final Exception e) {
-        this.tracingExceptions.add(e);
+        collectException(e);
       }
     }
   }
@@ -279,7 +280,7 @@ public class ZkTracer implements LineCountingTracer {
         this.hub.traceContextEnter(frame);
         this.debugMode.ifPresent(x -> x.traceContextEnter(frame));
       } catch (final Exception e) {
-        this.tracingExceptions.add(e);
+        collectException(e);
       }
     }
   }
@@ -290,7 +291,7 @@ public class ZkTracer implements LineCountingTracer {
       this.hub.traceContextReEnter(frame);
       this.debugMode.ifPresent(x -> x.traceContextReEnter(frame));
     } catch (final Exception e) {
-      this.tracingExceptions.add(e);
+      collectException(e);
     }
   }
 
@@ -300,8 +301,13 @@ public class ZkTracer implements LineCountingTracer {
       this.hub.traceContextExit(frame);
       this.debugMode.ifPresent(x -> x.traceContextExit(frame));
     } catch (final Exception e) {
-      this.tracingExceptions.add(e);
+      collectException(e);
     }
+  }
+
+  private void collectException(final Exception e) {
+    this.tracingExceptions.add(e);
+    log.trace("Collected exception during transaction processing", e);
   }
 
   private void maybeThrowTracingExceptions() {

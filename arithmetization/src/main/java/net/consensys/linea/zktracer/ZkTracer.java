@@ -66,7 +66,7 @@ public class ZkTracer implements LineCountingTracer {
 
   /**
    * Construct a ZkTracer for a given bridge configuration and chainId. This is used, for example,
-   * by the sequencer for tracing in production, such as on mainnet and/or sepolia.
+   * by the coordinator for tracing in production, such as on mainnet and/or sepolia.
    *
    * @param blockchain
    * @param bridgeConfiguration Configuration for the L1L2 bridge.
@@ -78,6 +78,21 @@ public class ZkTracer implements LineCountingTracer {
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
       BigInteger chainId) {
     this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId), blockchain);
+  }
+
+  /**
+   * Construct a ZkTracer for a given bridge configuration and chainId, without a BlockchainService.
+   * This is used, for example, by the sequencer for line counting in production, such as on mainnet
+   * and/or sepolia, or in tests.
+   *
+   * @param bridgeConfiguration Configuration for the L1L2 bridge.
+   * @param chainId Identifies the chain being traced.
+   */
+  public ZkTracer(
+      final Fork fork,
+      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
+      BigInteger chainId) {
+    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId), null);
   }
 
   /**
@@ -105,6 +120,10 @@ public class ZkTracer implements LineCountingTracer {
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
 
     log.info("[ZkTracer] Created ZkTracer for fork {}", chain.fork);
+    if (blockchain == null) {
+      log.info(
+          "[ZkTracer] No BlockchainService provided, assuming line counting only or testing. Tracing will fail.");
+    }
   }
 
   public void writeToFile(final Path filename, long startBlock, long endBlock) {

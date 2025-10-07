@@ -132,9 +132,16 @@ public class BlockchainReferenceTestTools {
         "osaka/eip7825_transaction_gas_limit_cap/test_tx_gas_limit.py::test_transaction_gas_limit_cap\\[fork_Prague-tx_gas_limit_cap_none0-blockchain_test_from_state_test\\]");
     PARAMS.ignore(
         "osaka/eip7825_transaction_gas_limit_cap/test_tx_gas_limit.py::test_transaction_gas_limit_cap\\[fork_Prague-tx_gas_limit_cap_none1-blockchain_test_from_state_test\\]");
+    PARAMS.ignore(
+        "tests/istanbul/eip1344_chainid/test_chainid.py::test_chainid\\[fork_Prague-typed_transaction_3*");
+    PARAMS.ignore(
+        "tests/istanbul/eip1344_chainid/test_chainid.py::test_chainid\\[fork_Prague-typed_transaction_4*");
 
     // tests that timeout and pass locally
     PARAMS.ignore("/cancun/eip1153_tstore/test_tstorage.py::test_run_until_out_of_gas");
+    // Test Name:
+    // tests/frontier/scenarios/test_scenarios.py::test_scenarios[fork_Prague-blockchain_test-test_program_program_BLOCKHASH-debug][Prague]
+    // PASSED (27m 52s)
     PARAMS.ignore(
         "frontier/scenarios/test_scenarios.py::test_scenarios\\[fork_Prague-blockchain_test-test_program_program_BLOCKHASH-debug\\]");
 
@@ -145,14 +152,11 @@ public class BlockchainReferenceTestTools {
         "cancun/eip4788_beacon_root/test_beacon_root_contract.py::test_multi_block_beacon_root_timestamp_calls");
     PARAMS.ignore("shanghai/eip4895_withdrawals/test_withdrawals.py::test_balance_within_block");
     PARAMS.ignore("shanghai/eip4895_withdrawals/test_withdrawals.py::test_use_value_in_contract");
-    PARAMS.ignore(
-        "tests/istanbul/eip1344_chainid/test_chainid.py::test_chainid[fork_Prague-typed_transaction_3*");
-    PARAMS.ignore(
-        "tests/istanbul/eip1344_chainid/test_chainid.py::test_chainid[fork_Prague-typed_transaction_4*");
 
     // Address is a precompile
     PARAMS.ignore(
         "osaka/eip7883_modexp_gas_increase/test_modexp_thresholds.py::test_modexp_used_in_transaction_entry_points");
+
     /*
      * Ignore tests in ethereum/tests repo
      */

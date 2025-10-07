@@ -92,7 +92,11 @@ public class ZkTracer implements LineCountingTracer {
       final Fork fork,
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
       BigInteger chainId) {
-    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId), null);
+    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId));
+  }
+
+  public ZkTracer(ChainConfig chain) {
+    this(chain, null);
   }
 
   /**

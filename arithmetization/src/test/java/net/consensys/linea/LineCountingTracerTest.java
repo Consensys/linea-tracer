@@ -41,7 +41,7 @@ public class LineCountingTracerTest extends TracerTestBase {
 
   @Test
   void noDuplicateNamesInModules() {
-    final ZkTracer tracer = new ZkTracer(chainConfig, null);
+    final ZkTracer tracer = new ZkTracer(chainConfig);
     final List<String> tracerToCount =
         tracer.getModulesToCount().stream().map(module -> module.moduleKey().toString()).toList();
     final List<String> tracedModules =
@@ -80,7 +80,7 @@ public class LineCountingTracerTest extends TracerTestBase {
 
     for (Fork fork : Fork.values()) {
       final ChainConfig config = MAINNET_TESTCONFIG(fork);
-      final ZkTracer tracer = new ZkTracer(config, null);
+      final ZkTracer tracer = new ZkTracer(config);
       final List<String> tracerModules =
           tracer.getModulesToCount().stream().map(module -> module.moduleKey().toString()).toList();
 
@@ -113,7 +113,7 @@ public class LineCountingTracerTest extends TracerTestBase {
             .buildBlockHeader();
     final BlockBody blockBody = BlockBody.empty();
 
-    final ZkTracer tracer = new ZkTracer(chainConfig, null);
+    final ZkTracer tracer = new ZkTracer(chainConfig);
     tracer.traceStartConflation(1);
     tracer.traceStartBlock(world, blockHeader, blockBody, DEFAULT_COINBASE_ADDRESS);
     final Map<String, Integer> sizeBeforeTracer = tracer.getModulesLineCount();

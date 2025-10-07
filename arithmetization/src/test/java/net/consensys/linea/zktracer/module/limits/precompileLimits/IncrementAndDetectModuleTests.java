@@ -27,7 +27,7 @@ import org.junit.jupiter.api.TestInfo;
 public class IncrementAndDetectModuleTests extends TracerTestBase {
   @Test
   void legalThenTwoIllegals(TestInfo testInfo) {
-    final ZkTracer state = new ZkTracer(chainConfig, null);
+    final ZkTracer state = new ZkTracer(chainConfig);
     final IncrementAndDetectModule countingOnlyModule = state.getHub().modexpEffectiveCall();
 
     countingOnlyModule.updateTally(1);
@@ -44,7 +44,7 @@ public class IncrementAndDetectModuleTests extends TracerTestBase {
 
   @Test
   void legalIllegalLegal(TestInfo testInfo) {
-    final ZkTracer state = new ZkTracer(chainConfig, null);
+    final ZkTracer state = new ZkTracer(chainConfig);
     final IncrementAndDetectModule countingOnlyModule = state.getHub().modexpEffectiveCall();
 
     countingOnlyModule.updateTally(1);
@@ -61,7 +61,7 @@ public class IncrementAndDetectModuleTests extends TracerTestBase {
 
   @Test
   void TwoIllegals(TestInfo testInfo) {
-    final ZkTracer state = new ZkTracer(chainConfig, null);
+    final ZkTracer state = new ZkTracer(chainConfig);
     final IncrementAndDetectModule countingOnlyModule = state.getHub().modexpEffectiveCall();
 
     countingOnlyModule.detectEvent();

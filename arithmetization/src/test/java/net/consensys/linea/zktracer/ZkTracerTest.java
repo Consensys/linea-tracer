@@ -31,13 +31,13 @@ public class ZkTracerTest extends TracerTestBase {
 
   @Test
   public void createNewTracer() {
-    final ZkTracer zkTracer = new ZkTracer(chainConfig, null);
+    final ZkTracer zkTracer = new ZkTracer(chainConfig);
     assertThat(zkTracer.isExtendedTracing()).isTrue();
   }
 
   @Test
   void tracedModuleForFork() {
-    final ZkTracer zkTracer = new ZkTracer(chainConfig, null);
+    final ZkTracer zkTracer = new ZkTracer(chainConfig);
     final int totalNumberOfModules =
         new ArrayList<>(
                 Stream.concat(

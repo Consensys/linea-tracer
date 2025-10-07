@@ -249,11 +249,8 @@ public class BlsDataOperation extends ModuleOperation {
       final int sizeOffset = k * SIZE_SMALL_POINT;
       final int indexOffset = k * (CT_MAX_SMALL_POINT + 1);
 
-      // Extract inputs
-      final Bytes aX = callData.slice(sizeOffset, 4 * LLARGE);
-      final Bytes aY = callData.slice(4 * LLARGE + sizeOffset, 4 * LLARGE);
-
-      final boolean wellFormedCoordinate = wellFormedFpCoordinate(indexOffset, aX, aY);
+      final boolean wellFormedCoordinate =
+          wellFormedFpCoordinate(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean isSmallPointOnCurve =
           isSmallPointOnCurve(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBit = wellFormedCoordinate && !isSmallPointOnCurve;
@@ -278,11 +275,8 @@ public class BlsDataOperation extends ModuleOperation {
       final int sizeOffset = k * (SIZE_SMALL_POINT + SIZE_SCALAR);
       final int indexOffset = k * (CT_MAX_SMALL_POINT + 1 + CT_MAX_SCALAR + 1);
 
-      // Extract inputs
-      final Bytes aX = callData.slice(sizeOffset, 4 * LLARGE);
-      final Bytes aY = callData.slice(4 * LLARGE + sizeOffset, 4 * LLARGE);
-
-      final boolean wellFormedCoordinate = wellFormedFpCoordinate(indexOffset, aX, aY);
+      final boolean wellFormedCoordinate =
+          wellFormedFpCoordinate(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean isSmallPointInSubgroup =
           isSmallPointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBit = wellFormedCoordinate && !isSmallPointInSubgroup;
@@ -307,13 +301,8 @@ public class BlsDataOperation extends ModuleOperation {
       final int indexOffset = k * (CT_MAX_LARGE_POINT + 1);
 
       // Extract inputs
-      final Bytes aXRe = callData.slice(sizeOffset, 4 * LLARGE);
-      final Bytes aXIm = callData.slice(4 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes aYRe = callData.slice(8 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes aYIm = callData.slice(12 * LLARGE + sizeOffset, 4 * LLARGE);
-
       final boolean wellFormedCoordinate =
-          wellFormedFp2Coordinate(indexOffset, aXRe, aXIm, aYRe, aYIm);
+          wellFormedFp2Coordinate(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
 
       final boolean isLargePointOnCurve =
           isLargePointOnCurve(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
@@ -339,14 +328,8 @@ public class BlsDataOperation extends ModuleOperation {
       final int sizeOffset = k * (SIZE_LARGE_POINT + SIZE_SCALAR);
       final int indexOffset = k * (CT_MAX_LARGE_POINT + 1 + CT_MAX_SCALAR + 1);
 
-      // Extract inputs
-      final Bytes aXRe = callData.slice(sizeOffset, 4 * LLARGE);
-      final Bytes aXIm = callData.slice(4 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes aYRe = callData.slice(8 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes aYIm = callData.slice(12 * LLARGE + sizeOffset, 4 * LLARGE);
-
       final boolean wellFormedCoordinate =
-          wellFormedFp2Coordinate(indexOffset, aXRe, aXIm, aYRe, aYIm);
+          wellFormedFp2Coordinate(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
 
       final boolean isLargePointInSubgroup =
           isLargePointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
@@ -372,17 +355,8 @@ public class BlsDataOperation extends ModuleOperation {
       final int sizeOffset = k * (SIZE_SMALL_POINT + SIZE_LARGE_POINT);
       final int indexOffset = k * (CT_MAX_SMALL_POINT + 1 + CT_MAX_LARGE_POINT + 1);
 
-      // Extract inputs
-      // Small point
-      final Bytes aX = callData.slice(sizeOffset, 4 * LLARGE);
-      final Bytes aY = callData.slice(4 * LLARGE + sizeOffset, 4 * LLARGE);
-      // Large point
-      final Bytes bXRe = callData.slice(8 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes bXIm = callData.slice(12 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes bYRe = callData.slice(16 * LLARGE + sizeOffset, 4 * LLARGE);
-      final Bytes bYIm = callData.slice(20 * LLARGE + sizeOffset, 4 * LLARGE);
-
-      final boolean wellFormedFpCoordinate = wellFormedFpCoordinate(indexOffset, aX, aY);
+      final boolean wellFormedFpCoordinate =
+          wellFormedFpCoordinate(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean isSmallPointInSubgroup =
           isSmallPointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBitSmall = wellFormedFpCoordinate && !isSmallPointInSubgroup;
@@ -400,7 +374,8 @@ public class BlsDataOperation extends ModuleOperation {
       }
 
       final boolean wellFormedFp2Coordinate =
-          wellFormedFp2Coordinate(8 + indexOffset, bXRe, bXIm, bYRe, bYIm);
+          wellFormedFp2Coordinate(
+              8 + indexOffset, callData.slice(8 * LLARGE + sizeOffset, SIZE_LARGE_POINT));
 
       final boolean isLargePointInSubgroup =
           isLargePointInSubGroup(
@@ -591,7 +566,9 @@ public class BlsDataOperation extends ModuleOperation {
         EWord.of(bigIntegerToBytes(BLS_PRIME_1), bigIntegerToBytes(BLS_PRIME_0)));
   }
 
-  private boolean wellFormedFpCoordinate(int i, Bytes pX, Bytes pY) {
+  private boolean wellFormedFpCoordinate(int i, Bytes smallPoint) {
+    final Bytes pX = smallPoint.slice(0, 4 * LLARGE);
+    final Bytes pY = smallPoint.slice(4 * LLARGE, 4 * LLARGE);
     final boolean pXIsInRange = callToLTBlsPrime(i, pX);
     final boolean pYIsInRange = callToLTBlsPrime(i + 4, pY);
 
@@ -604,7 +581,11 @@ public class BlsDataOperation extends ModuleOperation {
     return wellFormedCoordinate;
   }
 
-  private boolean wellFormedFp2Coordinate(int i, Bytes pXRe, Bytes pXIm, Bytes pYRe, Bytes pYIm) {
+  private boolean wellFormedFp2Coordinate(int i, Bytes largePoint) {
+    final Bytes pXRe = largePoint.slice(0, 4 * LLARGE);
+    final Bytes pXIm = largePoint.slice(4 * LLARGE, 4 * LLARGE);
+    final Bytes pYRe = largePoint.slice(8 * LLARGE, 4 * LLARGE);
+    final Bytes pYIm = largePoint.slice(12 * LLARGE, 4 * LLARGE);
     final boolean pXReIsInRange = callToLTBlsPrime(i, pXRe);
     final boolean pXImIsInRange = callToLTBlsPrime(i + 4, pXIm);
     final boolean pYReIsInRange = callToLTBlsPrime(i + 8, pYRe);
@@ -743,7 +724,7 @@ public class BlsDataOperation extends ModuleOperation {
           .isInfinity(isInfinity.get(i))
           .nontrivialPairOfPointsBit(nontrivialPairOfPointsBit.get(i))
           .nontrivialPairOfPointsAcc(
-              nontrivialPairOfPointsAcc && precompileFlag == PRC_BLS_PAIRING_CHECK && isData)
+              nontrivialPairOfPointsAcc && isData)
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))
           .wcpArg1Lo(wcpArg1Lo.get(i))

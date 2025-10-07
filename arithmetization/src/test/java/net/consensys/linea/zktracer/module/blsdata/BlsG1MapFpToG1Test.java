@@ -46,6 +46,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 @ExtendWith(UnitTestWatcher.class)
 public class BlsG1MapFpToG1Test extends TracerTestBase {
 
+  /**
+   * The following test tests the BLS_DATA module's ability to recognize malformed Fp elements in a
+   * way which is in accordance with the EVM and the return bit of the underlying <b>CALL</b>.
+   */
   @ParameterizedTest
   @MethodSource({"blsG1MapFpToG1Source", "blsG1MapFpToG1SourceExploringLeadTailPossibilities"})
   void testBlsG1MapFpToG1(String inputString, TestInfo testInfo) {

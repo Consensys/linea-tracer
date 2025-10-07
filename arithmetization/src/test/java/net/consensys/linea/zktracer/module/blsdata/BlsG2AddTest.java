@@ -42,6 +42,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 @ExtendWith(UnitTestWatcher.class)
 public class BlsG2AddTest extends TracerTestBase {
 
+  /**
+   * The following test tests the BLS_DATA module's ability to recognize malformed points and, for
+   * well-formed points, to offload curve membership test to gnark, in a way which is in accordance
+   * with the EVM and the return bit of the underlying <b>CALL</b>.
+   */
   @ParameterizedTest
   @MethodSource("blsG2AddSource")
   void testBlsG2Add(String a, String b, TestInfo testInfo) {

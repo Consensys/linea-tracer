@@ -119,8 +119,8 @@ public class GenesisConfigBuilder {
   }
 
   public String getOsakaTime() {
-    JsonNode pragueTime = configNode.get("osakaTime");
-    return pragueTime == null ? null : pragueTime.asText();
+    JsonNode osakaTime = configNode.get("osakaTime");
+    return osakaTime == null ? null : osakaTime.asText();
   }
 
   public String getCliqueBlockPeriodSeconds() {

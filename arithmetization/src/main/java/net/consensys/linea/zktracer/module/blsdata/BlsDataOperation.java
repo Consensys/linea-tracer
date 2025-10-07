@@ -104,10 +104,10 @@ public class BlsDataOperation extends ModuleOperation {
   private final List<Boolean> isInfinity;
   private final List<Boolean> nontrivialPairOfPointsBit;
 
-  @Getter private boolean mint;
-  @Getter private boolean mext;
-  @Getter private boolean wtrv;
-  @Getter private boolean wnon;
+  @Getter private boolean malformedDataInternal;
+  @Getter private boolean malformedDataExternal;
+  @Getter private boolean wellformedDataTrivial;
+  @Getter private boolean wellformedDataNonTrivial;
   @Getter private boolean firstPointNotInSubgroupIsSmall;
   @Getter private int nontrivialPopCounter;
   @Getter private int trivialPopDueToG2PointCounter; // Counting trivial pairs of the form (P,inf)
@@ -215,12 +215,19 @@ public class BlsDataOperation extends ModuleOperation {
   }
 
   private void handleGlobalColumns() {
-    mint = mintBit.stream().reduce(false, Boolean::logicalOr);
-    mext = mextBit.stream().reduce(false, Boolean::logicalOr);
+    malformedDataInternal = mintBit.stream().reduce(false, Boolean::logicalOr);
+    malformedDataExternal = mextBit.stream().reduce(false, Boolean::logicalOr);
     final boolean nonTrivialPairOfPointsTot =
         nontrivialPairOfPointsBit.stream().reduce(false, Boolean::logicalOr);
-    wtrv = !mint && !mext && precompileFlag == PRC_BLS_PAIRING_CHECK && !nonTrivialPairOfPointsTot;
-    wnon = !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || nonTrivialPairOfPointsTot);
+    wellformedDataTrivial =
+        !malformedDataInternal
+            && !malformedDataExternal
+            && precompileFlag == PRC_BLS_PAIRING_CHECK
+            && !nonTrivialPairOfPointsTot;
+    wellformedDataNonTrivial =
+        !malformedDataInternal
+            && !malformedDataExternal
+            && (precompileFlag != PRC_BLS_PAIRING_CHECK || nonTrivialPairOfPointsTot);
   }
 
   private void handlePointEvaluation() {
@@ -713,18 +720,17 @@ public class BlsDataOperation extends ModuleOperation {
               i < nBYTES_OF_DELTA_BYTES ? UnsignedByte.of(deltaByte.get(i)) : UnsignedByte.of(0))
           .malformedDataInternalBit(mintBit.get(i) && isData)
           .malformedDataInternalAcc(mintBitAcc && isData)
-          .malformedDataInternalAccTot(mint)
+          .malformedDataInternalAccTot(malformedDataInternal)
           .malformedDataExternalBit(mextBit.get(i) && isData)
           .malformedDataExternalAcc(mextBitAcc && isData)
-          .malformedDataExternalAccTot(mext)
-          .wellformedDataTrivial(wtrv)
-          .wellformedDataNontrivial(wnon)
+          .malformedDataExternalAccTot(malformedDataExternal)
+          .wellformedDataTrivial(wellformedDataTrivial)
+          .wellformedDataNontrivial(wellformedDataNonTrivial)
           .isFirstInput(isFirstInput && isData)
           .isSecondInput(!isFirstInput && isData)
           .isInfinity(isInfinity.get(i))
           .nontrivialPairOfPointsBit(nontrivialPairOfPointsBit.get(i))
-          .nontrivialPairOfPointsAcc(
-              nontrivialPairOfPointsAcc && isData)
+          .nontrivialPairOfPointsAcc(nontrivialPairOfPointsAcc && isData)
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))
           .wcpArg1Lo(wcpArg1Lo.get(i))

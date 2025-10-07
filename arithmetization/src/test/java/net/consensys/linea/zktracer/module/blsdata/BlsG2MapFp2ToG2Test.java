@@ -47,7 +47,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class BlsG2MapFp2ToG2Test extends TracerTestBase {
 
   @ParameterizedTest
-  @MethodSource({"blsG2MapFp2ToG2Source", "blsG2MapFp2ToG2Source2"})
+  @MethodSource({"blsG2MapFp2ToG2Source", "blsG2MapFp2ToG2SourceExploringLeadTailPossibilities"})
   void testBlsG2MapFpToG2(String inputString, TestInfo testInfo) {
     final Bytes input = Bytes.fromHexString(inputString);
 
@@ -89,21 +89,21 @@ public class BlsG2MapFp2ToG2Test extends TracerTestBase {
           new BigInteger(inputString.substring(0, 128), 16).compareTo(BLS_PRIME) >= 0
               || new BigInteger(inputString.substring(128, 256), 16).compareTo(BLS_PRIME) >= 0;
       final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
-      assertEquals(failureIsExpected, blsdata.blsDataOperation().mint());
+      assertEquals(failureIsExpected, blsdata.blsDataOperation().malformedDataInternal());
       assertEquals(failureIsExpected, !blsdata.blsDataOperation().successBit());
     }
   }
 
   private static Stream<Arguments> blsG2MapFp2ToG2Source() {
     List<Arguments> arguments = new ArrayList<>();
-    // valid input
     arguments.add(
+        // A random valid input in Fp2
         Arguments.of(
             "00000000000000000000000000000000167ab0f743a50c14cfe36fe095886cefd958c60233367db3f904f6f2b40d5df62f75958a02b52daca5316718966a8fb7000000000000000000000000000000001904f0ab97b4fad64e7833426ba8a6311c0694716cf407c8a015cb266153aae30e45b5796e0143da9f608fd01aaf77d2"));
     return arguments.stream();
   }
 
-  private static Stream<Arguments> blsG2MapFp2ToG2Source2() {
+  private static Stream<Arguments> blsG2MapFp2ToG2SourceExploringLeadTailPossibilities() {
     // Some of the input do not belong to Fp2
     List<Arguments> arguments = new ArrayList<>();
     for (String leadIm : Stream.concat(leadSuccess.stream(), leadFailure.stream()).toList()) {

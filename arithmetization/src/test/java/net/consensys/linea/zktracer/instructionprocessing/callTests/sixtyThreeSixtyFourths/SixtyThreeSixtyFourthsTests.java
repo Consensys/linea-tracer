@@ -451,9 +451,9 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
     } else if (address == BLS12_PAIRING) {
       return PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK; // 1 unit only
     } else if (address == BLS12_MAP_FP_TO_G1) {
-      return PRECOMPILE_RETURN_DATA_SIZE___BLS_MAP_FP_TO_G1;
+      return PRECOMPILE_CALL_DATA_SIZE___FP_TO_G1;
     } else if (address == BLS12_MAP_FP2_TO_G2) {
-      return PRECOMPILE_RETURN_DATA_SIZE___BLS_MAP_FP2_TO_G2;
+      return PRECOMPILE_CALL_DATA_SIZE___FP2_TO_G2;
     } else {
       return 0;
     }

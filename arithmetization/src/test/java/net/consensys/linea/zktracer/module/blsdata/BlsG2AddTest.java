@@ -84,7 +84,7 @@ public class BlsG2AddTest extends TracerTestBase {
       final boolean failureIsExpected =
           a.equals(INVALID_G2_POINT_NOT_ON_CURVE) || b.equals(INVALID_G2_POINT_NOT_ON_CURVE);
       final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
-      assertEquals(failureIsExpected, blsdata.blsDataOperation().mext());
+      assertEquals(failureIsExpected, blsdata.blsDataOperation().malformedDataExternal());
       assertEquals(failureIsExpected, !blsdata.blsDataOperation().successBit());
     }
   }

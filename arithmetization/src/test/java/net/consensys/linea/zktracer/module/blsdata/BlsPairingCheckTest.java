@@ -98,7 +98,7 @@ public class BlsPairingCheckTest extends TracerTestBase {
           smallPoints.stream().anyMatch(p -> !p.equals(VALID_G1_POINT))
               || largePoints.stream().anyMatch(p -> !p.equals(VALID_G2_POINT));
       final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
-      assertEquals(failureIsExpected, blsdata.blsDataOperation().mext());
+      assertEquals(failureIsExpected, blsdata.blsDataOperation().malformedDataExternal());
       assertEquals(failureIsExpected, !blsdata.blsDataOperation().successBit());
     }
   }

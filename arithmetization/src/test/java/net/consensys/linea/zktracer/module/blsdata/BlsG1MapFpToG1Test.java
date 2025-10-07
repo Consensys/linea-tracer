@@ -47,7 +47,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class BlsG1MapFpToG1Test extends TracerTestBase {
 
   @ParameterizedTest
-  @MethodSource({"blsG1MapFpToG1Source", "blsG1MapFpToG1Source2"})
+  @MethodSource({"blsG1MapFpToG1Source", "blsG1MapFpToG1SourceExploringLeadTailPossibilities"})
   void testBlsG1MapFpToG1(String inputString, TestInfo testInfo) {
     final Bytes input = Bytes.fromHexString(inputString);
 
@@ -87,21 +87,21 @@ public class BlsG1MapFpToG1Test extends TracerTestBase {
     if (isPostPrague(fork)) {
       final boolean failureIsExpected = new BigInteger(inputString, 16).compareTo(BLS_PRIME) >= 0;
       final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
-      assertEquals(failureIsExpected, blsdata.blsDataOperation().mint());
+      assertEquals(failureIsExpected, blsdata.blsDataOperation().malformedDataInternal());
       assertEquals(failureIsExpected, !blsdata.blsDataOperation().successBit());
     }
   }
 
   private static Stream<Arguments> blsG1MapFpToG1Source() {
     List<Arguments> arguments = new ArrayList<>();
-    // valid input
     arguments.add(
+        // A random valid input in Fp
         Arguments.of(
             "0000000000000000000000000000000014f10c6ba2ffdf4d14eca5cb0af2470b9b42ba9d42bb5c4ae307784c04accde631e66119d25bf93a86baf0a435c23f14"));
     return arguments.stream();
   }
 
-  private static Stream<Arguments> blsG1MapFpToG1Source2() {
+  private static Stream<Arguments> blsG1MapFpToG1SourceExploringLeadTailPossibilities() {
     // Some of these inputs to do not belong to Fp
     List<Arguments> arguments = new ArrayList<>();
     for (String lead : Stream.concat(leadSuccess.stream(), leadFailure.stream()).toList()) {

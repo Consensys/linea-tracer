@@ -16,9 +16,17 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class OsakaHub extends PragueHub {
   public OsakaHub(ChainConfig chain) {
     super(chain);
+  }
+
+  @Override
+  protected void setClzSection(MessageFrame frame) {
+    new StackOnlySection(this);
+    log2().callLog2(frame.getStackItem(0));
   }
 }

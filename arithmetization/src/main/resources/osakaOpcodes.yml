@@ -98,6 +98,7 @@ opcodes:
       alpha: 1
       delta: 2
       staticGas: G_LOW
+      flag2: true
       # assigned LEQ opcode for WCP module with value 0x0E. Change this value if Linéa/EVM uses this opcode.
       # assigned GEQ opcode for WCP module with value 0x0F. Change this value if Linéa/EVM uses this opcode.
   - mnemonic: LT
@@ -157,6 +158,7 @@ opcodes:
       alpha: 1
       delta: 2
       staticGas: G_VERY_LOW
+      flag2: true
   - mnemonic: OR
     value: 0x17
     instructionFamily: BIN
@@ -165,6 +167,7 @@ opcodes:
       alpha: 1
       delta: 2
       staticGas: G_VERY_LOW
+      flag2: true
   - mnemonic: XOR
     value: 0x18
     instructionFamily: BIN
@@ -173,6 +176,7 @@ opcodes:
       alpha: 1
       delta: 2
       staticGas: G_VERY_LOW
+      flag2: true
   - mnemonic: NOT
     value: 0x19
     instructionFamily: BIN
@@ -182,6 +186,7 @@ opcodes:
       delta: 1
       staticGas: G_VERY_LOW
       flag1: true
+      flag2: true
   - mnemonic: BYTE
     value: 0x1a
     instructionFamily: BIN
@@ -190,6 +195,7 @@ opcodes:
       alpha: 1
       delta: 2
       staticGas: G_VERY_LOW
+      flag2: true
   - mnemonic: SHL
     value: 0x1b
     instructionFamily: SHF
@@ -214,6 +220,15 @@ opcodes:
       alpha: 1
       delta: 2
       staticGas: G_VERY_LOW
+  - mnemonic: CLZ
+    value: 0x1e
+    instructionFamily: BIN
+    stackSettings:
+      pattern: ONE_ONE
+      alpha: 1
+      delta: 1
+      staticGas: G_VERY_LOW
+      flag3: true
   - mnemonic: SHA3
     value: 0x20
     instructionFamily: KEC

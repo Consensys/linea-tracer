@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.ModuleName.GAS;
+import static net.consensys.linea.zktracer.module.ModuleName.LOG2;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NB_ROWS_ADD;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.NB_ROWS_BLAKEMODEXP_MODEXP;
 import static net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData.NB_ROWS_BLOCK_DATA;
@@ -155,6 +156,7 @@ public class ZkCounter implements LineCountingTracer {
   final Ext ext = new Ext();
   final CountingOnlyModule gas = new CountingOnlyModule(GAS, trace.gas().spillage());
   final CountingOnlyModule hub = new CountingOnlyModule(HUB, trace.hub().spillage());
+  final CountingOnlyModule log2 = new CountingOnlyModule(LOG2, trace.log2().spillage());
   final CountingOnlyModule logData = new CountingOnlyModule(LOG_DATA, trace.logdata().spillage());
   final CountingOnlyModule logInfo = new CountingOnlyModule(LOG_INFO, trace.loginfo().spillage());
   final CountingOnlyModule mmio = new CountingOnlyModule(MMIO, trace.mmio().spillage());
@@ -257,6 +259,7 @@ public class ZkCounter implements LineCountingTracer {
   public List<Module> uncheckedModules() {
     return List.of(
         euc, // need MMU
+        log2, // some counts come from EXP and is a tiny module so don't care
         mmio, // need MMU
         mmu, // not trivial
         rlpTxn, // need a refacto to have rlpTxn using not only TransactionProcessingMetadata

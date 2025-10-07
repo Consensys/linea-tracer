@@ -29,6 +29,7 @@ public enum ModuleName {
   EXT,
   GAS,
   HUB,
+  LOG2,
   LOG_DATA,
   LOG_INFO,
   MMIO,

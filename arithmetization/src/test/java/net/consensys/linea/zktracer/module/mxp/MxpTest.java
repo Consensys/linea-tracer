@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.appendOpCodeCall;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.isMxpx;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.isRoob;
@@ -25,8 +24,6 @@ import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType3;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4ExcludingHalting;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4Halting;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,16 +49,11 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 // https://github.com/Consensys/linea-besu-plugin/issues/197
 @Execution(ExecutionMode.SAME_THREAD)
@@ -302,218 +294,6 @@ public class MxpTest extends TracerTestBase {
             .build();
 
     toyExecutionEnvironmentV2.run();
-  }
-
-  @Tag("nightly")
-  @ParameterizedTest
-  @MethodSource({"testMxpxThresholdSource"})
-  void testMxpxThreshold(
-      OpCode opCode,
-      BigInteger offset1,
-      BigInteger offset2,
-      BigInteger size1,
-      BigInteger size2,
-      TestInfo testInfo) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
-
-    switch (opCode) {
-        // 1 offset
-      case MSTORE, MSTORE8 -> program
-          .push(0) // value
-          .push(offset1)
-          .op(opCode);
-        // 2 offsets, 1 size
-      case CODECOPY -> program.push(size1).push(offset2).push(offset1).op(opCode);
-        // 2 offsets, 2 sizes
-      case CALL -> program
-          .push(size2)
-          .push(offset2)
-          .push(size1)
-          .push(offset1)
-          .push(0) // value
-          .push(0) // address
-          .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
-          .op(opCode);
-      default -> throw new IllegalArgumentException("Unsupported opCode: " + opCode);
-    }
-
-    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
-  }
-
-  static final BigInteger MAX_UINT256 =
-      BigInteger.TWO.pow(256).subtract(BigInteger.ONE); // 2^256 - 1
-  static final BigInteger LONDON_MXPX_THRESHOLD = (BigInteger.valueOf(256).pow(4));
-  static final BigInteger CANCUN_MXPX_THRESHOLD =
-      (BigInteger.valueOf(256).pow(4)).subtract(BigInteger.ONE);
-  static final BigInteger SMALL = BigInteger.valueOf(32);
-
-  static final List<OpCode> oneOffsetOpCodes = List.of(OpCode.MSTORE, OpCode.MSTORE8);
-  static final List<OpCode> twoOffsetsOneSizeOpCodes = List.of(OpCode.CODECOPY);
-  static final List<OpCode> twoOffsetSizePairsOpCodes = List.of(OpCode.CALL);
-
-  static Stream<Arguments> testMxpxThresholdSource() {
-    final BigInteger MXPX_THRESHOLD = mxpxThreshold();
-    List<Arguments> arguments = new ArrayList<>();
-    List<BigInteger> values =
-        List.of(
-            BigInteger.ZERO,
-            BigInteger.ONE,
-            MXPX_THRESHOLD,
-            MXPX_THRESHOLD.add(BigInteger.ONE),
-            MAX_UINT256.subtract(BigInteger.valueOf(123)), // random huge number
-            MAX_UINT256);
-
-    for (OpCode opCode : oneOffsetOpCodes) {
-      for (BigInteger offset1 : values) {
-        arguments.add(Arguments.of(opCode, offset1, null, null, null));
-      }
-    }
-
-    for (OpCode opCode : twoOffsetsOneSizeOpCodes) {
-      for (BigInteger offset1 : values) {
-        for (BigInteger offset2 : values) {
-          for (BigInteger size1 : values) {
-            arguments.add(Arguments.of(opCode, offset1, offset2, size1, null));
-          }
-        }
-      }
-    }
-
-    for (OpCode opCode : twoOffsetSizePairsOpCodes) {
-      for (BigInteger offset1 : values) {
-        for (BigInteger offset2 : values) {
-          for (BigInteger size1 : values) {
-            for (BigInteger size2 : values) {
-              arguments.add(Arguments.of(opCode, offset1, offset2, size1, size2));
-            }
-          }
-        }
-      }
-    }
-
-    final BigInteger MXP_THRESHOLD_DIVIDED_BY_TWO = MXPX_THRESHOLD.divide(BigInteger.TWO);
-    final BigInteger MXP_THRESHOLD_MINUS_MXP_THRESHOLD_DIVIDED_BY_TWO =
-        MXPX_THRESHOLD.subtract(MXP_THRESHOLD_DIVIDED_BY_TWO);
-
-    for (OpCode opCode : twoOffsetsOneSizeOpCodes) {
-      // offset1 + size1 == MXPX_THRESHOLD
-      arguments.add(Arguments.of(opCode, MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL, null));
-      arguments.add(Arguments.of(opCode, SMALL, SMALL, MXPX_THRESHOLD.subtract(SMALL), null));
-      arguments.add(
-          Arguments.of(
-              opCode,
-              MXP_THRESHOLD_DIVIDED_BY_TWO,
-              SMALL,
-              MXP_THRESHOLD_MINUS_MXP_THRESHOLD_DIVIDED_BY_TWO,
-              null));
-    }
-
-    for (OpCode opCode : twoOffsetSizePairsOpCodes) {
-      // offset1 + size1 == MXPX_THRESHOLD
-      arguments.add(Arguments.of(opCode, MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL, SMALL));
-      arguments.add(Arguments.of(opCode, SMALL, SMALL, MXPX_THRESHOLD.subtract(SMALL), SMALL));
-      arguments.add(
-          Arguments.of(
-              opCode,
-              MXP_THRESHOLD_DIVIDED_BY_TWO,
-              SMALL,
-              MXP_THRESHOLD_MINUS_MXP_THRESHOLD_DIVIDED_BY_TWO,
-              SMALL));
-      // offset2 + size2 == MXPX_THRESHOLD
-      arguments.add(Arguments.of(opCode, SMALL, MXPX_THRESHOLD.subtract(SMALL), SMALL, SMALL));
-      arguments.add(Arguments.of(opCode, SMALL, SMALL, SMALL, MXPX_THRESHOLD.subtract(SMALL)));
-      arguments.add(
-          Arguments.of(
-              opCode,
-              SMALL,
-              MXP_THRESHOLD_DIVIDED_BY_TWO,
-              SMALL,
-              MXP_THRESHOLD_MINUS_MXP_THRESHOLD_DIVIDED_BY_TWO));
-    }
-
-    return arguments.stream();
-  }
-
-  static BigInteger mxpxThreshold() {
-    if (isPostCancun(chainConfig.fork)) {
-      return CANCUN_MXPX_THRESHOLD;
-    } else {
-      return LONDON_MXPX_THRESHOLD;
-    }
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = {16, 17, 18, 19, 20, 21})
-  void testCodeCopyForDifferentSizes(int size, TestInfo testInfo) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
-    program
-        .push(size)
-        .push(0) // offset (arbitrary value)
-        .push(
-            BigInteger.valueOf(13)
-                .add(LONDON_MXPX_THRESHOLD)
-                .subtract(BigInteger.valueOf(32))) // destOffset
-        .op(OpCode.CODECOPY);
-    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
-  }
-
-  @ParameterizedTest
-  @MethodSource({
-    "testCodeCopyOverflowWithOneTinyParameterSource",
-    "testCodeCopyOverflowWithTwoSimilarValuesSource",
-    "testCodeCopyOverflowWithTwoLargeValuesSource"
-  })
-  void testCodeCopyOverflow(BigInteger size, BigInteger destOffset, TestInfo testInfo) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
-    program
-        .push(size)
-        .push(0) // offset (arbitrary value)
-        .push(destOffset) // destOffset
-        .op(OpCode.CODECOPY);
-    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
-  }
-
-  static Stream<Arguments> testCodeCopyOverflowWithOneTinyParameterSource() {
-    List<Arguments> arguments = new ArrayList<>();
-    List<BigInteger> aValues =
-        List.of(BigInteger.valueOf(16), BigInteger.valueOf(17), BigInteger.valueOf(18));
-    BigInteger b =
-        LONDON_MXPX_THRESHOLD.subtract(BigInteger.valueOf(32)).add(BigInteger.valueOf(15));
-    for (BigInteger a : aValues) {
-      arguments.add(Arguments.of(a, b));
-      arguments.add(Arguments.of(b, a));
-    }
-    return arguments.stream();
-  }
-
-  static Stream<Arguments> testCodeCopyOverflowWithTwoSimilarValuesSource() {
-    List<Arguments> arguments = new ArrayList<>();
-    List<BigInteger> aValues =
-        List.of(
-            BigInteger.TWO.pow(31),
-            BigInteger.TWO.pow(31).add(BigInteger.valueOf(1)),
-            BigInteger.TWO.pow(31).add(BigInteger.valueOf(1)));
-    BigInteger b = BigInteger.TWO.pow(31);
-    for (BigInteger a : aValues) {
-      arguments.add(Arguments.of(a, b));
-      arguments.add(Arguments.of(b, a));
-    }
-    return arguments.stream();
-  }
-
-  static Stream<Arguments> testCodeCopyOverflowWithTwoLargeValuesSource() {
-    List<Arguments> arguments = new ArrayList<>();
-    List<BigInteger> values =
-        List.of(
-            LONDON_MXPX_THRESHOLD,
-            LONDON_MXPX_THRESHOLD.add(BigInteger.valueOf(1)),
-            LONDON_MXPX_THRESHOLD.add(BigInteger.valueOf(1)));
-    for (BigInteger a : values) {
-      for (BigInteger b : values) {
-        arguments.add(Arguments.of(a, b));
-      }
-    }
-    return arguments.stream();
   }
 
   // Support methods

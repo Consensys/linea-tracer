@@ -13,12 +13,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeSixtyFourths;
+package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeSixtyFourthsPrecompiles;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLAKE2F;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_ADD;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_MSM;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G2_ADD;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G2_MSM;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_PAIRING_CHECK;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_ECADD;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_ECMUL;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_ECPAIRING;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_ECRECOVER;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_IDENTITY;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_MODEXP;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_RIPEMD_160;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.module.oob.OobOperation.computeExponentLog;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
@@ -34,23 +51,6 @@ import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getPrecom
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareBlake2F;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareModexp;
 import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompile;
-import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
-import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
-import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
-import static org.hyperledger.besu.datatypes.Address.BLAKE2B_F_COMPRESSION;
-import static org.hyperledger.besu.datatypes.Address.BLS12_G1ADD;
-import static org.hyperledger.besu.datatypes.Address.BLS12_G1MULTIEXP;
-import static org.hyperledger.besu.datatypes.Address.BLS12_G2ADD;
-import static org.hyperledger.besu.datatypes.Address.BLS12_G2MULTIEXP;
-import static org.hyperledger.besu.datatypes.Address.BLS12_MAP_FP2_TO_G2;
-import static org.hyperledger.besu.datatypes.Address.BLS12_MAP_FP_TO_G1;
-import static org.hyperledger.besu.datatypes.Address.BLS12_PAIRING;
-import static org.hyperledger.besu.datatypes.Address.ECREC;
-import static org.hyperledger.besu.datatypes.Address.ID;
-import static org.hyperledger.besu.datatypes.Address.KZG_POINT_EVAL;
-import static org.hyperledger.besu.datatypes.Address.MODEXP;
-import static org.hyperledger.besu.datatypes.Address.RIPEMD160;
-import static org.hyperledger.besu.datatypes.Address.SHA256;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.ArrayList;
@@ -64,6 +64,7 @@ import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -87,7 +88,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * SPDX-License-Identifier: Apache-2.0
  */
 
-public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
+public class SixtyThreeSixtyFourthsPrecompileTests extends TracerTestBase {
   /*
   Cases to cover:
 
@@ -127,47 +128,53 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
 
   // Cost of preCallProgram in different scenarios:
   // (address, transfersValue) -> gasCost
-  static final Map<Address, Map<Boolean, Long>> preCallProgramGasMap =
-      Stream.of(
-              ECREC,
-              SHA256,
-              RIPEMD160,
-              ID,
-              MODEXP,
-              ALTBN128_ADD,
-              ALTBN128_MUL,
-              ALTBN128_PAIRING,
-              BLAKE2B_F_COMPRESSION,
-              KZG_POINT_EVAL,
-              BLS12_G1ADD,
-              BLS12_G1MULTIEXP,
-              BLS12_G2ADD,
-              BLS12_G2MULTIEXP,
-              BLS12_PAIRING,
-              BLS12_MAP_FP_TO_G1,
-              BLS12_MAP_FP2_TO_G2)
-          .collect(
-              Collectors.toMap(
-                  address -> address,
-                  address ->
-                      new HashMap<>() {
-                        {
-                          put(
-                              false,
-                              BytecodeRunner.of(preCallProgram(address, false, false, 0))
-                                  .runOnlyForGasCost(
-                                      address == MODEXP ? additionalAccounts : List.of(),
-                                      chainConfig,
-                                      null));
-                          put(
-                              true,
-                              BytecodeRunner.of(preCallProgram(address, false, true, 0))
-                                  .runOnlyForGasCost(
-                                      address == MODEXP ? additionalAccounts : List.of(),
-                                      chainConfig,
-                                      null));
-                        }
-                      }));
+
+  static final Map<PrecompileScenarioFragment.PrecompileFlag, Map<Boolean, Long>>
+      preCallProgramGasMap =
+          Stream.of(
+                  PRC_ECRECOVER,
+                  PRC_SHA2_256,
+                  PRC_RIPEMD_160,
+                  PRC_IDENTITY,
+                  PRC_MODEXP,
+                  PRC_ECADD,
+                  PRC_ECMUL,
+                  PRC_ECPAIRING,
+                  PRC_BLAKE2F,
+                  PRC_POINT_EVALUATION,
+                  PRC_BLS_G1_ADD,
+                  PRC_BLS_G1_MSM,
+                  PRC_BLS_G2_ADD,
+                  PRC_BLS_G2_MSM,
+                  PRC_BLS_PAIRING_CHECK,
+                  PRC_BLS_MAP_FP_TO_G1,
+                  PRC_BLS_MAP_FP2_TO_G2)
+              .collect(
+                  Collectors.toMap(
+                      precompileFlag -> precompileFlag,
+                      precompileFlag ->
+                          new HashMap<>() {
+                            {
+                              put(
+                                  false,
+                                  BytecodeRunner.of(preCallProgram(precompileFlag, false, false, 0))
+                                      .runOnlyForGasCost(
+                                          precompileFlag == PRC_MODEXP
+                                              ? additionalAccounts
+                                              : List.of(),
+                                          chainConfig,
+                                          null));
+                              put(
+                                  true,
+                                  BytecodeRunner.of(preCallProgram(precompileFlag, false, true, 0))
+                                      .runOnlyForGasCost(
+                                          precompileFlag == PRC_MODEXP
+                                              ? additionalAccounts
+                                              : List.of(),
+                                          chainConfig,
+                                          null));
+                            }
+                          }));
 
   // Note: transferValue = false and cds = 0 as we are interested only in the cost of the
   // corresponding PUSHes here
@@ -184,7 +191,7 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("fixedCostAddTestSource")
   void fixedCostAddTest(
-      Address address,
+      PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       long gasLimit,
       boolean insufficientGasForPrecompileExpected,
       TestInfo testInfo) {
@@ -193,12 +200,12 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
 
     final BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
-    program.immediate(preCallProgram(address, false, false, 0)).op(CALL);
+    program.immediate(preCallProgram(precompileFlag, false, false, 0)).op(CALL);
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     bytecodeRunner.run(gasLimit, chainConfig, testInfo);
 
-    if (address == ALTBN128_ADD || isPostPrague(fork)) {
+    if (precompileFlag == PRC_ECADD || isPostPrague(fork)) {
       assertNotEquals(
           OUT_OF_GAS_EXCEPTION,
           bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
@@ -207,23 +214,24 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
 
   static Stream<Arguments> fixedCostAddTestSource() {
     List<Arguments> arguments = new ArrayList<>();
-    Map<Address, Integer> addressToTargetCalleeGas =
+    Map<PrecompileScenarioFragment.PrecompileFlag, Integer> precompileFlagToTargetCalleeGas =
         new HashMap<>() {
           {
-            put(ALTBN128_ADD, getECADDCost());
-            put(BLS12_G1ADD, getBlsG1AddCost());
-            put(BLS12_G2ADD, getBlsG2AddCost());
+            put(PRC_ECADD, getECADDCost());
+            put(PRC_BLS_G1_ADD, getBlsG1AddCost());
+            put(PRC_BLS_G2_ADD, getBlsG2AddCost());
           }
         };
-    for (Address address : addressToTargetCalleeGas.keySet()) {
+    for (PrecompileScenarioFragment.PrecompileFlag precompileFlag :
+        precompileFlagToTargetCalleeGas.keySet()) {
       for (int cornerCase : List.of(0, -1)) {
         final long gasLimit =
             getGasLimit(
-                addressToTargetCalleeGas.get(address) + cornerCase,
+                precompileFlagToTargetCalleeGas.get(precompileFlag) + cornerCase,
                 false,
                 false,
-                preCallProgramGasMap.get(address).get(false));
-        arguments.add(Arguments.of(address, gasLimit, cornerCase == -1));
+                preCallProgramGasMap.get(precompileFlag).get(false));
+        arguments.add(Arguments.of(precompileFlag, gasLimit, cornerCase == -1));
       }
     }
     return arguments.stream();
@@ -234,7 +242,7 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
    * (every precompile except ECADD, BLS_G1_ADD, BLS_G2_ADD, as long as cds and inputs are properly
    * selected).
    *
-   * @param address the address of the precompile contract.
+   * @param precompileFlag the precompile flag of the precompile contract.
    * @param gasLimit the gas limit for the transaction. It is either as much as needed for the
    *     precompile call or slightly less.
    * @param insufficientGasForPrecompileExpected flag indicating if insufficient gas for precompile
@@ -245,9 +253,9 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
    * @param cds the call data size.
    */
   @ParameterizedTest
-  @MethodSource("costGEQStipendTest")
+  @MethodSource("costGEQStipendTestSource")
   void costGEQStipendTest(
-      Address address,
+      PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       long gasLimit,
       boolean insufficientGasForPrecompileExpected,
       boolean transfersValue,
@@ -255,46 +263,51 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
       int cds,
       TestInfo testInfo) {
     final BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
-    program.immediate(preCallProgram(address, transfersValue, targetAddressExists, cds)).op(CALL);
+    program
+        .immediate(preCallProgram(precompileFlag, transfersValue, targetAddressExists, cds))
+        .op(CALL);
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     bytecodeRunner.run(
-        gasLimit, address == MODEXP ? additionalAccounts : List.of(), chainConfig, testInfo);
+        gasLimit,
+        precompileFlag == PRC_MODEXP ? additionalAccounts : List.of(),
+        chainConfig,
+        testInfo);
 
-    if (!isBlsPrecompile(address)
-        || (address == KZG_POINT_EVAL && isPostCancun(fork))
-        || (isBlsPrecompile(address) && isPostPrague(fork))) {
+    if (!isBlsPrecompile(precompileFlag.getAddress())
+        || (precompileFlag == PRC_POINT_EVALUATION && isPostCancun(fork))
+        || (isBlsPrecompile(precompileFlag.getAddress()) && isPostPrague(fork))) {
       assertNotEquals(
           OUT_OF_GAS_EXCEPTION,
           bytecodeRunner.getHub().lastUserTransactionSection().commonValues.tracedException());
     }
   }
 
-  static Stream<Arguments> costGEQStipendTest() {
+  static Stream<Arguments> costGEQStipendTestSource() {
     List<Arguments> arguments = new ArrayList<>();
-    for (Address address :
+    for (PrecompileScenarioFragment.PrecompileFlag precompileFlag :
         List.of(
-            ECREC,
-            SHA256,
-            RIPEMD160,
-            ID,
-            MODEXP,
-            ALTBN128_MUL,
-            ALTBN128_PAIRING,
-            BLAKE2B_F_COMPRESSION,
-            KZG_POINT_EVAL,
-            BLS12_G1MULTIEXP,
-            BLS12_G2MULTIEXP,
-            BLS12_PAIRING,
-            BLS12_MAP_FP_TO_G1,
-            BLS12_MAP_FP2_TO_G2)) {
-      final int cds = getCallDataSize(address);
+            PRC_ECRECOVER,
+            PRC_SHA2_256,
+            PRC_RIPEMD_160,
+            PRC_IDENTITY,
+            PRC_MODEXP,
+            PRC_ECMUL,
+            PRC_ECPAIRING,
+            PRC_BLAKE2F,
+            PRC_POINT_EVALUATION,
+            PRC_BLS_G1_MSM,
+            PRC_BLS_G2_MSM,
+            PRC_BLS_PAIRING_CHECK,
+            PRC_BLS_MAP_FP_TO_G1,
+            PRC_BLS_MAP_FP2_TO_G2)) {
+      final int cds = getMeaningfulCallDataSize(precompileFlag);
       final long targetCalleeGas =
-          address == BLAKE2B_F_COMPRESSION
+          precompileFlag == PRC_BLAKE2F
               ? getBLAKE2FCost(r)
-              : address == MODEXP
+              : precompileFlag == PRC_MODEXP
                   ? getMODEXPCost(bbs, mbs, exponentLog)
-                  : getPrecompileCost(address, cds);
+                  : getPrecompileCost(precompileFlag.getAddress(), cds);
       for (int cornerCase : List.of(0, -1)) {
         for (boolean transfersValue : List.of(true, false)) {
           for (boolean targetAddressExists : List.of(true, false)) {
@@ -306,10 +319,15 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
                     targetCalleeGas + cornerCase,
                     transfersValue,
                     targetAddressExists,
-                    preCallProgramGasMap.get(address).get(targetAddressExists));
+                    preCallProgramGasMap.get(precompileFlag).get(targetAddressExists));
             arguments.add(
                 Arguments.of(
-                    address, gasLimit, cornerCase == -1, transfersValue, targetAddressExists, cds));
+                    precompileFlag,
+                    gasLimit,
+                    cornerCase == -1,
+                    transfersValue,
+                    targetAddressExists,
+                    cds));
           }
         }
       }
@@ -319,14 +337,20 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
 
   // Support methods
   static Bytes preCallProgram(
-      Address address, boolean transfersValue, boolean targetAddressExists, int cds) {
+      PrecompileScenarioFragment.PrecompileFlag precompileFlag,
+      boolean transfersValue,
+      boolean targetAddressExists,
+      int cds) {
     return BytecodeCompiler.newProgram(chainConfig)
         .immediate(expandMemoryTo2048Words())
-        .immediate(targetAddressExists ? successfullySummonIntoExistence(address) : Bytes.EMPTY)
         .immediate(
-            address == MODEXP ? prepareModexp(modexpInput, 0, codeOwnerAddress) : Bytes.EMPTY)
-        .immediate(address == BLAKE2B_F_COMPRESSION ? prepareBlake2F(rLeadingByte, 2) : Bytes.EMPTY)
-        .immediate(pushCallArguments(INFINITE_GAS, address, cds, transfersValue))
+            targetAddressExists ? successfullySummonIntoExistence(precompileFlag) : Bytes.EMPTY)
+        .immediate(
+            precompileFlag == PRC_MODEXP
+                ? prepareModexp(modexpInput, 0, codeOwnerAddress)
+                : Bytes.EMPTY)
+        .immediate(precompileFlag == PRC_BLAKE2F ? prepareBlake2F(rLeadingByte, 2) : Bytes.EMPTY)
+        .immediate(pushCallArguments(INFINITE_GAS, precompileFlag, cds, transfersValue))
         .compile();
   }
 
@@ -343,34 +367,43 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
         .compile();
   }
 
-  static Bytes successfullySummonIntoExistence(Address address) {
+  static Bytes successfullySummonIntoExistence(
+      PrecompileScenarioFragment.PrecompileFlag precompileFlag) {
     return call(
         INFINITE_GAS,
-        address,
-        address == BLAKE2B_F_COMPRESSION
+        precompileFlag,
+        precompileFlag == PRC_BLAKE2F
             ? PRECOMPILE_CALL_DATA_SIZE___BLAKE2F
-            : isBlsPrecompile(address)
-                ? getCallDataSize(address)
+            : isBlsPrecompile(precompileFlag.getAddress())
+                ? getMeaningfulCallDataSize(precompileFlag)
                 : 0, // For BLAKE2F and BLS precompiles we need a meaningful cds for the call to
         // succeed
         true);
   }
 
-  static Bytes call(Bytes gas, Address address, int cds, boolean transfersValue) {
+  static Bytes call(
+      Bytes gas,
+      PrecompileScenarioFragment.PrecompileFlag precompileFlag,
+      int cds,
+      boolean transfersValue) {
     return BytecodeCompiler.newProgram(chainConfig)
-        .immediate(pushCallArguments(gas, address, cds, transfersValue))
+        .immediate(pushCallArguments(gas, precompileFlag, cds, transfersValue))
         .op(CALL)
         .compile();
   }
 
-  static Bytes pushCallArguments(Bytes gas, Address address, int cds, boolean transfersValue) {
+  static Bytes pushCallArguments(
+      Bytes gas,
+      PrecompileScenarioFragment.PrecompileFlag precompileFlag,
+      int cds,
+      boolean transfersValue) {
     return BytecodeCompiler.newProgram(chainConfig)
         .push(0) // returnAtCapacity
         .push(0) // returnAtOffset
         .push(cds) // callDataSize
         .push(0) // callDataOffset
         .push(transfersValue ? 1 : 0) // value
-        .push(address) // address
+        .push(precompileFlag.getAddress()) // address
         .push(gas) // gas
         .compile();
   }
@@ -430,32 +463,26 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
             : 0);
   }
 
-  static int getCallDataSize(Address address) {
-    if (address == SHA256 || address == RIPEMD160 || address == ID) {
-      return 1024 * WORD_SIZE; // Ensures cost is greater than stipend
-    } else if (address == MODEXP) {
-      return 96 + bbs + ebs + mbs; // Ensures cost is greater than stipend with non-zero non-trivial
-    } else if (address == BLAKE2B_F_COMPRESSION) {
-      return PRECOMPILE_CALL_DATA_SIZE___BLAKE2F; // Ensures cost is greater than stipend with
-      // non-zero non-trivial input
-    } else if (address == KZG_POINT_EVAL) {
-      return PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION;
-    } else if (address == BLS12_G1ADD) {
-      return PRECOMPILE_CALL_DATA_SIZE___G1_ADD;
-    } else if (address == BLS12_G1MULTIEXP) {
-      return PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G1_MSM; // 1 unit only
-    } else if (address == BLS12_G2ADD) {
-      return PRECOMPILE_CALL_DATA_SIZE___G2_ADD;
-    } else if (address == BLS12_G2MULTIEXP) {
-      return PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G2_MSM; // 1 unit only
-    } else if (address == BLS12_PAIRING) {
-      return PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK; // 1 unit only
-    } else if (address == BLS12_MAP_FP_TO_G1) {
-      return PRECOMPILE_CALL_DATA_SIZE___FP_TO_G1;
-    } else if (address == BLS12_MAP_FP2_TO_G2) {
-      return PRECOMPILE_CALL_DATA_SIZE___FP2_TO_G2;
-    } else {
-      return 0;
-    }
+  static int getMeaningfulCallDataSize(PrecompileScenarioFragment.PrecompileFlag precompileFlag) {
+    return switch (precompileFlag) {
+      case PRC_SHA2_256, PRC_RIPEMD_160, PRC_IDENTITY -> 1024
+          * WORD_SIZE; // Ensures cost is greater than stipend
+      case PRC_MODEXP -> 96 + bbs + ebs
+          + mbs; // Ensures cost is greater than stipend with non-zero non-trivial
+      case PRC_BLAKE2F -> PRECOMPILE_CALL_DATA_SIZE___BLAKE2F; // Ensures cost is greater than
+        // stipend with non-zero non-trivial
+        // input
+      case PRC_POINT_EVALUATION -> PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION;
+      case PRC_BLS_G1_ADD -> PRECOMPILE_CALL_DATA_SIZE___G1_ADD;
+      case PRC_BLS_G1_MSM -> PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G1_MSM; // 1 unit only
+      case PRC_BLS_G2_ADD -> PRECOMPILE_CALL_DATA_SIZE___G2_ADD;
+      case PRC_BLS_G2_MSM -> PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G2_MSM; // 1 unit only
+      case PRC_BLS_PAIRING_CHECK -> PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK; // 1 unit
+        // only
+      case PRC_BLS_MAP_FP_TO_G1 -> PRECOMPILE_CALL_DATA_SIZE___FP_TO_G1;
+      case PRC_BLS_MAP_FP2_TO_G2 -> PRECOMPILE_CALL_DATA_SIZE___FP2_TO_G2;
+      default -> 0; // Remaining precompiles such as ECRECOVER, ECADD, ECMUL, ECPAIRING can be
+        // called with cds = 0
+    };
   }
 }

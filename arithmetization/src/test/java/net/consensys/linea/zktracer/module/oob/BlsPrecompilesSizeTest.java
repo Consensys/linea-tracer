@@ -97,26 +97,6 @@ public class BlsPrecompilesSizeTest extends TracerTestBase {
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
   }
 
-  /*
-     PRC_ECRECOVER,
-   PRC_SHA2_256,
-   PRC_RIPEMD_160,
-   PRC_IDENTITY,
-   PRC_MODEXP,
-   PRC_ECADD,
-   PRC_ECMUL,
-   PRC_ECPAIRING,
-   PRC_BLAKE2F,
-   PRC_POINT_EVALUATION,
-   PRC_BLS_G1_ADD,
-   PRC_BLS_G1_MSM,
-   PRC_BLS_G2_ADD,
-   PRC_BLS_G2_MSM,
-   PRC_BLS_PAIRING_CHECK,
-   PRC_BLS_MAP_FP_TO_G1,
-   PRC_BLS_MAP_FP2_TO_G2;
-  */
-
   private static Stream<Arguments> blsPrecompilesSizeTestSource() {
     final Map<PrecompileScenarioFragment.PrecompileFlag, Integer>
         FIXED_SIZE_PRECOMPILE_ADDRESS_TO_SIZE =
@@ -158,7 +138,7 @@ public class BlsPrecompilesSizeTest extends TracerTestBase {
         }
       }
     }
-    
+
     return arguments.stream();
   }
 }

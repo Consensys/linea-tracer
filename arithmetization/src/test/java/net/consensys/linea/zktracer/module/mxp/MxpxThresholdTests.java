@@ -262,7 +262,7 @@ public class MxpxThresholdTests extends TracerTestBase {
     List<BigInteger> values =
         List.of(
             LONDON_MXPX_THRESHOLD,
-            LONDON_MXPX_THRESHOLD.add(BigInteger.valueOf(1)),
+            LONDON_MXPX_THRESHOLD.subtract(BigInteger.valueOf(1)),
             LONDON_MXPX_THRESHOLD.add(BigInteger.valueOf(1)));
     for (BigInteger a : values) {
       for (BigInteger b : values) {

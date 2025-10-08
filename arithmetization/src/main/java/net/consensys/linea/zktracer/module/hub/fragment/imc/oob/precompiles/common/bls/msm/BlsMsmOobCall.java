@@ -53,10 +53,10 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
     super.callExoModulesAndSetOutputs(add, mod, wcp);
 
     // row i + 2
-    final OobExoCall remaninderCall =
+    final OobExoCall remainderCall =
         callToMOD(mod, getCds().toBytes(), Bytes.ofUnsignedLong(minMsmSize()));
-    exoCalls.add(remaninderCall);
-    final Bytes remainder = remaninderCall.result();
+    exoCalls.add(remainderCall);
+    final Bytes remainder = remainderCall.result();
 
     // row i + 3
     final OobExoCall cdsIsMultipleOfMinMsmSizeCall = callToIsZero(wcp, remainder);
@@ -66,9 +66,11 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
 
     final int numInputs = getCds().toInt() / minMsmSize();
 
+    final boolean validCds = !isCdsIsZero() && cdsIsMultipleOfMinMsmSize;
+
     // i + 4
     boolean numInputsLeq128 = false;
-    if (!cdsIsMultipleOfMinMsmSize) {
+    if (!validCds) {
       exoCalls.add(noCall());
     } else {
       final OobExoCall numInputsGt128Call =
@@ -79,7 +81,7 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
 
     // i + 5
     int discount = 0;
-    if (!cdsIsMultipleOfMinMsmSize) {
+    if (!validCds) {
       exoCalls.add(noCall());
     } else {
       if (numInputsLeq128) {
@@ -93,7 +95,7 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
     }
 
     // i + 6
-    if (!cdsIsMultipleOfMinMsmSize) {
+    if (!validCds) {
       exoCalls.add(noCall());
     } else {
       final OobExoCall precompileCostIntegerDivisionCall =
@@ -108,7 +110,7 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
 
     // i + 7
     boolean sufficientGas = false;
-    if (!cdsIsMultipleOfMinMsmSize) {
+    if (!validCds) {
       exoCalls.add(noCall());
     } else {
       final OobExoCall insufficientGasCall =
@@ -118,7 +120,7 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
     }
 
     // Set hubSuccess
-    final boolean hubSuccess = !isCdsIsZero() && cdsIsMultipleOfMinMsmSize && sufficientGas;
+    final boolean hubSuccess = validCds && sufficientGas;
     setHubSuccess(hubSuccess);
 
     // Set returnGas

@@ -133,6 +133,7 @@ public class BlsDataOperation extends ModuleOperation {
         precompileFlag.isBlsPrecompile(),
         "BlsDataOperation: precompile %s isn't of BLS type",
         precompileFlag);
+    checkArgument(!callData.isEmpty(), "BlsDataOperation: callData is empty");
 
     this.precompileFlag = precompileFlag;
     this.callData = callData;

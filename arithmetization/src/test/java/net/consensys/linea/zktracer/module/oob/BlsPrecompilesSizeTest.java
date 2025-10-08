@@ -114,9 +114,10 @@ public class BlsPrecompilesSizeTest extends TracerTestBase {
     }
 
     for (Address address : VARIABLE_SIZE_PRECOMPILE_ADDRESS_TO_UNIT.keySet()) {
+      int unit = VARIABLE_SIZE_PRECOMPILE_ADDRESS_TO_UNIT.get(address);
       arguments.add(Arguments.of(address, 0));
       arguments.add(Arguments.of(address, 1));
-      int unit = VARIABLE_SIZE_PRECOMPILE_ADDRESS_TO_UNIT.get(address);
+      arguments.add(Arguments.of(address, 256 * unit));
       for (int numberOfUnits = 1; numberOfUnits <= 128; numberOfUnits++) {
         for (int cornerCase = -1; cornerCase <= 1; cornerCase++) {
           arguments.add(Arguments.of(address, numberOfUnits * unit + cornerCase));

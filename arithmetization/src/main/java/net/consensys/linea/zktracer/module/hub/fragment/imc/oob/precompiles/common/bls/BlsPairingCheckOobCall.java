@@ -75,17 +75,16 @@ public class BlsPairingCheckOobCall extends CommonPrecompileOobCall {
                                             PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK)))))
             : Bytes.of(0);
 
+    final boolean validCds = !isCdsIsZero() && cdsIsMultipleOfMinBlsPairingCheckSize;
+
     // row i + 4
     final OobExoCall insufficientGasCall =
-        cdsIsMultipleOfMinBlsPairingCheckSize
-            ? callToLT(wcp, getCalleeGas(), precompileCost)
-            : noCall();
+        validCds ? callToLT(wcp, getCalleeGas(), precompileCost) : noCall();
     exoCalls.add(insufficientGasCall);
     final boolean sufficientGas = !bytesToBoolean(insufficientGasCall.result());
 
     // Set hubSuccess
-    final boolean hubSuccess =
-        !isCdsIsZero() && cdsIsMultipleOfMinBlsPairingCheckSize && sufficientGas;
+    final boolean hubSuccess = validCds && sufficientGas;
     setHubSuccess(hubSuccess);
 
     // Set returnGas

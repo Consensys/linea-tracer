@@ -87,8 +87,10 @@ public class BlockchainReferenceTestTools {
     if (NETWORKS_TO_RUN.isEmpty()) {
       PARAMS.ignoreAll();
     }
+
     /*
-     * Ignore tests in ethereum/execution-spec-tests repo
+     * Tests below are ignored specifically for Prague run
+     * They are all from the ethereum/execution-spec-tests repo
      */
 
     // TODO: should be re-enabled for Prague v2.0
@@ -102,9 +104,9 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("/prague/eip7251_consolidations/");
     PARAMS.ignore("/prague/eip7685_general_purpose_el_requests/");
     PARAMS.ignore(
-        "prague/eip7623_increase_calldata_cost/test_transaction_validity.py::test_transaction_validity_type_3");
+        "/prague/eip7623_increase_calldata_cost/test_transaction_validity.py::test_transaction_validity_type_3");
     PARAMS.ignore(
-        "prague/eip7623_increase_calldata_cost/test_transaction_validity.py::test_transaction_validity_type_4");
+        "/prague/eip7623_increase_calldata_cost/test_transaction_validity.py::test_transaction_validity_type_4");
     PARAMS.ignore(
         "/cancun/eip4788_beacon_root/test_beacon_root_contract.py::test_tx_to_beacon_root_contract\\[fork_Prague-tx_type_3-blockchain_test-call_beacon_root_contract_True-auto_access_list_\\w+");
     PARAMS.ignore(
@@ -129,21 +131,30 @@ public class BlockchainReferenceTestTools {
         "/cancun/eip4788_beacon_root/test_beacon_root_contract.py::test_tx_to_beacon_root_contract");
     // note : called none0 and none1 but are txs of type 4 and 3 respectively
     PARAMS.ignore(
-        "osaka/eip7825_transaction_gas_limit_cap/test_tx_gas_limit.py::test_transaction_gas_limit_cap\\[fork_Prague-tx_gas_limit_cap_none0-blockchain_test_from_state_test\\]");
+        "/osaka/eip7825_transaction_gas_limit_cap/test_tx_gas_limit.py::test_transaction_gas_limit_cap\\[fork_Prague-tx_gas_limit_cap_none0-blockchain_test_from_state_test\\]");
     PARAMS.ignore(
-        "osaka/eip7825_transaction_gas_limit_cap/test_tx_gas_limit.py::test_transaction_gas_limit_cap\\[fork_Prague-tx_gas_limit_cap_none1-blockchain_test_from_state_test\\]");
+        "/osaka/eip7825_transaction_gas_limit_cap/test_tx_gas_limit.py::test_transaction_gas_limit_cap\\[fork_Prague-tx_gas_limit_cap_none1-blockchain_test_from_state_test\\]");
     PARAMS.ignore(
-        "tests/istanbul/eip1344_chainid/test_chainid.py::test_chainid\\[fork_Prague-typed_transaction_3*");
+        "/istanbul/eip1344_chainid/test_chainid.py::test_chainid\\[fork_Prague-typed_transaction_3*");
     PARAMS.ignore(
-        "tests/istanbul/eip1344_chainid/test_chainid.py::test_chainid\\[fork_Prague-typed_transaction_4*");
+        "/istanbul/eip1344_chainid/test_chainid.py::test_chainid\\[fork_Prague-typed_transaction_4*");
 
     // tests that timeout and pass locally
-    PARAMS.ignore("/cancun/eip1153_tstore/test_tstorage.py::test_run_until_out_of_gas");
+    // Log when launching locally
     // Test Name:
     // tests/frontier/scenarios/test_scenarios.py::test_scenarios[fork_Prague-blockchain_test-test_program_program_BLOCKHASH-debug][Prague]
     // PASSED (27m 52s)
     PARAMS.ignore(
         "frontier/scenarios/test_scenarios.py::test_scenarios\\[fork_Prague-blockchain_test-test_program_program_BLOCKHASH-debug\\]");
+
+    // tests that timeout even locally
+    // Log when launching locally
+    // Test Name:
+    // tests/cancun/eip1153_tstore/test_tstorage.py::test_run_until_out_of_gas[fork_Prague-tx_gas_limit_0x055d4a80-blockchain_test_from_state_test-tstore_wide_address_space][Prague] FAILED (1h 3m)
+    // java.util.concurrent.TimeoutException: execution(java.lang.String,
+    // org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec, boolean) timed
+    // out after 60 minutes
+    PARAMS.ignore("/cancun/eip1153_tstore/test_tstorage.py::test_run_until_out_of_gas");
 
     // withdrawals
     PARAMS.ignore("/prague/eip7002_el_triggerable_withdrawals/");
@@ -153,25 +164,36 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("shanghai/eip4895_withdrawals/test_withdrawals.py::test_balance_within_block");
     PARAMS.ignore("shanghai/eip4895_withdrawals/test_withdrawals.py::test_use_value_in_contract");
 
-    // Address is a precompile
+    // Arithmetization restriction: recipient address is a precompile
     PARAMS.ignore(
         "osaka/eip7883_modexp_gas_increase/test_modexp_thresholds.py::test_modexp_used_in_transaction_entry_points");
 
+    // BLS precompile PRC_POINT_EVALUATION called with empty call data
+    PARAMS.ignore(
+        "static/state_tests/stSpecialTest/failed_tx_xcf416c53_ParisFiller.json::failed_tx_xcf416c53_Paris\\[fork_Prague-blockchain_test_from_state_test-\\]");
+
     /*
-     * Ignore tests in ethereum/tests repo
+     * Tests ignored below regroup tests from different forks. They are labelled from the ethereum/execution-spec-tests from Prague and on
      */
 
     // ignore tests that are failing in Besu too
-    PARAMS.ignore("RevertInCreateInInitCreate2_*");
     PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_*");
     PARAMS.ignore("RevertInCreateInInit_d0g0v0_*");
-    PARAMS.ignore("create2collisionStorage_*");
     PARAMS.ignore("create2collisionStorage_d0g0v0_*");
     PARAMS.ignore("create2collisionStorage_d1g0v0_*");
     PARAMS.ignore("create2collisionStorage_d2g0v0_*");
-    PARAMS.ignore("dynamicAccountOverwriteEmpty_*");
-
     PARAMS.ignore("dynamicAccountOverwriteEmpty_d0g0v0_*");
+    // From ethereum/execution-spec-tests repo
+    PARAMS.ignore(
+        "RevertInCreateInInitCreate2Paris\\[fork_Prague-blockchain_test_from_state_test-\\]");
+    PARAMS.ignore(
+        "create2collisionStorageParis\\[fork_Prague-blockchain_test_from_state_test-d0\\]");
+    PARAMS.ignore(
+        "create2collisionStorageParis\\[fork_Prague-blockchain_test_from_state_test-d1\\]");
+    PARAMS.ignore(
+        "create2collisionStorageParis\\[fork_Prague-blockchain_test_from_state_test-d2\\]");
+    PARAMS.ignore(
+        "dynamicAccountOverwriteEmpty_Paris\\[fork_Prague-blockchain_test_from_state_test-\\]");
 
     // ignore tests that are failing because there is an account with nonce 0 and
     // non-empty code which can't happen in Linea since we are post LONDON
@@ -183,7 +205,6 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("RevertInCreateInInit_d0g0v0_London\\[London\\]");
 
     // Arithmetization restriction: recipient address is a precompile.
-    PARAMS.ignore("modexpRandomInput_*");
     PARAMS.ignore("modexpRandomInput_d0g0v0_*");
     PARAMS.ignore("modexpRandomInput_d0g1v0_*");
     PARAMS.ignore("modexpRandomInput_d1g0v0_*");
@@ -197,6 +218,17 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("randomStatetest644_d0g0v0_*");
     PARAMS.ignore("randomStatetest645_d0g0v0_*");
     PARAMS.ignore("randomStatetest645_d0g0v1_*");
+    // From the ethereum/execution-spec-tests repo
+    PARAMS.ignore("modexpRandomInput\\[fork_Prague-blockchain_test_from_state_test-d0-g0\\]");
+    PARAMS.ignore("modexpRandomInput\\[fork_Prague-blockchain_test_from_state_test-d0-g1\\]");
+    PARAMS.ignore("modexpRandomInput\\[fork_Prague-blockchain_test_from_state_test-d1-g0\\]");
+    PARAMS.ignore("modexpRandomInput\\[fork_Prague-blockchain_test_from_state_test-d1-g1\\]");
+    PARAMS.ignore("modexpRandomInput\\[fork_Prague-blockchain_test_from_state_test-d2-g0\\]");
+    PARAMS.ignore("modexpRandomInput\\[fork_Prague-blockchain_test_from_state_test-d2-g1\\]");
+    PARAMS.ignore("randomStatetest642\\[fork_Prague-blockchain_test_from_state_test-\\]");
+    PARAMS.ignore("randomStatetest644\\[fork_Prague-blockchain_test_from_state_test-\\]");
+    PARAMS.ignore("randomStatetest645\\[fork_Prague-blockchain_test_from_state_test-v0\\]");
+    PARAMS.ignore("randomStatetest645\\[fork_Prague-blockchain_test_from_state_test-v1\\]");
 
     // Consumes a huge amount of memory.
     PARAMS.ignore("static_Call1MB1024Calldepth_d1g0v0_\\w+");
@@ -210,10 +242,6 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("randomStatetest94_\\w+");
 
     // Balance is more than 128 bits
-    PARAMS.ignore("CALLCODE_Bounds_*");
-    PARAMS.ignore("CALLCODE_Bounds2_*");
-    PARAMS.ignore("CALLCODE_Bounds3_*");
-    PARAMS.ignore("CALLCODE_Bounds4_*");
     PARAMS.ignore("CALLCODE_Bounds2_d0g0v0_*");
     PARAMS.ignore("CALLCODE_Bounds2_d0g1v0_*");
     PARAMS.ignore("CALLCODE_Bounds3_d0g0v0_*");
@@ -223,10 +251,6 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("CALLCODE_Bounds4_d0g2v0_*");
     PARAMS.ignore("CALLCODE_Bounds_d0g0v0_*");
     PARAMS.ignore("CALLCODE_Bounds_d0g1v0_*");
-    PARAMS.ignore("CALL_Bounds_*");
-    PARAMS.ignore("CALL_Bounds2_*");
-    PARAMS.ignore("CALL_Bounds2a_*");
-    PARAMS.ignore("CALL_Bounds3_*");
     PARAMS.ignore("CALL_Bounds2_d0g0v0_*");
     PARAMS.ignore("CALL_Bounds2_d0g1v0_*");
     PARAMS.ignore("CALL_Bounds2a_d0g0v0_*");
@@ -236,9 +260,6 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("CALL_Bounds3_d0g2v0_*");
     PARAMS.ignore("CALL_Bounds_d0g0v0_*");
     PARAMS.ignore("CALL_Bounds_d0g1v0_*");
-    PARAMS.ignore("CREATE2_Bounds_*");
-    PARAMS.ignore("CREATE2_Bounds2_*");
-    PARAMS.ignore("CREATE2_Bounds3_*");
     PARAMS.ignore("CREATE2_Bounds2_d0g0v0_*");
     PARAMS.ignore("CREATE2_Bounds2_d0g1v0_*");
     PARAMS.ignore("CREATE2_Bounds3_d0g0v0_*");
@@ -246,9 +267,6 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("CREATE2_Bounds3_d0g2v0_*");
     PARAMS.ignore("CREATE2_Bounds_d0g0v0_*");
     PARAMS.ignore("CREATE2_Bounds_d0g1v0_*");
-    PARAMS.ignore("CREATE_Bounds_*");
-    PARAMS.ignore("CREATE_Bounds2_*");
-    PARAMS.ignore("CREATE_Bounds3_*");
     PARAMS.ignore("CREATE_Bounds2_d0g0v0_*");
     PARAMS.ignore("CREATE_Bounds2_d0g1v0_*");
     PARAMS.ignore("CREATE_Bounds3_d0g0v0_*");
@@ -256,21 +274,14 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("CREATE_Bounds3_d0g2v0_*");
     PARAMS.ignore("CREATE_Bounds_d0g0v0_*");
     PARAMS.ignore("CREATE_Bounds_d0g1v0_*");
-    PARAMS.ignore("Call1024PreCalls_*");
     PARAMS.ignore("Call1024PreCalls_d0g0v0_*");
     PARAMS.ignore("Call1024PreCalls_d0g1v0_*");
     PARAMS.ignore("Call1024PreCalls_d0g2v0_*");
-    PARAMS.ignore("Create2OnDepth1023_*");
     PARAMS.ignore("Create2OnDepth1023_d0g0v0_*");
-    PARAMS.ignore("Create2OnDepth1024_*");
     PARAMS.ignore("Create2OnDepth1024_d0g0v0_*");
-    PARAMS.ignore("Create2Recursive_*");
     PARAMS.ignore("Create2Recursive_d0g0v0_*");
     PARAMS.ignore("Create2Recursive_d0g1v0_*");
     PARAMS.ignore("Create2Recursive_d0g2v0_*");
-    PARAMS.ignore("DELEGATECALL_Bounds_*");
-    PARAMS.ignore("DELEGATECALL_Bounds2_*");
-    PARAMS.ignore("DELEGATECALL_Bounds3_*");
     PARAMS.ignore("DELEGATECALL_Bounds2_d0g0v0_*");
     PARAMS.ignore("DELEGATECALL_Bounds2_d0g1v0_*");
     PARAMS.ignore("DELEGATECALL_Bounds3_d0g0v0_*");
@@ -279,25 +290,19 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("DELEGATECALL_Bounds_d0g0v0_*");
     PARAMS.ignore("DELEGATECALL_Bounds_d0g1v0_*");
     PARAMS.ignore("DelegateCallSpam_*");
-    PARAMS.ignore("HighGasLimit_*");
     PARAMS.ignore("HighGasLimit_d0g0v0_*");
-    PARAMS.ignore("MSTORE_Bounds_*");
-    PARAMS.ignore("MSTORE_Bounds2_*");
-    PARAMS.ignore("MSTORE_Bounds2a_*");
     PARAMS.ignore("MSTORE_Bounds2_d0g0v0_*");
     PARAMS.ignore("MSTORE_Bounds2_d0g1v0_*");
     PARAMS.ignore("MSTORE_Bounds2a_d0g0v0_*");
     PARAMS.ignore("MSTORE_Bounds2a_d0g1v0_*");
     PARAMS.ignore("MSTORE_Bounds_d0g0v0_*");
     PARAMS.ignore("MSTORE_Bounds_d0g1v0_*");
-    PARAMS.ignore("OutOfGasContractCreation_*");
     PARAMS.ignore("OutOfGasContractCreation_d0g0v0_*");
     PARAMS.ignore("OutOfGasContractCreation_d0g1v0_*");
     PARAMS.ignore("OutOfGasContractCreation_d1g0v0_*");
     PARAMS.ignore("OutOfGasContractCreation_d1g1v0_*");
     PARAMS.ignore("OverflowGasRequire2_d0g0v0_*");
     PARAMS.ignore("OverflowGasRequire_*");
-    PARAMS.ignore("RETURN_Bounds_*");
     PARAMS.ignore("RETURN_Bounds_d0g0v0_*");
     PARAMS.ignore("RETURN_Bounds_d0g1v0_*");
     PARAMS.ignore("RETURN_Bounds_d0g2v0_*");
@@ -311,16 +316,11 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("static_CALL_Bounds3_d0g1v0_*");
     PARAMS.ignore("static_CALL_Bounds_d0g0v0_*");
     PARAMS.ignore("static_CALL_Bounds_d0g1v0_*");
-    PARAMS.ignore("static_Call1024PreCalls_*");
-    PARAMS.ignore("static_Call1024PreCalls2_*");
-    PARAMS.ignore("static_Call1024PreCalls3_*");
     PARAMS.ignore("static_Call1024PreCalls2_d0g0v0_*");
     PARAMS.ignore("static_Call1024PreCalls2_d1g0v0_*");
     PARAMS.ignore("static_Call1024PreCalls3_d0g0v0_*");
     PARAMS.ignore("static_Call1024PreCalls3_d1g0v0_*");
     PARAMS.ignore("static_Call1024PreCalls_d1g0v0_*");
-    PARAMS.ignore("static_RETURN_Bounds_*");
-    PARAMS.ignore("static_RETURN_BoundsOOG_*");
     PARAMS.ignore("static_RETURN_BoundsOOG_d0g0v0_*");
     PARAMS.ignore("static_RETURN_BoundsOOG_d1g0v0_*");
     PARAMS.ignore("static_RETURN_Bounds_d0g0v0_London\\[London\\]");
@@ -411,25 +411,115 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("Cancun-opcode=CALLCODE");
     PARAMS.ignore("Cancun-opcode=CREATE");
     PARAMS.ignore("Cancun-opcode=CREATE2");
+    // From the ethereum/execution-spec-tests repo
+    PARAMS.ignore("CALLCODE_Bounds_", "g0");
+    PARAMS.ignore("CALLCODE_Bounds_", "g1");
+    PARAMS.ignore("CALLCODE_Bounds2_", "g0");
+    PARAMS.ignore("CALLCODE_Bounds2_", "g1");
+    PARAMS.ignore("CALLCODE_Bounds3_", "g0");
+    PARAMS.ignore("CALLCODE_Bounds3_", "g1");
+    PARAMS.ignore("CALLCODE_Bounds4_", "g0");
+    PARAMS.ignore("CALLCODE_Bounds4_", "g1");
+    PARAMS.ignore("CALL_Bounds_", "g0");
+    PARAMS.ignore("CALL_Bounds_", "g1");
+    PARAMS.ignore("CALL_Bounds2_", "g0");
+    PARAMS.ignore("CALL_Bounds2_", "g1");
+    PARAMS.ignore("CALL_Bounds2a_", "g0");
+    PARAMS.ignore("CALL_Bounds2a_", "g1");
+    PARAMS.ignore("CALL_Bounds3_", "g0");
+    PARAMS.ignore("CALL_Bounds3_", "g1");
+    PARAMS.ignore("CREATE_Bounds_", "g0");
+    PARAMS.ignore("CREATE_Bounds_", "g1");
+    PARAMS.ignore("CREATE_Bounds2_", "g0");
+    PARAMS.ignore("CREATE_Bounds2_", "g1");
+    PARAMS.ignore("CREATE_Bounds3_", "g0");
+    PARAMS.ignore("CREATE_Bounds3_", "g1");
+    PARAMS.ignore("CREATE2_Bounds_", "g0");
+    PARAMS.ignore("CREATE2_Bounds_", "g1");
+    PARAMS.ignore("CREATE2_Bounds2_" + "g0");
+    PARAMS.ignore("CREATE2_Bounds2_" + "g1");
+    PARAMS.ignore("CREATE2_Bounds3_", "g0");
+    PARAMS.ignore("CREATE2_Bounds3_", "g1");
+    PARAMS.ignore("DELEGATECALL_Bounds_", "g0");
+    PARAMS.ignore("DELEGATECALL_Bounds_", "g1");
+    PARAMS.ignore("DELEGATECALL_Bounds2_", "g0");
+    PARAMS.ignore("DELEGATECALL_Bounds2_", "g1");
+    PARAMS.ignore("DELEGATECALL_Bounds3_", "g0");
+    PARAMS.ignore("DELEGATECALL_Bounds3_", "g1");
+    PARAMS.ignore("DELEGATECALL_Bounds3_", "g2");
+    PARAMS.ignore("MSTORE_Bounds_", "g0");
+    PARAMS.ignore("MSTORE_Bounds_", "g1");
+    PARAMS.ignore("MSTORE_Bounds2_", "g0");
+    PARAMS.ignore("MSTORE_Bounds2_", "g1");
+    PARAMS.ignore("MSTORE_Bounds2a_", "g0");
+    PARAMS.ignore("MSTORE_Bounds2a_", "g1");
+    PARAMS.ignore("HighGasLimit\\[fork_Prague-blockchain_test_from_state_test-\\]");
+    PARAMS.ignore("OutOfGasContractCreation_", "d0-g0");
+    PARAMS.ignore("OutOfGasContractCreation_", "d0-g1");
+    PARAMS.ignore("OutOfGasContractCreation_", "d1-g0");
+    PARAMS.ignore("OutOfGasContractCreation_", "d1-g1");
+    PARAMS.ignore("RETURN_Bounds_", "g0");
+    PARAMS.ignore("RETURN_Bounds_", "g1");
+    PARAMS.ignore("RETURN_Bounds_", "g2");
+    PARAMS.ignore("static_Call1024PreCalls_", "d0");
+    PARAMS.ignore("static_Call1024PreCalls_", "d1");
+    PARAMS.ignore("static_Call1024PreCalls2_", "d0");
+    PARAMS.ignore("static_Call1024PreCalls2_", "d1");
+    PARAMS.ignore("static_Call1024PreCalls3_", "d0");
+    PARAMS.ignore("static_Call1024PreCalls3_", "d1");
+    PARAMS.ignore("static_RETURN_Bounds\\[fork_Prague-blockchain_test_from_state_test-\\]");
+    PARAMS.ignore("static_RETURN_BoundsOOG_", "d0");
+    PARAMS.ignore("static_RETURN_BoundsOOG_", "d1");
+    PARAMS.ignore("Call1024PreCalls_", "g0");
+    PARAMS.ignore("Call1024PreCalls_", "g1");
+    PARAMS.ignore("Create2OnDepth1023\\[fork_Prague-blockchain_test_from_state_test-\\]");
+    PARAMS.ignore("Create2Recursive_", "g0");
+    PARAMS.ignore("Create2Recursive_", "g1");
+    PARAMS.ignore("Create2Recursive_", "g2");
+    PARAMS.ignore("Create2OnDepth1024\\[fork_Prague-blockchain_test_from_state_test-\\]");
 
     // Deployment transaction to an account with nonce / code
-    PARAMS.ignore("TransactionCollisionToEmptyButCode_*");
     PARAMS.ignore("TransactionCollisionToEmptyButCode_d0g0v0_*");
     PARAMS.ignore("TransactionCollisionToEmptyButCode_d0g0v1_*");
     PARAMS.ignore("TransactionCollisionToEmptyButCode_d0g1v0_*");
     PARAMS.ignore("TransactionCollisionToEmptyButCode_d0g1v1_*");
-    PARAMS.ignore("TransactionCollisionToEmptyButNonce_*");
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g0v0_*");
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g0v1_*");
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g1v0_*");
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g1v1_*");
     PARAMS.ignore("createJS_ExampleContract_d0g0v0_*");
-    PARAMS.ignore("initCollidingWithNonEmptyAccount_*");
     PARAMS.ignore("initCollidingWithNonEmptyAccount_d0g0v0_*");
     PARAMS.ignore("initCollidingWithNonEmptyAccount_d1g0v0_*");
     PARAMS.ignore("initCollidingWithNonEmptyAccount_d2g0v0_*");
     PARAMS.ignore("initCollidingWithNonEmptyAccount_d3g0v0_*");
     PARAMS.ignore("initCollidingWithNonEmptyAccount_d4g0v0_*");
+    // From the ethereum/execution-spec-tests repo
+    PARAMS.ignore(
+        "TransactionCollisionToEmptyButCode\\[fork_Prague-blockchain_test_from_state_test--g0-v0\\]");
+    PARAMS.ignore(
+        "TransactionCollisionToEmptyButCode\\[fork_Prague-blockchain_test_from_state_test--g0-v1\\]");
+    PARAMS.ignore(
+        "TransactionCollisionToEmptyButCode\\[fork_Prague-blockchain_test_from_state_test--g1-v0\\]");
+    PARAMS.ignore(
+        "TransactionCollisionToEmptyButCode\\[fork_Prague-blockchain_test_from_state_test--g1-v1\\]");
+    PARAMS.ignore(
+        "TransactionCollisionToEmptyButNonce\\[fork_Prague-blockchain_test_from_state_test--g0-v0\\]");
+    PARAMS.ignore(
+        "TransactionCollisionToEmptyButNonce\\[fork_Prague-blockchain_test_from_state_test--g0-v1\\]");
+    PARAMS.ignore(
+        "TransactionCollisionToEmptyButNonce\\[fork_Prague-blockchain_test_from_state_test--g1-v0\\]");
+    PARAMS.ignore(
+        "TransactionCollisionToEmptyButNonce\\[fork_Prague-blockchain_test_from_state_test--g1-v1\\]");
+    PARAMS.ignore(
+        "initCollidingWithNonEmptyAccount\\[fork_Prague-blockchain_test_from_state_test-d0\\]");
+    PARAMS.ignore(
+        "initCollidingWithNonEmptyAccount\\[fork_Prague-blockchain_test_from_state_test-d1\\]");
+    PARAMS.ignore(
+        "initCollidingWithNonEmptyAccount\\[fork_Prague-blockchain_test_from_state_test-d2\\]");
+    PARAMS.ignore(
+        "initCollidingWithNonEmptyAccount\\[fork_Prague-blockchain_test_from_state_test-d3\\]");
+    PARAMS.ignore(
+        "initCollidingWithNonEmptyAccount\\[fork_Prague-blockchain_test_from_state_test-d4\\]");
 
     // Deployment transaction to an account with zero nonce, empty code (and zero balance) but
     // nonempty storage. Given [EIP-7610](https://github.com/ethereum/EIPs/pull/8161), no Besu
@@ -605,10 +695,6 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_overwrite_high_timestamp");
     PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite");
     PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite_2");
-
-    // Pending deployment number fix
-    // Issue #https://github.com/Consensys/linea-specification/issues/191
-    PARAMS.ignore("create2collisionwithSelfdestructSameBlock.json");
 
     // Transaction Type not supported at the moment
     PARAMS.ignore("opcodeBlobhBounds*");

@@ -53,7 +53,7 @@ public class CancunAndPraguePrecompilesExcludedTests extends TracerTestBase {
             .compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
     try {
-      bytecodeRunner.run(chainConfig, testInfo);
+      bytecodeRunner.runForCounting(chainConfig, testInfo);
     } catch (Exception e) {
       // we don't care about execution result, just the counting. Tracing is expected to fail.
     }
@@ -61,10 +61,10 @@ public class CancunAndPraguePrecompilesExcludedTests extends TracerTestBase {
     // Check that the line count is made
     assertEquals(
         isKzgPrecompileCall(prc, chainConfig.fork) ? Integer.MAX_VALUE : 0,
-        bytecodeRunner.getHub().pointEval().lineCount());
+        bytecodeRunner.toyExecutionEnvironmentV2().getZkCounter().getPointEval().lineCount());
     assertEquals(
         isBlsPrecompileCall(prc, chainConfig.fork) ? Integer.MAX_VALUE : 0,
-        bytecodeRunner.getHub().bls().lineCount());
+        bytecodeRunner.toyExecutionEnvironmentV2().getZkCounter().getBls().lineCount());
   }
 
   private static Stream<Arguments> blsAndKzgInput() {

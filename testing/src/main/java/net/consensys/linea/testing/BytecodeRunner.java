@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ChainConfig;
@@ -48,7 +49,7 @@ public final class BytecodeRunner {
   public static final long DEFAULT_GAS_LIMIT =
       16777216; // = 0x1000000 max tx gas limit since EIP-7825 (OSAKA)
   private final Bytes byteCode;
-  ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2;
+  @Getter ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2;
 
   /**
    * @param byteCode the byte code to test
@@ -70,6 +71,17 @@ public final class BytecodeRunner {
   // Default run method
   public void run(ChainConfig chainConfig, TestInfo testInfo) {
     this.run(
+        Wei.fromEth(1),
+        DEFAULT_GAS_LIMIT,
+        List.of(),
+        Bytes.EMPTY,
+        List.of(),
+        chainConfig,
+        testInfo);
+  }
+
+  public void runForCounting(ChainConfig chainConfig, TestInfo testInfo) {
+    this.runForCounting(
         Wei.fromEth(1),
         DEFAULT_GAS_LIMIT,
         List.of(),
@@ -160,6 +172,32 @@ public final class BytecodeRunner {
       List<AccessListEntry> accessList,
       ChainConfig chainConfig,
       TestInfo testInfo) {
+    runBody(
+        senderBalance, gasLimit, additionalAccounts, payload, accessList, chainConfig, testInfo);
+    toyExecutionEnvironmentV2.run();
+  }
+
+  public void runForCounting(
+      Wei senderBalance,
+      Long gasLimit,
+      List<ToyAccount> additionalAccounts,
+      Bytes payload,
+      List<AccessListEntry> accessList,
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
+    runBody(
+        senderBalance, gasLimit, additionalAccounts, payload, accessList, chainConfig, testInfo);
+    toyExecutionEnvironmentV2.runForCounting();
+  }
+
+  private void runBody(
+      Wei senderBalance,
+      Long gasLimit,
+      List<ToyAccount> additionalAccounts,
+      Bytes payload,
+      List<AccessListEntry> accessList,
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
     checkArgument(byteCode != null, "byteCode cannot be empty");
 
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -209,7 +247,6 @@ public final class BytecodeRunner {
             .zkTracerValidator(zkTracerValidator)
             .transaction(tx)
             .build();
-    toyExecutionEnvironmentV2.run();
   }
 
   public void runInitCode(ChainConfig chainConfig, TestInfo testInfo) {

@@ -23,6 +23,7 @@ import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToMOD;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.noCall;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToInt;
 
@@ -101,7 +102,10 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
       final OobExoCall precompileCostIntegerDivisionCall =
           callToDIV(
               mod,
-              Bytes.ofUnsignedLong(numInputs * msmMultiplicationCost() * discount),
+              bigIntegerToBytes(
+                  BigInteger.valueOf(numInputs)
+                      .multiply(BigInteger.valueOf(msmMultiplicationCost()))
+                      .multiply(BigInteger.valueOf(discount))),
               Bytes.ofUnsignedLong(PRC_BLS_MULTIPLICATION_MULTIPLIER));
       exoCalls.add(precompileCostIntegerDivisionCall);
       precompileCost =

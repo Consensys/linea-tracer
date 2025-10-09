@@ -158,15 +158,13 @@ public class ToyExecutionEnvironmentV2 {
                   lightCounterCount.get(BLS.toString()), tracerCount.get(BLS.toString())),
               "BLS event detection is different between tracer and counter");
           final int ripCountMaxOrZero =
-              tracerCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString()) == Integer.MAX_VALUE
-                  ? Integer.MAX_VALUE
-                  : 0;
+              tracerCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString()) != 0 ? Integer.MAX_VALUE : 0;
           checkArgument(
               Objects.equals(
                   lightCounterCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString()), ripCountMaxOrZero),
               "RIP event detection is different between tracer and counter");
           final int blakeCountMaxOrZero =
-              tracerCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()) == Integer.MAX_VALUE
+              tracerCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()) != 0
                   ? Integer.MAX_VALUE
                   : 0;
           checkArgument(

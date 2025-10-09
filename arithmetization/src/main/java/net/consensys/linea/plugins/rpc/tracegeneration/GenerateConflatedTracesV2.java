@@ -120,6 +120,7 @@ public class GenerateConflatedTracesV2 {
       final ZkTracer tracer =
           new ZkTracer(
               blockchain,
+              fromBlock,
               fork,
               l1L2BridgeSharedConfiguration,
               BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)

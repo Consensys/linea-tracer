@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.blockhash;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_HASH;
@@ -55,26 +56,25 @@ import org.hyperledger.besu.plugin.services.BlockchainService;
 public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOpcodeDefer {
   private final Hub hub;
   private final Wcp wcp;
-  private final BlockchainService blockchain;
   private final ModuleOperationStackedSet<BlockhashOperation> operations =
       new ModuleOperationStackedSet<>();
 
   List<BlockhashOperation> sortedOperations;
 
   /* Stores the result of BLOCKHASH if the result of the opcode is not 0 */
-  private final Map<Bytes32, Bytes32> blockHashMap = new HashMap<>();
-
+  private final Map<Long, Hash> blockHashMap;
+  private final Map<Long, Boolean> successfulBlockhashCalls = new HashMap<>();
+  private final boolean tracingInProd;
   private short relBlock;
   private long absBlock;
-  private BlockHeader header;
-
   private Bytes32 blockhashArg;
 
-  public Blockhash(Hub hub, Wcp wcp, BlockchainService blockchain) {
+  public Blockhash(Hub hub, Wcp wcp, Map<Long, Hash> historicalBlockHashes) {
+    blockHashMap = historicalBlockHashes;
+    tracingInProd = !historicalBlockHashes.isEmpty();
     this.hub = hub;
     this.wcp = wcp;
-    this.blockchain = blockchain;
-    this.relBlock = 0;
+    relBlock = 0;
   }
 
   @Override
@@ -87,36 +87,45 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
       WorldView world,
       final ProcessableBlockHeader processableBlockHeader,
       final Address miningBeneficiary) {
-    relBlock += 1;
+    relBlock++;
     absBlock = processableBlockHeader.getNumber();
   }
 
   @Override
   public void traceEndBlock(BlockHeader blockHeader, final BlockBody blockBody) {
-    header = blockHeader;
+    blockHashMap.putIfAbsent(blockHeader.getNumber(), blockHeader.getBlockHash());
   }
 
-  @Override
-  public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
-    if (opcode == BLOCKHASH) {
-
-      blockhashArg = Bytes32.leftPad(frame.getStackItem(0));
-
-      hub.defers().scheduleForPostExecution(this);
-    }
+  public void callBlockHash(MessageFrame frame, OpCode opcode) {
+    checkArgument(opcode == BLOCKHASH, "Only BLOCKHASH opcode is allowed");
+    blockhashArg = Bytes32.leftPad(frame.getStackItem(0));
+    hub.defers().scheduleForPostExecution(this);
   }
 
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
 
-    final Bytes32 blockhashRes = Bytes32.leftPad(frame.getStackItem(0));
-    operations.add(new BlockhashOperation(relBlock, absBlock, blockhashArg, blockhashRes, wcp));
+    final Hash blockhashRes = Hash.wrap(Bytes32.leftPad(frame.getStackItem(0)));
+    final BlockhashOperation op =
+        new BlockhashOperation(relBlock, absBlock, blockhashArg, blockhashRes, wcp);
+    operations.add(op);
+
     // We have 4 LLARGE and one OLI call to WCP, made at the end of the conflation, so we need to
     // add line count to WCP
     wcp.additionalRows.add(4 * LLARGE + 1);
+
+    // check that the result is coherent with what we know
     if (blockhashRes != Bytes32.ZERO) {
-      blockHashMap.put(blockhashArg, blockhashRes);
+      checkArgument(blockhashArg.bitLength() <= 64, "Block number must fit in a long");
+      final long blockNumber = blockhashArg.toLong();
+      successfulBlockhashCalls.putIfAbsent(blockNumber, true);
+      if (blockHashMap.containsKey(blockNumber)) {
+        checkArgument(blockhashRes.equals(blockHashMap.get(blockNumber)));
+      } else {
+        checkState(!tracingInProd, "In production mode, all blockhashes must be already known");
+        blockHashMap.put(blockNumber, blockhashRes);
+      }
     }
   }
 
@@ -127,32 +136,19 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
    */
   @Override
   public void traceEndConflation(WorldView state) {
-    // fill blockhash to have hashes of blocks STARTBLOCK-256 to ENDBLOCK -1
-    if (blockchain != null) {
-      final long lastBlockNumberToFill = Math.max(absBlock - 1, 0);
-      final long firstBlockNumberToFill =
-          Math.max(lastBlockNumberToFill - (relBlock - 1) - BLOCKHASH_MAX_HISTORY, 0);
-
-      for (long block = lastBlockNumberToFill; block >= firstBlockNumberToFill; block--) {
-        final Hash parentHash = header.getParentHash();
-        // update header to be the previous block header
-        header = blockchain.getBlockHeaderByHash(parentHash).get();
-        final Bytes32 blockB32 = longToBytes32(block);
-        final boolean isPresent = blockHashMap.containsKey(blockB32);
-        if (!isPresent) {
-          // it's present only if a BLOCKHASH opcode was called for this block number
-          blockHashMap.put(blockB32, parentHash);
-          operations.add(new BlockhashOperation((short) 1, block + 1, blockB32, parentHash, wcp));
-        } else {
-          checkArgument(blockHashMap.get(blockB32) == parentHash, "Not consistent blockhashes");
-        }
+    // Add all historical block hashes if not already called by the EVM:
+    for (long blockNumber : blockHashMap.keySet()) {
+      if (successfulBlockhashCalls.getOrDefault(blockNumber, false)) {
+        // The BLOCKHASH opcode has been already successfully called for this block number, no need
+        // to add it again
+        break;
       }
-    } else {
-      log.info(
-          "No blockchain service provided to trace BlockHash module, shouldn't happen when tracing, assuming counting or testing mode");
+      final BlockhashOperation op =
+          new BlockhashOperation(relBlock, absBlock, longToBytes32(blockNumber), Bytes32.ZERO, wcp);
+      operations.add(op);
     }
 
-    // end the conflation normally
+    // Sort and trace operations
     OperationSetModule.super.traceEndConflation(state);
     sortedOperations = sortOperations(new BlockhashComparator());
     Bytes32 prevBlockhashArg = Bytes32.ZERO;
@@ -175,10 +171,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   @Override
   public void commit(Trace trace) {
     for (BlockhashOperation op : sortedOperations) {
-      final Bytes32 blockhashVal =
-          op.blockhashRes() == Bytes32.ZERO
-              ? blockHashMap.getOrDefault(op.blockhashArg(), Bytes32.ZERO)
-              : op.blockhashRes();
+      final Hash blockhashVal = blockHashMap.getOrDefault(op.blockhashArg().toLong(), Hash.ZERO);
       op.traceMacro(trace.blockhash(), blockhashVal);
       op.tracePreprocessing(trace.blockhash());
     }
@@ -187,8 +180,30 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   @Override
   public int lineCount() {
     return operations().lineCount()
-        + (operations.conflationFinished()
-            ? 0
-            : (BLOCKHASH_MAX_HISTORY + relBlock) * NB_ROWS_BLOCKHASH);
+        + (operations.conflationFinished() ? 0 : blockHashMap.size() * NB_ROWS_BLOCKHASH);
+  }
+
+  public static void retrievePreviousBlockHashes(
+      BlockchainService blockchain,
+      long firstBlockNumberOfConflation,
+      Map<Long, Hash> historicalBlockHashes) {
+    final long firstBlockToRetrieve =
+        Math.max(firstBlockNumberOfConflation - BLOCKHASH_MAX_HISTORY, 0);
+    final long lastBlockToRetrieve = firstBlockNumberOfConflation;
+    for (long blockNumber = lastBlockToRetrieve;
+        blockNumber >= firstBlockToRetrieve;
+        blockNumber--) {
+      final long blockNumberAttempt = blockNumber;
+      final Hash hash =
+          blockchain
+              .getBlockByNumber(blockNumberAttempt)
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "Block not found for number: " + blockNumberAttempt))
+              .getBlockHeader()
+              .getBlockHash();
+      historicalBlockHashes.put(blockNumber, hash);
+    }
   }
 }

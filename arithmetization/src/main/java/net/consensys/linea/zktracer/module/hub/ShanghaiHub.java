@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import java.util.Map;
+
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.ShanghaiBlockData;
@@ -25,13 +27,13 @@ import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.txndata.TxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.shanghai.ShanghaiTxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-import org.hyperledger.besu.plugin.services.BlockchainService;
 
 public class ShanghaiHub extends ParisHub {
-  public ShanghaiHub(ChainConfig chain, BlockchainService blockchain) {
-    super(chain, blockchain);
+  public ShanghaiHub(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
+    super(chain, historicalBlockHashes);
   }
 
   @Override

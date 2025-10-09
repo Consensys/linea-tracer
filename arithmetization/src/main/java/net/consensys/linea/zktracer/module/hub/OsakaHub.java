@@ -15,11 +15,13 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import java.util.Map;
+
 import net.consensys.linea.zktracer.ChainConfig;
-import org.hyperledger.besu.plugin.services.BlockchainService;
+import org.hyperledger.besu.datatypes.Hash;
 
 public class OsakaHub extends PragueHub {
-  public OsakaHub(ChainConfig chain, BlockchainService blockchain) {
-    super(chain, blockchain);
+  public OsakaHub(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
+    super(chain, historicalBlockHashes);
   }
 }

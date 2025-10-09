@@ -27,8 +27,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
-import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
-import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
@@ -121,6 +120,7 @@ import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.AccountState;
@@ -133,7 +133,6 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
-import org.hyperledger.besu.plugin.services.BlockchainService;
 
 @Slf4j
 @Accessors(fluent = true)
@@ -435,12 +434,12 @@ public abstract class Hub implements Module {
     return Stream.concat(realModule().stream(), getTracelessModules().stream()).toList();
   }
 
-  public Hub(final ChainConfig chain, BlockchainService blockchain) {
+  public Hub(final ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
     fork = chain.fork;
     gasCalculator = getGasCalculatorFromFork(fork);
     opCodes = OpCodes.load(fork);
     gasProjector = new GasProjector(fork, gasCalculator);
-    checkState(chain.id.signum() >= 0, "Hub constructor: chain id must be nonnegative");
+    checkState(chain.id.signum() >= 0, "Hub constructor: chain id must be non-negative");
     final Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
     final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
@@ -458,7 +457,7 @@ public abstract class Hub implements Module {
     blockdata = setBlockData(this, wcp, euc, chain);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
-    blockhash = new Blockhash(this, wcp, blockchain);
+    blockhash = new Blockhash(this, wcp, historicalBlockHashes);
 
     refTableModules =
         Stream.of(new BinRt(), setBlsRt(), setInstructionDecoder(), setPower())
@@ -1039,7 +1038,13 @@ public abstract class Hub implements Module {
 
   void traceOpcode(MessageFrame frame) {
     switch (this.opCodeData().instructionFamily()) {
-      case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, PUSH_POP, DUP, SWAP -> new StackOnlySection(this);
+      case ADD, MOD, SHF, BIN, WCP, EXT, PUSH_POP, DUP, SWAP -> new StackOnlySection(this);
+      case BATCH -> {
+        new StackOnlySection(this);
+        if (this.opCode() == BLOCKHASH) {
+          blockhash.callBlockHash(frame, this.opCode());
+        }
+      }
       case MACHINE_STATE -> {
         switch (this.opCode()) {
           case OpCode.MSIZE -> new MsizeSection(this);

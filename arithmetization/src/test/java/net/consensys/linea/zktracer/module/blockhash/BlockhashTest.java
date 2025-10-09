@@ -259,6 +259,7 @@ public class BlockhashTest extends TracerTestBase {
         .transactions(List.of(tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10, tx11))
         .firstBlockNumber(BLOCKHASH_MAX_HISTORY - 4) // to have some blockhashes available
         .runWithBesuNode(true)
+        .oneTxPerBlockOnBesuNode(true)
         .build()
         .run();
   }

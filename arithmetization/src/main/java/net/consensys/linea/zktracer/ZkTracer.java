@@ -16,6 +16,7 @@ package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.ChainConfig.FORK_LINEA_CHAIN;
 import static net.consensys.linea.zktracer.Fork.getTraceFromFork;
+import static net.consensys.linea.zktracer.module.blockhash.Blockhash.retrievePreviousBlockHashes;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -39,6 +40,7 @@ import net.consensys.linea.zktracer.types.FiniteList;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.log.Log;
@@ -73,11 +75,12 @@ public class ZkTracer implements LineCountingTracer {
    * @param chainId Identifies the chain being traced.
    */
   public ZkTracer(
-      BlockchainService blockchain,
+      final BlockchainService blockchain,
+      final long firstBlockNumber,
       final Fork fork,
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
       BigInteger chainId) {
-    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId), blockchain);
+    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId), blockchain, firstBlockNumber);
   }
 
   /**
@@ -96,7 +99,7 @@ public class ZkTracer implements LineCountingTracer {
   }
 
   public ZkTracer(ChainConfig chain) {
-    this(chain, null);
+    this(chain, null, 0);
   }
 
   /**
@@ -106,16 +109,24 @@ public class ZkTracer implements LineCountingTracer {
    * @param chain
    * @param blockchain
    */
-  public ZkTracer(ChainConfig chain, BlockchainService blockchain) {
+  public ZkTracer(ChainConfig chain, BlockchainService blockchain, long firstBlockNumber) {
+    final Map<Long, Hash> historicalBlockHashes =
+        new HashMap<>(556); // = BLOCKHASH_MAX_HISTORY + maxBlocksInConflation
+    if (blockchain == null) {
+      log.info(
+          "[ZkTracer] No BlockchainService provided, assuming line counting only or testing. Tracing will fail.");
+    } else {
+      retrievePreviousBlockHashes(blockchain, firstBlockNumber, historicalBlockHashes);
+    }
     this.chain = chain;
     this.hub =
         switch (chain.fork) {
-          case LONDON -> new LondonHub(chain, blockchain);
-          case PARIS -> new ParisHub(chain, blockchain);
-          case SHANGHAI -> new ShanghaiHub(chain, blockchain);
-          case CANCUN -> new CancunHub(chain, blockchain);
-          case PRAGUE -> new PragueHub(chain, blockchain);
-          case OSAKA -> new OsakaHub(chain, blockchain);
+          case LONDON -> new LondonHub(chain, historicalBlockHashes);
+          case PARIS -> new ParisHub(chain, historicalBlockHashes);
+          case SHANGHAI -> new ShanghaiHub(chain, historicalBlockHashes);
+          case CANCUN -> new CancunHub(chain, historicalBlockHashes);
+          case PRAGUE -> new PragueHub(chain, historicalBlockHashes);
+          case OSAKA -> new OsakaHub(chain, historicalBlockHashes);
           default -> throw new IllegalArgumentException("Unknown fork: " + chain.fork);
         };
     this.trace = getTraceFromFork(chain.fork);
@@ -124,10 +135,6 @@ public class ZkTracer implements LineCountingTracer {
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
 
     log.info("[ZkTracer] Created ZkTracer for fork {}", chain.fork);
-    if (blockchain == null) {
-      log.info(
-          "[ZkTracer] No BlockchainService provided, assuming line counting only or testing. Tracing will fail.");
-    }
   }
 
   public void writeToFile(final Path filename, long startBlock, long endBlock) {

@@ -15,16 +15,18 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import java.util.Map;
+
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.ParisBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import org.hyperledger.besu.plugin.services.BlockchainService;
+import org.hyperledger.besu.datatypes.Hash;
 
 public class ParisHub extends LondonHub {
-  public ParisHub(ChainConfig chain, BlockchainService blockchain) {
-    super(chain, blockchain);
+  public ParisHub(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
+    super(chain, historicalBlockHashes);
   }
 
   @Override

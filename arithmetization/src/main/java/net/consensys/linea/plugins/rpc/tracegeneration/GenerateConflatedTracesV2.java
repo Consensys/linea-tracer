@@ -88,7 +88,7 @@ public class GenerateConflatedTracesV2 {
   }
 
   private TraceFile generateTraceFile(PluginRpcRequest request) {
-    Stopwatch sw = Stopwatch.createStarted();
+    final Stopwatch sw = Stopwatch.createStarted();
 
     this.traceService =
         Optional.ofNullable(traceService).orElse(BesuServiceProvider.getTraceService(besuContext));
@@ -97,7 +97,7 @@ public class GenerateConflatedTracesV2 {
 
     Validator.validatePluginRpcRequestParams(rawParams);
 
-    TraceRequestParams params =
+    final TraceRequestParams params =
         CONVERTER.fromJson(CONVERTER.toJson(rawParams[0]), TraceRequestParams.class);
 
     params.validate();

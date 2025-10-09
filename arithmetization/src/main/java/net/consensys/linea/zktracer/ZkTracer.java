@@ -16,7 +16,6 @@ package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.ChainConfig.FORK_LINEA_CHAIN;
 import static net.consensys.linea.zktracer.Fork.getTraceFromFork;
-import static net.consensys.linea.zktracer.module.blockhash.Blockhash.retrievePreviousBlockHashes;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -49,7 +48,6 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
-import org.hyperledger.besu.plugin.services.BlockchainService;
 
 @Slf4j
 public class ZkTracer implements LineCountingTracer {
@@ -75,12 +73,11 @@ public class ZkTracer implements LineCountingTracer {
    * @param chainId Identifies the chain being traced.
    */
   public ZkTracer(
-      final BlockchainService blockchain,
-      final long firstBlockNumber,
       final Fork fork,
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
-      BigInteger chainId) {
-    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId), blockchain, firstBlockNumber);
+      BigInteger chainId,
+      Map<Long, Hash> historicalBlockHashes) {
+    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId), historicalBlockHashes);
   }
 
   /**
@@ -99,7 +96,7 @@ public class ZkTracer implements LineCountingTracer {
   }
 
   public ZkTracer(ChainConfig chain) {
-    this(chain, null, 0);
+    this(chain, new HashMap<>());
   }
 
   /**
@@ -109,14 +106,10 @@ public class ZkTracer implements LineCountingTracer {
    * @param chain
    * @param blockchain
    */
-  public ZkTracer(ChainConfig chain, BlockchainService blockchain, long firstBlockNumber) {
-    final Map<Long, Hash> historicalBlockHashes =
-        new HashMap<>(556); // = BLOCKHASH_MAX_HISTORY + maxBlocksInConflation
-    if (blockchain == null) {
+  public ZkTracer(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
+    if (historicalBlockHashes.isEmpty()) {
       log.info(
-          "[ZkTracer] No BlockchainService provided, assuming line counting only or testing. Tracing will fail.");
-    } else {
-      retrievePreviousBlockHashes(blockchain, firstBlockNumber, historicalBlockHashes);
+          "[ZkTracer] No historical block hashes provided, assuming line counting only, testing, or tracing conflation of only genesis block. Tracing will fail.");
     }
     this.chain = chain;
     this.hub =

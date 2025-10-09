@@ -45,8 +45,6 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-import org.hyperledger.besu.plugin.data.BlockBody;
-import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 import org.hyperledger.besu.plugin.services.BlockchainService;
 
@@ -89,11 +87,6 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
       final Address miningBeneficiary) {
     relBlock++;
     absBlock = processableBlockHeader.getNumber();
-  }
-
-  @Override
-  public void traceEndBlock(BlockHeader blockHeader, final BlockBody blockBody) {
-    blockHashMap.putIfAbsent(blockHeader.getNumber(), blockHeader.getBlockHash());
   }
 
   public void callBlockHash(MessageFrame frame, OpCode opcode) {
@@ -141,10 +134,13 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
       if (successfulBlockhashCalls.getOrDefault(blockNumber, false)) {
         // The BLOCKHASH opcode has been already successfully called for this block number, no need
         // to add it again
-        break;
+        return;
       }
+      final long notAttemptedBlockNumber = Math.max(firstBlockOfConflation(), blockNumber);
+
       final BlockhashOperation op =
-          new BlockhashOperation(relBlock, absBlock, longToBytes32(blockNumber), Bytes32.ZERO, wcp);
+          new BlockhashOperation(
+              relBlock, notAttemptedBlockNumber, longToBytes32(blockNumber), Bytes32.ZERO, wcp);
       operations.add(op);
     }
 
@@ -183,13 +179,22 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
         + (operations.conflationFinished() ? 0 : blockHashMap.size() * NB_ROWS_BLOCKHASH);
   }
 
-  public static void retrievePreviousBlockHashes(
+  public static Map<Long, Hash> retrieveHistoricalBlockHashes(
       BlockchainService blockchain,
       long firstBlockNumberOfConflation,
-      Map<Long, Hash> historicalBlockHashes) {
+      long lastBlockNumberOfConflation) {
+
+    final Map<Long, Hash> historicalBlockHashes =
+        new HashMap<>(
+            (int)
+                (BLOCKHASH_MAX_HISTORY
+                    + lastBlockNumberOfConflation
+                    - firstBlockNumberOfConflation));
+
     final long firstBlockToRetrieve =
         Math.max(firstBlockNumberOfConflation - BLOCKHASH_MAX_HISTORY, 0);
-    final long lastBlockToRetrieve = firstBlockNumberOfConflation;
+    final long lastBlockToRetrieve = lastBlockNumberOfConflation - 1;
+
     for (long blockNumber = lastBlockToRetrieve;
         blockNumber >= firstBlockToRetrieve;
         blockNumber--) {
@@ -205,5 +210,10 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
               .getBlockHash();
       historicalBlockHashes.put(blockNumber, hash);
     }
+    return historicalBlockHashes;
+  }
+
+  private long firstBlockOfConflation() {
+    return absBlock - (relBlock - 1);
   }
 }

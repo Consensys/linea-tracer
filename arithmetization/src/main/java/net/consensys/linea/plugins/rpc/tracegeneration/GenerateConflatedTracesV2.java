@@ -16,10 +16,12 @@
 package net.consensys.linea.plugins.rpc.tracegeneration;
 
 import static net.consensys.linea.zktracer.Fork.getForkFromBesuBlockchainService;
+import static net.consensys.linea.zktracer.module.blockhash.Blockhash.retrieveHistoricalBlockHashes;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.base.Stopwatch;
@@ -32,6 +34,7 @@ import net.consensys.linea.tracewriter.TraceWriter;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.json.JsonConverter;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.plugin.ServiceManager;
 import org.hyperledger.besu.plugin.services.BlockchainService;
 import org.hyperledger.besu.plugin.services.TraceService;
@@ -116,16 +119,16 @@ public class GenerateConflatedTracesV2 {
           BesuServiceProvider.getBesuService(besuContext, BlockchainService.class);
       // Retrieve fork from Besu plugin API with block number
       final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock, toBlock);
-
+      final Map<Long, Hash> historicalBlockHashes =
+          retrieveHistoricalBlockHashes(blockchain, fromBlock, toBlock);
       final ZkTracer tracer =
           new ZkTracer(
-              blockchain,
-              fromBlock,
               fork,
               l1L2BridgeSharedConfiguration,
-              BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)
+              blockchain
                   .getChainId()
-                  .orElseThrow());
+                  .orElseThrow(() -> new IllegalStateException("ChainId mut be provided")),
+              historicalBlockHashes);
 
       traceService.trace(
           fromBlock,

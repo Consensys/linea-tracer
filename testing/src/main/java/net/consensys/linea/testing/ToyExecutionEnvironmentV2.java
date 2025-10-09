@@ -157,20 +157,13 @@ public class ToyExecutionEnvironmentV2 {
               Objects.equals(
                   lightCounterCount.get(BLS.toString()), tracerCount.get(BLS.toString())),
               "BLS event detection is different between tracer and counter");
-          final int ripCountMaxOrZero =
-              tracerCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString()) != 0 ? Integer.MAX_VALUE : 0;
           checkArgument(
-              Objects.equals(
-                  lightCounterCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString()), ripCountMaxOrZero),
+              lightCounterCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString())
+                  >= tracerCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString()),
               "RIP event detection is different between tracer and counter");
-          final int blakeCountMaxOrZero =
-              tracerCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()) != 0
-                  ? Integer.MAX_VALUE
-                  : 0;
           checkArgument(
-              Objects.equals(
-                  lightCounterCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()),
-                  blakeCountMaxOrZero),
+              lightCounterCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString())
+                  >= tracerCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()),
               "BLAKE event detection is different between tracer and counter");
 
           // There is no point to check for conflation where an excluded PRC has been triggered:

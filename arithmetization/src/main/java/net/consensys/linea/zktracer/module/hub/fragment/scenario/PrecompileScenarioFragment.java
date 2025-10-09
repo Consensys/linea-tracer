@@ -87,28 +87,13 @@ public class PrecompileScenarioFragment implements TraceFragment {
     PRC_BLS_MAP_FP2_TO_G2;
 
     public Address getAddress() {
-      return FLAG_TO_ADDRESS_MAP.get(this);
+      return ADDRESS_TO_FLAG_MAP.entrySet().stream()
+          .filter(entry -> entry.getValue() == this)
+          .map(Map.Entry::getKey)
+          .findFirst()
+          .orElseThrow(
+              () -> new IllegalArgumentException("Precompile not included in ADDRESS_TO_FLAG_MAP"));
     }
-
-    private static final Map<PrecompileFlag, Address> FLAG_TO_ADDRESS_MAP =
-        Map.ofEntries(
-            entry(PRC_ECRECOVER, Address.ECREC),
-            entry(PRC_SHA2_256, Address.SHA256),
-            entry(PRC_RIPEMD_160, Address.RIPEMD160),
-            entry(PRC_IDENTITY, Address.ID),
-            entry(PRC_MODEXP, Address.MODEXP),
-            entry(PRC_ECADD, Address.ALTBN128_ADD),
-            entry(PRC_ECMUL, Address.ALTBN128_MUL),
-            entry(PRC_ECPAIRING, Address.ALTBN128_PAIRING),
-            entry(PRC_BLAKE2F, Address.BLAKE2B_F_COMPRESSION),
-            entry(PRC_POINT_EVALUATION, Address.KZG_POINT_EVAL),
-            entry(PRC_BLS_G1_ADD, Address.BLS12_G1ADD),
-            entry(PRC_BLS_G1_MSM, Address.BLS12_G1MULTIEXP),
-            entry(PRC_BLS_G2_ADD, Address.BLS12_G2ADD),
-            entry(PRC_BLS_G2_MSM, Address.BLS12_G2MULTIEXP),
-            entry(PRC_BLS_PAIRING_CHECK, Address.BLS12_PAIRING),
-            entry(PRC_BLS_MAP_FP_TO_G1, Address.BLS12_MAP_FP_TO_G1),
-            entry(PRC_BLS_MAP_FP2_TO_G2, Address.BLS12_MAP_FP2_TO_G2));
 
     private static final Map<Address, PrecompileFlag> ADDRESS_TO_FLAG_MAP =
         Map.ofEntries(

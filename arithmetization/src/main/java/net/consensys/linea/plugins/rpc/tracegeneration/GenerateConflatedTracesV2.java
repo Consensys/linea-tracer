@@ -127,7 +127,7 @@ public class GenerateConflatedTracesV2 {
               l1L2BridgeSharedConfiguration,
               blockchain
                   .getChainId()
-                  .orElseThrow(() -> new IllegalStateException("ChainId mut be provided")),
+                  .orElseThrow(() -> new IllegalStateException("ChainId must be provided")),
               historicalBlockHashes);
 
       traceService.trace(

@@ -68,7 +68,6 @@ public class ZkTracer implements LineCountingTracer {
    * Construct a ZkTracer for a given bridge configuration and chainId. This is used, for example,
    * by the coordinator for tracing in production, such as on mainnet and/or sepolia.
    *
-   * @param blockchain
    * @param bridgeConfiguration Configuration for the L1L2 bridge.
    * @param chainId Identifies the chain being traced.
    */
@@ -104,7 +103,6 @@ public class ZkTracer implements LineCountingTracer {
    * environment or a test environment.
    *
    * @param chain
-   * @param blockchain
    */
   public ZkTracer(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
     if (historicalBlockHashes.isEmpty()) {

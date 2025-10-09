@@ -120,7 +120,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
     // check that the result is coherent with what we know
     if (blockhashRes != Bytes32.ZERO) {
-      checkArgument(blockhashArg.bitLength() <= 64, "Block number must fit in a long");
+      checkArgument(blockhashArg.trimLeadingZeros().size() <= 8, "Block number must fit in a long");
       final long blockNumber = blockhashArg.toLong();
       successfulBlockhashAttempt.putIfAbsent(blockNumber, true);
       if (blockHashMap.containsKey(blockNumber)) {
@@ -196,7 +196,10 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   @Override
   public void commit(Trace trace) {
     for (BlockhashOperation op : sortedOperations) {
-      final Hash blockhashVal = blockHashMap.getOrDefault(op.blockhashArg().toLong(), Hash.ZERO);
+      final Hash blockhashVal =
+          op.blockhashArg().trimLeadingZeros().size() <= 8
+              ? blockHashMap.getOrDefault(op.blockhashArg().trimLeadingZeros().toLong(), Hash.ZERO)
+              : Hash.ZERO;
       op.traceMacro(trace.blockhash(), blockhashVal);
       op.tracePreprocessing(trace.blockhash());
     }

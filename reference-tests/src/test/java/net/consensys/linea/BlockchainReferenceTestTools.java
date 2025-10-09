@@ -465,10 +465,6 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignore(
           "stMemoryStressTest/static_CALL_Bounds3Filler.json::static_CALL_Bounds3\\[fork_Prague-blockchain_test_from_state_test--g1\\]");
       PARAMS.ignore(
-          "stMemoryStressTest/CALL_Bounds3Filler.json::CALL_Bounds3\\[fork_Prague-blockchain_test_from_state_test--g0\\]");
-      PARAMS.ignore(
-          "stMemoryStressTest/CALL_Bounds3Filler.json::CALL_Bounds3\\[fork_Prague-blockchain_test_from_state_test--g0\\]");
-      PARAMS.ignore(
           "stMemoryStressTest/CALL_BoundsFiller.json::CALL_Bounds\\[fork_Prague-blockchain_test_from_state_test--g0\\]");
       PARAMS.ignore(
           "stMemoryStressTest/CALL_BoundsFiller.json::CALL_Bounds\\[fork_Prague-blockchain_test_from_state_test--g1\\]");

@@ -234,8 +234,8 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignore("modexpRandomInput\\[fork_Prague-blockchain_test_from_state_test-d2-g1\\]");
       PARAMS.ignore("randomStatetest642\\[fork_Prague-blockchain_test_from_state_test-\\]");
       PARAMS.ignore("randomStatetest644\\[fork_Prague-blockchain_test_from_state_test-\\]");
-      PARAMS.ignore("randomStatetest645\\[fork_Prague-blockchain_test_from_state_test-v0\\]");
-      PARAMS.ignore("randomStatetest645\\[fork_Prague-blockchain_test_from_state_test-v1\\]");
+      PARAMS.ignore("randomStatetest645\\[fork_Prague-blockchain_test_from_state_test--v0\\]");
+      PARAMS.ignore("randomStatetest645\\[fork_Prague-blockchain_test_from_state_test--v1\\]");
     }
 
     // Consumes a huge amount of memory.
@@ -246,6 +246,10 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignore("Call50000");
       PARAMS.ignore("static_LoopCallsDepthThenRevert3");
       PARAMS.ignore("Return50000");
+    } else {
+      // From the ethereum/execution-spec-tests repo
+      PARAMS.ignore(
+          "stStaticCall/static_Return50000_2Filler.json::static_Return50000_2\\[fork_Prague-blockchain_test_from_state_test-\\]");
     }
 
     // Absurd amount of gas, doesn't run in parallel.
@@ -586,6 +590,12 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignore(
           "stCreate2/Create2RecursiveFiller.json::Create2Recursive\\[fork_Prague-blockchain_test_from_state_test--g2\\]");
       PARAMS.ignore("Create2OnDepth1024\\[fork_Prague-blockchain_test_from_state_test-\\]");
+      PARAMS.ignore(
+          "stTransactionTest/OverflowGasRequire2Filler.json::OverflowGasRequire2\\[fork_Prague-blockchain_test_from_state_test-\\]");
+      PARAMS.ignore(
+          "stStaticCall/static_Call50000_ecrecFiller.json::static_Call50000_ecrec\\[fork_Prague-blockchain_test_from_state_test-d0\\]");
+      PARAMS.ignore(
+          "stStaticCall/static_Call50000_ecrecFiller.json::static_Call50000_ecrec\\[fork_Prague-blockchain_test_from_state_test-d1\\]");
     }
 
     // Deployment transaction to an account with nonce / code

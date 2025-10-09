@@ -80,17 +80,6 @@ public final class BytecodeRunner {
         testInfo);
   }
 
-  public void runForCounting(ChainConfig chainConfig, TestInfo testInfo) {
-    this.runForCounting(
-        Wei.fromEth(1),
-        DEFAULT_GAS_LIMIT,
-        List.of(),
-        Bytes.EMPTY,
-        List.of(),
-        chainConfig,
-        testInfo);
-  }
-
   // Ad-hoc senderBalance
   public void run(Wei senderBalance, ChainConfig chainConfig, TestInfo testInfo) {
     this.run(
@@ -175,19 +164,6 @@ public final class BytecodeRunner {
     runBody(
         senderBalance, gasLimit, additionalAccounts, payload, accessList, chainConfig, testInfo);
     toyExecutionEnvironmentV2.run();
-  }
-
-  public void runForCounting(
-      Wei senderBalance,
-      Long gasLimit,
-      List<ToyAccount> additionalAccounts,
-      Bytes payload,
-      List<AccessListEntry> accessList,
-      ChainConfig chainConfig,
-      TestInfo testInfo) {
-    runBody(
-        senderBalance, gasLimit, additionalAccounts, payload, accessList, chainConfig, testInfo);
-    toyExecutionEnvironmentV2.runForCounting();
   }
 
   private void runBody(

@@ -759,6 +759,10 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite");
     PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite_2");
 
+    // Pending deployment number fix
+    // Issue #https://github.com/Consensys/linea-specification/issues/191
+    PARAMS.ignore("create2collisionwithSelfdestructSameBlock.json");
+
     // Transaction Type not supported at the moment
     PARAMS.ignore("opcodeBlobhBounds*");
     PARAMS.ignore("opcodeBlobhashOutOfRange*");

@@ -268,8 +268,8 @@ public abstract class Hub implements Module {
   private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
 
   // related to Blake
-  private final IncrementAndDetectModule blakeEffectiveCall =
-      new IncrementAndDetectModule(PRECOMPILE_BLAKE_EFFECTIVE_CALLS);
+  private final IncrementingModule blakeEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLAKE_EFFECTIVE_CALLS);
   private final BlakeRounds blakeRounds = new BlakeRounds();
 
   // Related to Bls

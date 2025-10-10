@@ -16,6 +16,16 @@
 package net.consensys.linea.zktracer.module.mxp;
 
 import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.Trace.LLARGEMO;
+import static net.consensys.linea.zktracer.Trace.LLARGEPO;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE_MO;
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.CANCUN_MXPX_THRESHOLD;
+import static net.consensys.linea.zktracer.opcode.OpCode.MLOAD;
+import static net.consensys.linea.zktracer.opcode.OpCode.MSTORE;
+import static net.consensys.linea.zktracer.opcode.OpCode.POP;
+import static net.consensys.linea.zktracer.opcode.OpCode.PUSH32;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -29,6 +39,7 @@ import net.consensys.linea.zktracer.TraceCancun;
 import net.consensys.linea.zktracer.TraceLondon;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,6 +48,18 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class MxpxThresholdTests extends TracerTestBase {
+
+  static final BigInteger MAX_UINT256 =
+      BigInteger.TWO.pow(256).subtract(BigInteger.ONE); // 2^256 - 1
+  static final BigInteger LONDON_MXPX_THRESHOLD =
+      BigInteger.valueOf(TraceLondon.Mxp.LONDON_MXPX_THRESHOLD);
+  static final BigInteger CANCUN_MXPX_THRESHOLD =
+      BigInteger.valueOf(TraceCancun.Mxp.CANCUN_MXPX_THRESHOLD);
+  static final BigInteger SMALL = BigInteger.valueOf(32);
+
+  static final List<OpCode> oneOffsetOpCodes = List.of(OpCode.MSTORE, OpCode.MSTORE8);
+  static final List<OpCode> oneOffsetSizePairOpCodes = List.of(OpCode.CODECOPY);
+  static final List<OpCode> twoOffsetSizePairsOpCodes = List.of(OpCode.CALL);
 
   /**
    * The following tests were written to test a bug fix in the tracer <a
@@ -57,7 +80,7 @@ public class MxpxThresholdTests extends TracerTestBase {
    *
    *     <p>and variable size opcodes:
    * <li>single offset, single size (e.g., `CODECOPY`)
-   * <li>double offset, single size (only `MCOPY`), which is covered in McopyTests.java class
+   * <li>double offset, single size (only `MCOPY`), which is covered in a separated test
    * <li>double offset, double size (the `CALL`'s)
    */
   @Tag("nightly")
@@ -96,18 +119,6 @@ public class MxpxThresholdTests extends TracerTestBase {
 
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
-
-  static final BigInteger MAX_UINT256 =
-      BigInteger.TWO.pow(256).subtract(BigInteger.ONE); // 2^256 - 1
-  static final BigInteger LONDON_MXPX_THRESHOLD =
-      BigInteger.valueOf(TraceLondon.Mxp.LONDON_MXPX_THRESHOLD);
-  static final BigInteger CANCUN_MXPX_THRESHOLD =
-      BigInteger.valueOf(TraceCancun.Mxp.CANCUN_MXPX_THRESHOLD);
-  static final BigInteger SMALL = BigInteger.valueOf(32);
-
-  static final List<OpCode> oneOffsetOpCodes = List.of(OpCode.MSTORE, OpCode.MSTORE8);
-  static final List<OpCode> oneOffsetSizePairOpCodes = List.of(OpCode.CODECOPY);
-  static final List<OpCode> twoOffsetSizePairsOpCodes = List.of(OpCode.CALL);
 
   static Stream<Arguments> testMxpxThresholdSource() {
     final BigInteger MXPX_THRESHOLD = mxpxThreshold();
@@ -270,5 +281,107 @@ public class MxpxThresholdTests extends TracerTestBase {
       }
     }
     return arguments.stream();
+  }
+
+  // Specialized tests for MCOPY
+  @ParameterizedTest
+  @MethodSource("inputParamsUnit")
+  void McopyLight(Bytes targetOffset, Bytes sourceOffset, Bytes size, TestInfo testInfo) {
+    singleMcopy(targetOffset, sourceOffset, size, testInfo);
+  }
+
+  @Tag("nightly")
+  @ParameterizedTest
+  @MethodSource("inputParamsNightly")
+  void McopyExtensive(Bytes targetOffset, Bytes sourceOffset, Bytes size, TestInfo testInfo) {
+    singleMcopy(targetOffset, sourceOffset, size, testInfo);
+  }
+
+  private static Stream<Arguments> inputs(List<Bytes32> inputsValues) {
+    final List<Arguments> arguments = new ArrayList<>();
+    for (Bytes32 targetOffset : inputsValues) {
+      for (Bytes32 sourceOffset : inputsValues) {
+        for (Bytes32 size : inputsValues) {
+          arguments.add(Arguments.of(targetOffset, sourceOffset, size));
+        }
+      }
+    }
+    return arguments.stream();
+  }
+
+  private static Stream<Arguments> inputParamsNightly() {
+    return inputs(inputsValuesNightly);
+  }
+
+  private static Stream<Arguments> inputParamsUnit() {
+    return inputs(inputsValuesUnit);
+  }
+
+  private static final List<Bytes32> inputsValuesUnit =
+      List.of(
+          Bytes32.ZERO,
+          Bytes32.leftPad(Bytes.ofUnsignedInt(1)),
+          Bytes32.leftPad(Bytes.ofUnsignedLong(TraceCancun.Mxp.CANCUN_MXPX_THRESHOLD - 1)),
+          Bytes32.leftPad(Bytes.ofUnsignedLong(TraceCancun.Mxp.CANCUN_MXPX_THRESHOLD)),
+          Bytes32.repeat((byte) 0xff));
+
+  private static final List<Bytes32> inputsValuesNightly =
+      Stream.concat(
+              inputsValuesUnit.stream(),
+              Stream.of(
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(LLARGEMO)),
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(LLARGE)),
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(LLARGEPO)),
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(WORD_SIZE_MO)),
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(WORD_SIZE)),
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(33)),
+                  Bytes32.leftPad(Bytes.ofUnsignedLong(Long.MAX_VALUE)),
+                  Bytes32.leftPad(Bytes.ofUnsignedLong(TraceCancun.Mxp.CANCUN_MXPX_THRESHOLD + 1))))
+          .toList();
+
+  // Main test
+  private void singleMcopy(Bytes targetOffset, Bytes sourceOffset, Bytes size, TestInfo testInfo) {
+
+    final Bytes FILL_MEMORY =
+        BytecodeCompiler.newProgram(chainConfig)
+            .push(
+                Bytes32.fromHexString(
+                    "0x11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff")) // value
+            .push(0) // offset
+            .op(MSTORE)
+            .compile();
+
+    final Bytes MLOADS =
+        BytecodeCompiler.newProgram(chainConfig)
+            .push(0)
+            .op(MLOAD)
+            .op(POP)
+            .push(WORD_SIZE)
+            .op(MLOAD)
+            .op(POP)
+            .push(2 * WORD_SIZE)
+            .op(MLOAD)
+            .op(POP)
+            .compile();
+
+    BytecodeRunner.of(
+            Bytes.concatenate(
+                FILL_MEMORY, // We fill the first 32 bytes of memory with non-trivial value
+                pushAndMcopy(targetOffset, sourceOffset, size), // We perform the MCOPY
+                MLOADS // We load the first 3 words of memory to check the result
+                ))
+        .run(chainConfig, testInfo);
+  }
+
+  private Bytes pushAndMcopy(Bytes targetOffset, Bytes sourceOffset, Bytes size) {
+    return Bytes.concatenate(
+        Bytes.of(PUSH32.byteValue()),
+        Bytes32.leftPad(size),
+        Bytes.of(PUSH32.byteValue()),
+        Bytes32.leftPad(sourceOffset),
+        Bytes.of(PUSH32.byteValue()),
+        Bytes32.leftPad(targetOffset),
+        Bytes.fromHexString("0x5E") // MCOPY opcode
+        );
   }
 }

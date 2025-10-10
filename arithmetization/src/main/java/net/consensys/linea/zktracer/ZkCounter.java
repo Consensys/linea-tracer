@@ -770,9 +770,10 @@ public class ZkCounter implements LineCountingTracer {
         } else {
           bls.detectEvent();
         }
-        if (callDataSize != 0) {
-          blsdata.callBls(0, precompile, frame.getInputData(), returnData, prcSuccess);
-        }
+        // TODO: reenable me
+        // if (callDataSize != 0) {
+        //   blsdata.callBls(0, precompile, frame.getInputData(), returnData, prcSuccess);
+        // }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
         oob.updateTally(oobLineCountForPrc(precompile));
         // TODO: check if we have some MOD coming from OOB call

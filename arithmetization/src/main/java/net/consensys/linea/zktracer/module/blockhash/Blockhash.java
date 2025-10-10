@@ -119,7 +119,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
     wcp.additionalRows.add(4 * LLARGE + 1);
 
     // check that the result is coherent with what we know
-    if (blockhashRes != Bytes32.ZERO) {
+    if (!blockhashRes.equals(Bytes32.ZERO)) {
       checkArgument(blockhashArg.trimLeadingZeros().size() <= 8, "Block number must fit in a long");
       final long blockNumber = blockhashArg.trimLeadingZeros().toLong();
       successfulBlockhashAttempt.putIfAbsent(blockNumber, true);

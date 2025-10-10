@@ -79,6 +79,7 @@ public class BlockhashTest extends TracerTestBase {
     final Transaction tx2 =
         ToyTransaction.builder()
             .sender(senderAccount)
+            .nonce(senderAccount.getNonce() + 1)
             .to(receiverAccount2)
             .keyPair(keyPair)
             .build();
@@ -97,6 +98,7 @@ public class BlockhashTest extends TracerTestBase {
     final Transaction tx3 =
         ToyTransaction.builder()
             .sender(senderAccount)
+            .nonce(senderAccount.getNonce() + 2)
             .to(receiverAccount3)
             .keyPair(keyPair)
             .build();
@@ -113,6 +115,7 @@ public class BlockhashTest extends TracerTestBase {
     final Transaction tx4 =
         ToyTransaction.builder()
             .sender(senderAccount)
+            .nonce(senderAccount.getNonce() + 3)
             .to(receiverAccount4)
             .keyPair(keyPair)
             .build();
@@ -129,6 +132,7 @@ public class BlockhashTest extends TracerTestBase {
     final Transaction tx5 =
         ToyTransaction.builder()
             .sender(senderAccount)
+            .nonce(senderAccount.getNonce() + 4)
             .to(receiverAccount5)
             .keyPair(keyPair)
             .build();
@@ -147,6 +151,7 @@ public class BlockhashTest extends TracerTestBase {
     final Transaction tx6 =
         ToyTransaction.builder()
             .sender(senderAccount)
+            .nonce(senderAccount.getNonce() + 5)
             .to(receiverAccount6)
             .keyPair(keyPair)
             .build();
@@ -165,6 +170,7 @@ public class BlockhashTest extends TracerTestBase {
     final Transaction tx7 =
         ToyTransaction.builder()
             .sender(senderAccount)
+            .nonce(senderAccount.getNonce() + 6)
             .to(receiverAccount7)
             .keyPair(keyPair)
             .build();
@@ -183,6 +189,7 @@ public class BlockhashTest extends TracerTestBase {
     final Transaction tx8 =
         ToyTransaction.builder()
             .sender(senderAccount)
+            .nonce(senderAccount.getNonce() + 7)
             .to(receiverAccount8)
             .keyPair(keyPair)
             .build();
@@ -201,6 +208,7 @@ public class BlockhashTest extends TracerTestBase {
     final Transaction tx9 =
         ToyTransaction.builder()
             .sender(senderAccount)
+            .nonce(senderAccount.getNonce() + 8)
             .to(receiverAccount9)
             .keyPair(keyPair)
             .build();
@@ -219,6 +227,7 @@ public class BlockhashTest extends TracerTestBase {
     final Transaction tx10 =
         ToyTransaction.builder()
             .sender(senderAccount)
+            .nonce(senderAccount.getNonce() + 9)
             .to(receiverAccount10)
             .keyPair(keyPair)
             .build();
@@ -237,6 +246,7 @@ public class BlockhashTest extends TracerTestBase {
     final Transaction tx11 =
         ToyTransaction.builder()
             .sender(senderAccount)
+            .nonce(senderAccount.getNonce() + 10)
             .to(receiverAccount11)
             .keyPair(keyPair)
             .build();

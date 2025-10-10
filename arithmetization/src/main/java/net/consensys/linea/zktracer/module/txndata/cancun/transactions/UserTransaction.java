@@ -44,6 +44,9 @@ public class UserTransaction extends CancunTxnDataOperation {
   public final ProcessableBlockHeader blockHeader;
   public final Fork fork;
 
+  @Override
+  public void traceTransaction(Txndata trace) {}
+
   public enum DominantCost {
     FLOOR_COST_DOMINATES,
     EXECUTION_COST_DOMINATES

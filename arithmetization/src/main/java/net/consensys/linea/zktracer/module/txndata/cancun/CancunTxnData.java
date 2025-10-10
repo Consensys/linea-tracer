@@ -28,7 +28,6 @@ import net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysfNoopT
 import net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysiEip2935Transaction;
 import net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysiEip4788Transaction;
 import net.consensys.linea.zktracer.module.txndata.cancun.transactions.UserTransaction;
-import net.consensys.linea.zktracer.module.txndata.london.LondonTxnDataOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
@@ -36,8 +35,6 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
-
-import static com.google.common.base.Preconditions.checkState;
 
 public class CancunTxnData extends TxnData<CancunTxnDataOperation> {
 
@@ -57,10 +54,10 @@ public class CancunTxnData extends TxnData<CancunTxnDataOperation> {
     currentBlockHeader = processableBlockHeader;
   }
 
-    @Override
-    public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-        blocks.getLast().setNbOfTxsInBlock(blockBody.getTransactions().size());
-    }
+  @Override
+  public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    blocks.getLast().setNbOfTxsInBlock(blockBody.getTransactions().size());
+  }
 
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {

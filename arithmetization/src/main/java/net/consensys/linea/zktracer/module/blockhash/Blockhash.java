@@ -121,7 +121,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
     // check that the result is coherent with what we know
     if (blockhashRes != Bytes32.ZERO) {
       checkArgument(blockhashArg.trimLeadingZeros().size() <= 8, "Block number must fit in a long");
-      final long blockNumber = blockhashArg.toLong();
+      final long blockNumber = blockhashArg.trimLeadingZeros().toLong();
       successfulBlockhashAttempt.putIfAbsent(blockNumber, true);
       if (blockHashMap.containsKey(blockNumber)) {
         checkArgument(blockhashRes.equals(blockHashMap.get(blockNumber)));
@@ -141,21 +141,18 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   public void traceEndConflation(WorldView state) {
     // Add all historical block hashes if not already called by the EVM:
     for (long blockNumber : blockHashMap.keySet()) {
-      if (successfulBlockhashAttempt.getOrDefault(blockNumber, false)) {
-        // The BLOCKHASH opcode has been already successfully called for this block number, no need
-        // to add it again
-        return;
-      }
-      final long absoluteBlock = Math.max(firstBlockOfConflation, blockNumber + 1);
+      if (!successfulBlockhashAttempt.getOrDefault(blockNumber, false)) {
+        final long absoluteBlock = Math.max(firstBlockOfConflation, blockNumber + 1);
 
-      final BlockhashOperation op =
-          new BlockhashOperation(
-              fromAbsoluteBlockToRelativeBlock(absoluteBlock),
-              absoluteBlock,
-              longToBytes32(blockNumber),
-              blockHashMap.get(blockNumber), // We add successful calls only
-              wcp);
-      operations.add(op);
+        final BlockhashOperation op =
+            new BlockhashOperation(
+                fromAbsoluteBlockToRelativeBlock(absoluteBlock),
+                absoluteBlock,
+                longToBytes32(blockNumber),
+                blockHashMap.get(blockNumber), // We add successful calls only
+                wcp);
+        operations.add(op);
+      }
     }
 
     // Add the blockhash of the last block. Its treatment is different from other historical

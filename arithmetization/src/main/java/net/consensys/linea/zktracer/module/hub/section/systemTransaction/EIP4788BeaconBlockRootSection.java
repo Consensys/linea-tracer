@@ -45,6 +45,7 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
 
   public static final short NB_ROWS_HUB_SYSI_EIP4788 = 5;
 
+  public static final Address SYSTEM_ADDRESS = Address.fromHexString("0xfffffffffffffffffffffffffffffffffffffffe");
   public static final Address EIP4788_BEACONROOT_ADDRESS =
       AddressUtils.addressFromBytes(
           Bytes.concatenate(
@@ -57,6 +58,8 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
   public EIP4788BeaconBlockRootSection(
       Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
     super(hub, NB_ROWS_HUB_SYSI_EIP4788);
+    final AccountSnapshot systemAccountSnapshot =
+            AccountSnapshot.canonical(hub, world, SYSTEM_ADDRESS, false);
     final AccountSnapshot beaconrootAccount =
         AccountSnapshot.canonical(hub, world, EIP4788_BEACONROOT_ADDRESS, false);
     final BigInteger timestamp = longToUnsignedBigInteger(blockHeader.getTimestamp());
@@ -74,16 +77,27 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
     fragments().add(transactionFragment);
     hub.txnData().callTxnDataForSystemTransaction(transactionFragment.type());
 
-    final AccountFragment accountFragment =
+    final AccountFragment systemAccountFragment =
+        hub.factories()
+            .accountFragment()
+            .makeWithTrm(
+                systemAccountSnapshot,
+                systemAccountSnapshot,
+                SYSTEM_ADDRESS,
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1),
+                SYSI);
+    fragments().add(systemAccountFragment);
+
+    final AccountFragment eip4788smcAccountFragment =
         hub.factories()
             .accountFragment()
             .makeWithTrm(
                 beaconrootAccount,
                 beaconrootAccount,
                 EIP4788_BEACONROOT_ADDRESS,
-                DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1),
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 2),
                 SYSI);
-    fragments().add(accountFragment);
+    fragments().add(eip4788smcAccountFragment);
 
     if (isNonTrivialOperation) {
       final EWord keyTimestamp = EWord.of(timestamp.mod(HISTORY_BUFFER_LENGTH_BI));
@@ -97,7 +111,7 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
                       .get(EIP4788_BEACONROOT_ADDRESS)
                       .getStorageValue(UInt256.fromBytes(keyTimestamp))),
               EWord.of(timestamp),
-              2);
+              3);
       fragments().add(storingTimestamp);
 
       final EWord keyBeaconRoot = keyTimestamp.add(HISTORY_BUFFER_LENGTH);
@@ -111,7 +125,7 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
                       .get(EIP4788_BEACONROOT_ADDRESS)
                       .getStorageValue(UInt256.fromBytes(keyBeaconRoot))),
               EWord.of(beaconRoot),
-              3);
+              4);
       fragments().add(storingBeaconroot);
     }
 

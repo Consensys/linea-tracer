@@ -25,7 +25,6 @@ import static net.consensys.linea.zktracer.TraceCancun.Mxp.CANCUN_MXPX_THRESHOLD
 import static net.consensys.linea.zktracer.opcode.OpCode.MLOAD;
 import static net.consensys.linea.zktracer.opcode.OpCode.MSTORE;
 import static net.consensys.linea.zktracer.opcode.OpCode.POP;
-import static net.consensys.linea.zktracer.opcode.OpCode.PUSH32;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -35,11 +34,14 @@ import java.util.stream.Stream;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.TraceCancun;
 import net.consensys.linea.zktracer.TraceLondon;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -341,14 +343,27 @@ public class MxpxThresholdTests extends TracerTestBase {
 
   // Main test
   private void singleMcopy(Bytes targetOffset, Bytes sourceOffset, Bytes size, TestInfo testInfo) {
+    final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
+    final ToyAccount codeOwnerAccount =
+        ToyAccount.builder()
+            .balance(Wei.of(0))
+            .nonce(1)
+            .address(codeOwnerAddress)
+            .code(
+                Bytes.fromHexString(
+                    "fb8a7292db854038692b1217d9df4482d2fcf5650e39ab0072fdbd008765ac55651e36962cb05b57fafa8b90a36bca49eb2c4017a44e6f90d74f81bcee025dab99fa957d4e0034e018cf80d1272129aa378cc98674bb44e62d9cbc0ac1835198756e3c147dd4df5ac4ce51bdde0c3c641d5f27eff5c7abeec71265a0372da839447fa7f0d5c25425900783b62966ff8313b1211218480f9dfcc0c00578a9ca86bfc4ffad37c99c97c96dc66632ae14590cb0f4bbb5ba7937c5fa83e89efe4bd9f564bbc8dd715fd70caee0c89d647fa3dd46676522c24b13f6f722e71cf40592938a085cfb7cb11a70be32b345a4168686c6df6dd8e6d9c221854aecd5851b8c4a8631dfd81733712ebe0390106d564ec331846fc8b0c19bc3bf0d0631cf6ed0165ef49f2b355b0dc1596f0bd6ba410a80a3cf2c54e1b7fa2431e21c5951816e0e93116852f38d9b3be3a7a5dd9826941792fb39d0dfd8e178ec0752741ab2ea9bb3a450d269a569b4f50b8fc32707602a8b3bad3b8aaf0645d5f61555e9c1133340ec16c8c9c254e2274081b0c2b3b453a1c2843e6e0ac91b50272a66db85400669f1fd0bb9bc0f55603972a514129561545eaa9b835cb3445f334a3a35889d9655c632886daefc44926ad53c850081da932673395eb78bcdc8b7914c35b361ae19c4b37fc210090df271a63c95d92045576b62f0bfb2dd608a31704e94dfa66624d634f5c757706b2edf2de4e7c7f8703e9745aa3ce0ba6fed4de3deb2cabbc8c5a9589189392755882ea5e3def75868ac879b7f9a52335509b7dc8e8f5dee85edcb1cf7ca446dc60ca3f23b15c338fa2a6baa0df7c9ec3d5312a8f9e453590eda7a3cee53927bad4f4b8984ec06f9fa9ad40a7d9aa86c671865851af05771a1acd336eb134e21fd5328d9497fe5c7c38aa195a6af3b0f7901a8e09de19b7dca48011b26ff0017f3ca1880a1e3c760c78c0946e1ab7c5030ec773190cffd89deb713918e521794fc9ad04414d1552b8aca294aef5f4173074b6043ed8486d420d9456273d3dc6ee06efca9c0c5362bedfec8bd98a111d06ec4e4f1f7fee52078f7fabcbadac6ef29d311d52232f8e3a538ca77a889f00b35a20955e028b8d0cdece8881c435e35719e9fd81ddc9f41f8f1723d375db5971e1eb45fbd201b561ad4e81a4a7ee8791f15d8d43744ca397bd1e75cbe9c1c49ca94733dcf5bc0a0aab0a65bb4fd22aedc431c7973c7c2bfe9be5a7c0f45e46c4e278e9d6bbdc391636ced707569df041ac1ec2c70f4650605dcd5905b302ab5208204cdb21b1f8ab1039a2e8175bde13759aebf209eec905a9262c99e05932b78cdd88934e3aea5967e57d0a8c67222dc875b608ae5d5e3d507215d2047061f01638ddcbf5a59c960c7945d2fc27644a04d402d8dcf9d2e034991d5188baef40148b71858a731ee"))
+            .build();
 
+    // First place the parameters in memory
+    // Copy to targetOffset the code of codeOwnerAccount
     final Bytes FILL_MEMORY =
         BytecodeCompiler.newProgram(chainConfig)
-            .push(
-                Bytes32.fromHexString(
-                    "0x11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff")) // value
+            .push(codeOwnerAddress)
+            .op(OpCode.EXTCODESIZE) // size
             .push(0) // offset
-            .op(MSTORE)
+            .push(0) // targetOffset
+            .push(codeOwnerAddress) // address
+            .op(OpCode.EXTCODECOPY)
             .compile();
 
     final Bytes MLOADS =
@@ -366,22 +381,19 @@ public class MxpxThresholdTests extends TracerTestBase {
 
     BytecodeRunner.of(
             Bytes.concatenate(
-                FILL_MEMORY, // We fill the first 32 bytes of memory with non-trivial value
+                FILL_MEMORY, // We fill the first 1024 bytes of memory with a non-trivial value
                 pushAndMcopy(targetOffset, sourceOffset, size), // We perform the MCOPY
                 MLOADS // We load the first 3 words of memory to check the result
                 ))
-        .run(chainConfig, testInfo);
+        .run(List.of(codeOwnerAccount), chainConfig, testInfo);
   }
 
   private Bytes pushAndMcopy(Bytes targetOffset, Bytes sourceOffset, Bytes size) {
-    return Bytes.concatenate(
-        Bytes.of(PUSH32.byteValue()),
-        Bytes32.leftPad(size),
-        Bytes.of(PUSH32.byteValue()),
-        Bytes32.leftPad(sourceOffset),
-        Bytes.of(PUSH32.byteValue()),
-        Bytes32.leftPad(targetOffset),
-        Bytes.fromHexString("0x5E") // MCOPY opcode
-        );
+    return BytecodeCompiler.newProgram(chainConfig)
+        .push(size)
+        .push(sourceOffset)
+        .push(targetOffset)
+        .op(OpCode.MCOPY)
+        .compile();
   }
 }

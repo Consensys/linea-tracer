@@ -238,7 +238,9 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
               .orElseThrow(
                   () ->
                       new IllegalArgumentException(
-                          "Block not found for number: " + blockNumberAttempt))
+                          "When retrieving historical blockhashes, block number: "
+                              + blockNumberAttempt
+                              + " was not found"))
               .getBlockHeader()
               .getBlockHash();
       historicalBlockHashes.put(blockNumber, hash);

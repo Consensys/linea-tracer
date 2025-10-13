@@ -184,7 +184,7 @@ public class ReplayExecutionEnvironment {
     if (debugBlockCapturer) {
       // Initialise world state from conflation
       MutableWorldState world = initWorld(conflation);
-      capturer = new BlockCapturer(chain.fork);
+      capturer = new BlockCapturer(chain.fork, new HashMap<>());
       capturer.setWorld(world.updater());
       // Sequence zktracer and capturer
       tracer = ConflationAwareOperationTracer.sequence(tracer, capturer);
@@ -272,7 +272,6 @@ public class ReplayExecutionEnvironment {
     if (systemContractDeployedPriorToTheConflation) {
       addSystemAccountsIfRequired(world.updater(), chain.fork);
     }
-
     world.persist(null);
     // Construct the processor
     final ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(chain.id, chain.fork);

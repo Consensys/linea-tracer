@@ -18,9 +18,9 @@ package net.consensys.linea.zktracer.module.hub;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import org.hyperledger.besu.datatypes.Hash;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.txndata.osaka.OsakaTxnData;
+import org.hyperledger.besu.datatypes.Hash;
 
 public class OsakaHub extends PragueHub {
   public OsakaHub(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {

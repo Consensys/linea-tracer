@@ -37,11 +37,11 @@ public class OsakaUserTransaction extends CancunUserTransaction {
   protected void eip7825TransactionGasLimitCap() {
     final long gasLimit = txn.getGasLimit();
 
-    final WcpRow gasLimitMustCoverUpfrontGasCost =
+    final WcpRow transactionGasLimitCap =
         WcpRow.smallCallToLeq(
             wcp, Bytes.ofUnsignedLong(gasLimit), EIP_7825_TRANSACTION_GAS_LIMIT_CAP_BYTES);
 
-    rows.add(gasLimitMustCoverUpfrontGasCost);
+    rows.add(transactionGasLimitCap);
   }
 
   @Override

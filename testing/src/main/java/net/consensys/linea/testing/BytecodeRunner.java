@@ -47,7 +47,7 @@ import org.junit.jupiter.api.TestInfo;
 @Accessors(fluent = true)
 public final class BytecodeRunner {
   public static final long DEFAULT_GAS_LIMIT =
-      16777216; // = 0x1000000 max tx gas limit since EIP-7825 (OSAKA)
+      EIP_7825_TRANSACTION_GAS_LIMIT_CAP; // = 0x1000000 max tx gas limit since EIP-7825 (OSAKA)
   private final Bytes byteCode;
   @Getter ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2;
 

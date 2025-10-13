@@ -47,12 +47,17 @@ public class EIP2935HistoricalHash extends TraceSection {
               Bytes.minimalBytes(HISTORY_STORAGE_ADDRESS_HI),
               bigIntegerToBytes16(HISTORY_STORAGE_ADDRESS_LO)));
 
+  public static final Address SYSTEM_ADDRESS =
+      Address.fromHexString("0xfffffffffffffffffffffffffffffffffffffffe");
+
   public EIP2935HistoricalHash(final Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
     super(hub, NB_ROWS_HUB_SYSI_EIP2935);
     final long blockNumber = blockHeader.getNumber();
     final boolean currentBlockIsGenesis = blockNumber == 0;
     final long previousBlockNumber = currentBlockIsGenesis ? 0 : blockNumber - 1;
     final short previousBlockNumberMod8191 = (short) (previousBlockNumber % HISTORY_SERVE_WINDOW);
+    final AccountSnapshot systemAccountSnapshot =
+              AccountSnapshot.canonical(hub, world, SYSTEM_ADDRESS, false);
     final AccountSnapshot blockhashHistoryAccount =
         AccountSnapshot.canonical(hub, world, EIP2935_HISTORY_STORAGE_ADDRESS, false);
     final boolean isNonTrivialOperation =
@@ -70,6 +75,17 @@ public class EIP2935HistoricalHash extends TraceSection {
     fragments().add(transactionFragment);
     hub.txnData().callTxnDataForSystemTransaction(transactionFragment.type());
 
+    final AccountFragment systemAccountFragment =
+        hub.factories()
+            .accountFragment()
+            .makeWithTrm(
+                systemAccountSnapshot,
+                systemAccountSnapshot,
+                SYSTEM_ADDRESS,
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1),
+                SYSI);
+    fragments().add(systemAccountFragment);
+
     final AccountFragment accountFragment =
         hub.factories()
             .accountFragment()
@@ -77,7 +93,7 @@ public class EIP2935HistoricalHash extends TraceSection {
                 blockhashHistoryAccount,
                 blockhashHistoryAccount,
                 EIP2935_HISTORY_STORAGE_ADDRESS,
-                DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1),
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 2),
                 SYSI);
     fragments().add(accountFragment);
 
@@ -93,7 +109,7 @@ public class EIP2935HistoricalHash extends TraceSection {
                       .get(EIP2935_HISTORY_STORAGE_ADDRESS)
                       .getStorageValue(UInt256.fromBytes(key))),
               EWord.of(previousBlockhashOrZero),
-              2);
+              3);
       fragments().add(storingBlockhash);
     }
 

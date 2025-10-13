@@ -204,8 +204,11 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
   @Override
   public int lineCount() {
-    return operations().lineCount()
-        + (operations.conflationFinished() ? 0 : (blockHashMap.size() + 1) * NB_ROWS_BLOCKHASH);
+    final int additionalOp =
+        operations.conflationFinished()
+            ? 0
+            : Math.max(0, blockHashMap.size() + 1 - successfulBlockhashAttempt().size());
+    return operations().lineCount() + additionalOp * NB_ROWS_BLOCKHASH;
   }
 
   public static Map<Long, Hash> retrieveHistoricalBlockHashes(

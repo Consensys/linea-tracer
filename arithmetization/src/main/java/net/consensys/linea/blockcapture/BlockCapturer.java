@@ -91,6 +91,13 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
     this.reaper.enterBlock(blockHeader, blockBody, miningBeneficiary);
   }
 
+  // used to record the block hash of the last block in the conflation (previous one are already
+  // recorded in the constructor)
+  @Override
+  public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    reaper.touchBlockHash(blockHeader.getNumber(), blockHeader.getBlockHash());
+  }
+
   @Override
   public void tracePrepareTransaction(WorldView worldView, Transaction transaction) {
     this.reaper.prepareTransaction(transaction);

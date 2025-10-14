@@ -14,7 +14,6 @@
  */
 package net.consensys.linea.zktracer.module.txndata.cancun;
 
-import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.*;
 
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.TxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.cancun.rows.TxnDataRow;
-import net.consensys.linea.zktracer.module.txndata.cancun.transactions.UserTransaction;
+import net.consensys.linea.zktracer.module.txndata.cancun.transactions.CancunUserTransaction;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
@@ -49,11 +48,6 @@ public abstract class CancunTxnDataOperation extends TxnDataOperation {
 
   @Override
   public int computeLineCount() {
-    checkState(
-        rows.size() == 1 + ctMax(),
-        "Cancun TXN_DATA operation has rows size = %s != 1 + ctMax = %s",
-        rows.size(),
-        ctMax() + 1);
     return rows.size();
   }
 
@@ -83,7 +77,7 @@ public abstract class CancunTxnDataOperation extends TxnDataOperation {
   private void traceCommonSaveForFlags(
       Trace.Txndata trace, int ct, long totalUserTransactionsInConflation) {
     final long relativeUserTxNumMax =
-        this instanceof UserTransaction ? blockSnapshot.getNbOfTxsInBlock() : 0;
+        this instanceof CancunUserTransaction ? blockSnapshot.getNbOfTxsInBlock() : 0;
     trace
         // BLK_NUMBER is (defcomputed ...)
         // TOTL_TXN_NUMBER is (defcomputed ...)
@@ -101,8 +95,8 @@ public abstract class CancunTxnDataOperation extends TxnDataOperation {
     // GAS_CUMULATIVE gets traced for USER transactions only
     ;
 
-    if (this instanceof UserTransaction) {
-      UserTransaction userTransaction = (UserTransaction) this;
+    if (this instanceof CancunUserTransaction) {
+      CancunUserTransaction userTransaction = (CancunUserTransaction) this;
       trace.gasCumulative(Bytes.ofUnsignedLong(userTransaction.txn.getAccumulatedGasUsedInBlock()));
     }
   }

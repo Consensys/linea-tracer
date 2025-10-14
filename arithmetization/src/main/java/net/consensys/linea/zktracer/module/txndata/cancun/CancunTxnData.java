@@ -24,10 +24,11 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
+import net.consensys.linea.zktracer.module.txndata.TxnDataOperation;
+import net.consensys.linea.zktracer.module.txndata.cancun.transactions.CancunUserTransaction;
 import net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysfNoopTransaction;
 import net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysiEip2935Transaction;
 import net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysiEip4788Transaction;
-import net.consensys.linea.zktracer.module.txndata.cancun.transactions.UserTransaction;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
@@ -36,7 +37,7 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-public class CancunTxnData extends TxnData<CancunTxnDataOperation> {
+public class CancunTxnData extends TxnData {
 
   @Getter private final List<BlockSnapshot> blocks = new ArrayList<>();
   @Getter private ProcessableBlockHeader currentBlockHeader;
@@ -61,7 +62,7 @@ public class CancunTxnData extends TxnData<CancunTxnDataOperation> {
 
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
-    operations().add(new UserTransaction(this, tx));
+    operations().add(new CancunUserTransaction(this, tx));
   }
 
   @Override
@@ -71,22 +72,23 @@ public class CancunTxnData extends TxnData<CancunTxnDataOperation> {
 
   public void callTxnDataForSystemTransaction(final SystemTransactionType type) {
     switch (type) {
-      case SYSI_NOOP -> throw new IllegalArgumentException(
-          "Unsupported system transaction type: " + type);
       case SYSI_EIP_4788_BEACON_BLOCK_ROOT -> operations().add(new SysiEip4788Transaction(this));
       case SYSI_EIP_2935_HISTORICAL_HASH -> operations().add(new SysiEip2935Transaction(this));
       case SYSF_NOOP -> operations().add(new SysfNoopTransaction(this));
+      case SYSI_NOOP -> throw new IllegalArgumentException(
+          "Unsupported system transaction type: " + type);
     }
   }
 
   public long totalNumberOfUserTransactions() {
-    return operations().stream().filter(op -> op instanceof UserTransaction).count();
+    return operations().stream().filter(op -> op instanceof CancunUserTransaction).count();
   }
 
   @Override
   public void commit(Trace trace) {
-    for (CancunTxnDataOperation tx : operations().getAll()) {
-      tx.traceTransaction(trace.txndata(), totalNumberOfUserTransactions());
+    for (TxnDataOperation tx : operations().getAll()) {
+      CancunTxnDataOperation cancunTx = (CancunTxnDataOperation) tx;
+      cancunTx.traceTransaction(trace.txndata(), totalNumberOfUserTransactions());
     }
   }
 }

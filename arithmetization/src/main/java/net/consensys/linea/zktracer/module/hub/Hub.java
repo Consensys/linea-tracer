@@ -1041,7 +1041,7 @@ public abstract class Hub implements Module {
       case BATCH -> {
         new StackOnlySection(this);
         if (this.opCode() == BLOCKHASH) {
-          blockhash.callBlockHash(frame, this.opCode());
+          blockhash.callBlockHashPreExecution(frame, this.opCode());
         }
       }
       case MACHINE_STATE -> {

@@ -45,6 +45,15 @@ public class BlockhashTest extends TracerTestBase {
                 .op(OpCode.NUMBER)
                 .op(OpCode.SUB)
                 .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+                .push(2)
+                .op(OpCode.NUMBER)
+                .op(OpCode.SUB)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+                .op(OpCode.NUMBER)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
                 .compile())
         .run(chainConfig, testInfo);
   }

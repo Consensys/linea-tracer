@@ -98,10 +98,25 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
     lastBlockHash = blockHeader.getBlockHash();
   }
 
-  public void callBlockHash(MessageFrame frame, OpCode opcode) {
+  public void callBlockHashPreExecution(MessageFrame frame, OpCode opcode) {
     checkArgument(opcode == BLOCKHASH, "Only BLOCKHASH opcode is allowed");
     blockhashArg = Bytes32.leftPad(frame.getStackItem(0));
     hub.defers().scheduleForPostExecution(this);
+  }
+
+  public void callBlockhashForParent(BlockHeader blockHeader) {
+    final long blockNumber = blockHeader.getNumber();
+    checkArgument(blockNumber > 0, "BLOCKHASH can't be called for genesis block");
+    final Bytes32 parentBlockNumber = longToBytes32(blockNumber - 1);
+    final Hash parentBlockHash = blockHeader.getParentHash();
+    final BlockhashOperation op =
+        new BlockhashOperation(
+            fromAbsoluteBlockToRelativeBlock(blockNumber),
+            blockNumber,
+            parentBlockNumber,
+            parentBlockHash,
+            wcp);
+    addAndCheck(op);
   }
 
   @Override
@@ -112,22 +127,30 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
     final BlockhashOperation op =
         new BlockhashOperation(
             fromAbsoluteBlockToRelativeBlock(absBlock), absBlock, blockhashArg, blockhashRes, wcp);
-    operations.add(op);
+    addAndCheck(op);
+  }
 
+  private void addAndCheck(BlockhashOperation e) {
+    operations.add(e);
+    checkBlockHashConsistancies(e);
+  }
+
+  private void checkBlockHashConsistancies(BlockhashOperation op) {
     // We have 4 LLARGE and one OLI call to WCP, made at the end of the conflation, so we need to
     // add line count to WCP
     wcp.additionalRows.add(4 * LLARGE + 1);
 
     // check that the result is coherent with what we know
-    if (!blockhashRes.equals(Bytes32.ZERO)) {
-      checkArgument(blockhashArg.trimLeadingZeros().size() <= 8, "Block number must fit in a long");
-      final long blockNumber = blockhashArg.trimLeadingZeros().toLong();
+    if (!op.blockhashRes().equals(Bytes32.ZERO)) {
+      checkArgument(
+          op.blockhashArg().trimLeadingZeros().size() <= 8, "Block number must fit in a long");
+      final long blockNumber = op.blockhashArg().trimLeadingZeros().toLong();
       successfulBlockhashAttempt.putIfAbsent(blockNumber, true);
       if (blockHashMap.containsKey(blockNumber)) {
-        checkArgument(blockhashRes.equals(blockHashMap.get(blockNumber)));
+        checkArgument(op.blockhashRes().equals(blockHashMap.get(blockNumber)));
       } else {
         checkState(!tracingInProd, "In production mode, all blockhashes must be already known");
-        blockHashMap.put(blockNumber, blockhashRes);
+        blockHashMap.put(blockNumber, op.blockhashRes());
       }
     }
   }

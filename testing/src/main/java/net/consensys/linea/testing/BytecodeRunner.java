@@ -161,12 +161,12 @@ public final class BytecodeRunner {
       List<AccessListEntry> accessList,
       ChainConfig chainConfig,
       TestInfo testInfo) {
-    runBody(
+    buildToyExecutionEnvironmentV2(
         senderBalance, gasLimit, additionalAccounts, payload, accessList, chainConfig, testInfo);
     toyExecutionEnvironmentV2.run();
   }
 
-  private void runBody(
+  private void buildToyExecutionEnvironmentV2(
       Wei senderBalance,
       Long gasLimit,
       List<ToyAccount> additionalAccounts,

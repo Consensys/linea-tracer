@@ -89,8 +89,7 @@ public class ReplayTestTools {
     }
 
     final Gson gson = new Gson();
-    ConflationSnapshot conflation;
-    conflation =
+    final ConflationSnapshot conflation =
         gson.fromJson(new BufferedReader(new InputStreamReader(stream)), ConflationSnapshot.class);
 
     final Map<Long, Hash> historicalBlockHashes = conflation.historicalBlockHashes();

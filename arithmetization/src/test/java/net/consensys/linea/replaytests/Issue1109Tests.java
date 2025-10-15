@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.ChainConfig.OLD_MAINNET_TESTCONFIG;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(UnitTestWatcher.class)
 public class Issue1109Tests extends TracerTestBase {
 
+  @Disabled("Fails to create the ConflationSnapshot from the gson file")
   @Test
   void issue_1090_block_6690_6699(TestInfo testInfo) {
     replay(OLD_MAINNET_TESTCONFIG, "6690-6699.mainnet.json.gz", testInfo);

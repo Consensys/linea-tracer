@@ -118,7 +118,7 @@ public class GenerateConflatedTracesV2 {
       final BlockchainService blockchainService =
           BesuServiceProvider.getBesuService(besuContext, BlockchainService.class);
       // Retrieve fork from Besu plugin API with block number
-      final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock, toBlock);
+      final Fork fork = getForkFromBesuBlockchainService(blockchainService, fromBlock, toBlock);
       final Map<Long, Hash> historicalBlockHashes =
           retrieveHistoricalBlockHashes(blockchainService, fromBlock, toBlock);
       final ZkTracer tracer =

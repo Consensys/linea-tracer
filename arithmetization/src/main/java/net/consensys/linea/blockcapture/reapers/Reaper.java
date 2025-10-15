@@ -15,12 +15,11 @@
 
 package net.consensys.linea.blockcapture.reapers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import static com.google.common.base.Preconditions.checkArgument;
+
+import java.util.*;
 
 import net.consensys.linea.blockcapture.snapshots.AccountSnapshot;
-import net.consensys.linea.blockcapture.snapshots.BlockHashSnapshot;
 import net.consensys.linea.blockcapture.snapshots.BlockSnapshot;
 import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
 import net.consensys.linea.blockcapture.snapshots.StorageSnapshot;
@@ -52,7 +51,7 @@ public class Reaper {
   private final AddressReaper conflationAddresses = new AddressReaper();
 
   /** Collection all block hashes read during the conflation * */
-  private final BlockHashReaper conflationHashes = new BlockHashReaper();
+  private final Map<Long, Hash> conflationHashes = new HashMap<>();
 
   /** Collect the blocks within a conflation */
   private final List<BlockSnapshot> blocks = new ArrayList<>();
@@ -96,7 +95,7 @@ public class Reaper {
     TransactionSnapshot txSnapshot = blocks.getLast().txs().get(txIndex);
     // Convert logs into hex strings
     List<String> logStrings = logs.stream().map(l -> l.getData().toHexString()).toList();
-    // Convert destructed account addresses into into hex strings
+    // Convert destructed account addresses into hex strings
     List<String> destructStrings = selfDestructs.stream().map(Address::toHexString).toList();
     // Collapse accounts
     final List<AccountSnapshot> accounts = this.txAddresses.collapse(world);
@@ -125,8 +124,16 @@ public class Reaper {
   }
 
   public void touchBlockHash(final long blockNumber, Hash blockHash) {
-    this.conflationHashes.touch(blockNumber, blockHash);
-    // No need to tx local hashes, since they are a global concept.
+    if (conflationHashes.get(blockNumber).isEmpty()) {
+      conflationHashes.put(blockNumber, blockHash);
+    } else {
+      checkArgument(
+          conflationHashes.get(blockNumber).equals(blockHash),
+          "Block hash mismatch for block number %s: existing %s, new %s",
+          blockNumber,
+          conflationHashes.get(blockNumber),
+          blockHash);
+    }
   }
 
   /**
@@ -139,12 +146,10 @@ public class Reaper {
    */
   public ConflationSnapshot collapse(final WorldUpdater world) {
     // Collapse accounts
-    final List<AccountSnapshot> accounts = this.conflationAddresses.collapse(world);
+    final List<AccountSnapshot> accounts = conflationAddresses.collapse(world);
     // Collapse storage
     final List<StorageSnapshot> storage = conflationStorage.collapse(world);
-    // Collapse block hashes
-    final List<BlockHashSnapshot> hashes = conflationHashes.collapse();
     // Done
-    return new ConflationSnapshot(this.blocks, accounts, storage, hashes);
+    return new ConflationSnapshot(blocks, accounts, storage, conflationHashes);
   }
 }

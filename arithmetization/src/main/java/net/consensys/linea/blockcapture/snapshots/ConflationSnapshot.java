@@ -35,7 +35,7 @@ public record ConflationSnapshot(
     List<BlockSnapshot> blocks,
     List<AccountSnapshot> accounts,
     List<StorageSnapshot> storage,
-    List<BlockHashSnapshot> blockHashes) {
+    Map<Long, Hash> blockHashes) {
 
   public long firstBlockNumber() {
     if (blocks.isEmpty()) {
@@ -59,14 +59,13 @@ public record ConflationSnapshot(
    * @return
    */
   public BlockHashLookup toBlockHashLookup() {
-    BlockHashMap map = new BlockHashMap();
+    final BlockHashMap map = new BlockHashMap();
     // Initialise block hashes.  This can be null for replays which pre-date support for block hash
     // capture and, hence, we must support this case (at least for now).
-    if (this.blockHashes() != null) {
+    if (blockHashes() != null) {
       // Initialise block hash cache
-      for (BlockHashSnapshot h : this.blockHashes()) {
-        Hash blockHash = Hash.fromHexString(h.blockHash());
-        map.blockHashCache.put(h.blockNumber(), blockHash);
+      for (Long blockNumber : blockHashes().keySet()) {
+        map.blockHashCache.put(blockNumber, blockHashes.get(blockNumber));
       }
     }
     // Done

@@ -57,14 +57,14 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
 
   /**
    * Construct a BlockCapturer instance for a specific fork. This is necessary to ensure opcodes are
-   * loaded before hand.
+   * loaded beforehand.
    *
    * @param fork
    */
   public BlockCapturer(Fork fork, Map<Long, Hash> historicalBlockHashes) {
-    this.opcodes = OpCodes.load(fork);
+    opcodes = OpCodes.load(fork);
     for (Map.Entry<Long, Hash> entry : historicalBlockHashes.entrySet())
-      this.reaper.touchBlockHash(entry.getKey(), entry.getValue());
+      reaper.touchBlockHash(entry.getKey(), entry.getValue());
   }
 
   /**
@@ -88,7 +88,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
       BlockHeader blockHeader,
       BlockBody blockBody,
       final Address miningBeneficiary) {
-    this.reaper.enterBlock(blockHeader, blockBody, miningBeneficiary);
+    reaper.enterBlock(blockHeader, blockBody, miningBeneficiary);
   }
 
   // used to record the block hash of the last block in the conflation (previous one are already
@@ -100,7 +100,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
 
   @Override
   public void tracePrepareTransaction(WorldView worldView, Transaction transaction) {
-    this.reaper.prepareTransaction(transaction);
+    reaper.prepareTransaction(transaction);
   }
 
   @Override
@@ -113,7 +113,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
       long gasUsed,
       Set<Address> selfDestructs,
       long timeNs) {
-    this.reaper.exitTransaction(world, status, output, logs, gasUsed, selfDestructs);
+    reaper.exitTransaction(world, status, output, logs, gasUsed, selfDestructs);
   }
 
   /**
@@ -131,7 +131,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
       case EXTCODESIZE, EXTCODECOPY, EXTCODEHASH -> {
         if (frame.stackSize() > 0) {
           final Address target = Words.toAddress(frame.getStackItem(0));
-          this.reaper.touchAddress(target);
+          reaper.touchAddress(target);
         }
       }
 
@@ -141,7 +141,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
           final Account account = frame.getWorldUpdater().get(frame.getRecipientAddress());
           final Address address = account.getAddress();
           final UInt256 key = UInt256.fromBytes(frame.getStackItem(0));
-          this.reaper.touchStorage(address, key);
+          reaper.touchStorage(address, key);
         }
       }
 
@@ -151,7 +151,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
           final Account account = frame.getWorldUpdater().get(frame.getRecipientAddress());
           final Address address = account.getAddress();
           final UInt256 key = UInt256.fromBytes(frame.getStackItem(0));
-          this.reaper.touchStorage(address, key);
+          reaper.touchStorage(address, key);
         }
       }
 
@@ -159,14 +159,14 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
         if (frame.stackSize() > 1) {
           final Address target = Words.toAddress(frame.getStackItem(1));
-          this.reaper.touchAddress(target);
+          reaper.touchAddress(target);
         }
       }
 
       case BALANCE -> {
         if (frame.stackSize() > 0) {
           final Address target = Words.toAddress(frame.getStackItem(0));
-          this.reaper.touchAddress(target);
+          reaper.touchAddress(target);
         }
       }
 
@@ -174,7 +174,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
       case CREATE, CREATE2 -> {
         if (frame.stackSize() > 0) {
           final Address target = AddressUtils.getDeploymentAddress(frame, opCode);
-          this.reaper.touchAddress(target);
+          reaper.touchAddress(target);
         }
       }
 
@@ -182,7 +182,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
       case SELFDESTRUCT -> {
         if (frame.stackSize() > 0) {
           final Address target = Words.toAddress(frame.getStackItem(0));
-          this.reaper.touchAddress(target);
+          reaper.touchAddress(target);
         }
       }
     }
@@ -190,6 +190,6 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
 
   public String toJson() {
     Gson gson = new Gson();
-    return gson.toJson(this.reaper.collapse(this.worldUpdater));
+    return gson.toJson(reaper.collapse(worldUpdater));
   }
 }

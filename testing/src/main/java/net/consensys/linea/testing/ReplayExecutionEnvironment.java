@@ -120,7 +120,7 @@ public class ReplayExecutionEnvironment {
    * @param replayFile the file containing the conflation
    */
   public void replay(ChainConfig chain, TestInfo testInfo, final Reader replayFile) {
-    Gson gson = new Gson();
+    final Gson gson = new Gson();
     ConflationSnapshot conflation;
     try {
       conflation = gson.fromJson(replayFile, ConflationSnapshot.class);

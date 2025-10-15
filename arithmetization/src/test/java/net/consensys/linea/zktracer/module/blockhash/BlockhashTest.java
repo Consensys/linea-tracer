@@ -21,10 +21,7 @@ import java.util.List;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
-import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.testing.ToyAccount;
-import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
-import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -40,6 +37,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(UnitTestWatcher.class)
 public class BlockhashTest extends TracerTestBase {
 
+  @Test
+  void simpleBlockhashTest(TestInfo testInfo) {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram(chainConfig)
+                .push(1)
+                .op(OpCode.NUMBER)
+                .op(OpCode.SUB)
+                .op(OpCode.BLOCKHASH)
+                .compile())
+        .run(chainConfig, testInfo);
+  }
+
+  /**
+   * This test calls the tracer through the RPC, using a besu node. It computes several block, each
+   * block containing a BLOCKHASH opcode with different argument (in range, ridiculously not in
+   * range, etc...)
+   */
   @Test
   void severalBlockhash(TestInfo testInfo) {
 

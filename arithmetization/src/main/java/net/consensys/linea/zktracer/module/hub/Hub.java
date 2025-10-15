@@ -1040,7 +1040,7 @@ public abstract class Hub implements Module {
       case ADD, MOD, SHF, BIN, WCP, EXT, PUSH_POP, DUP, SWAP -> new StackOnlySection(this);
       case BATCH -> {
         new StackOnlySection(this);
-        if (this.opCode() == BLOCKHASH) {
+        if (this.opCode() == BLOCKHASH && Exceptions.none(pch.exceptions())) {
           blockhash.callBlockHashPreExecution(frame, this.opCode());
         }
       }

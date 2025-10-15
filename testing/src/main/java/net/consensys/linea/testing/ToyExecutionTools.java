@@ -314,12 +314,15 @@ public class ToyExecutionTools {
       processor.process(messageFrameStack.peekFirst(), tracer);
     }
 
-    final long intrinsicTxCostWithNoAccessOrDelegationCost =
-        tracer.getHub().gasCalculator.transactionIntrinsicGasCost(tx, 0);
+    final long intrinsicGasCostOrFloor =
+        Math.max(
+            tracer.getHub().gasCalculator.transactionIntrinsicGasCost(tx, 0),
+            tracer
+                .getHub()
+                .gasCalculator
+                .transactionFloorCost(tx.getPayload(), tx.getPayloadZeroBytes()));
 
-    return LINEA_BLOCK_GAS_LIMIT
-        - initialMessageFrame.getRemainingGas()
-        + intrinsicTxCostWithNoAccessOrDelegationCost;
+    return LINEA_BLOCK_GAS_LIMIT - initialMessageFrame.getRemainingGas() + intrinsicGasCostOrFloor;
   }
 
   private static boolean shouldClearEmptyAccounts(final String eip) {

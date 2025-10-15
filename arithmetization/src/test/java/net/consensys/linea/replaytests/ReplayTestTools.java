@@ -22,13 +22,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.UnitTestWatcher;
+import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
 import net.consensys.linea.testing.ReplayExecutionEnvironment;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkTracer;
@@ -86,13 +87,20 @@ public class ReplayTestTools {
       log.error("while loading {}: {}", filename, e.getMessage());
       throw new RuntimeException(e);
     }
-    final Map<Long, Hash> historicalBlockHashes = new HashMap<>();
+
+    final Gson gson = new Gson();
+    ConflationSnapshot conflation;
+    conflation =
+        gson.fromJson(new BufferedReader(new InputStreamReader(stream)), ConflationSnapshot.class);
+
+    final Map<Long, Hash> historicalBlockHashes = conflation.historicalBlockHashes();
+
     ReplayExecutionEnvironment.builder()
         .filename(filename)
         .zkTracer(new ZkTracer(chain, historicalBlockHashes))
         .txResultChecking(resultChecking)
         .build()
-        .replay(chain, testInfo, new BufferedReader(new InputStreamReader(stream)));
+        .replay(chain, testInfo, conflation);
   }
 
   /**

@@ -15,6 +15,8 @@
 
 package net.consensys.linea.blockcapture.snapshots;
 
+import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +53,14 @@ public record ConflationSnapshot(
     }
     // Extract number of last block
     return blocks.getLast().header().number();
+  }
+
+  public Map<Long, Hash> historicalBlockHashes() {
+    final long firstBlockToRetrieve = Math.max(0, firstBlockNumber() - BLOCKHASH_MAX_HISTORY);
+    final long lastBlockToRetrieve = Math.max(0, lastBlockNumber() - 1);
+    return blockHashes.entrySet().stream()
+        .filter(e -> e.getKey() >= firstBlockToRetrieve && e.getKey() <= lastBlockToRetrieve)
+        .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
   }
 
   /**

@@ -113,21 +113,7 @@ public class ReplayExecutionEnvironment {
     // assertThat(CORSET_VALIDATOR.validate(outputPath).isValid()).isTrue();
   }
 
-  /**
-   * Given a file containing the JSON serialization of a {@link ConflationSnapshot}, loads it,
-   * updates this's state to mirror it, and replays it.
-   *
-   * @param replayFile the file containing the conflation
-   */
-  public void replay(ChainConfig chain, TestInfo testInfo, final Reader replayFile) {
-    final Gson gson = new Gson();
-    ConflationSnapshot conflation;
-    try {
-      conflation = gson.fromJson(replayFile, ConflationSnapshot.class);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      return;
-    }
+  public void replay(ChainConfig chain, TestInfo testInfo, ConflationSnapshot conflation) {
     if (runWithBesuNode || System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
       executeOnBesu(chain, conflation, this.useCoinbaseAddressFromBlockHeader, this.filename);
       return;
@@ -153,17 +139,6 @@ public class ReplayExecutionEnvironment {
     }
     this.executeFrom(chain, conflation, systemContractDeployedPriorToConflation);
     this.checkTracer(inputFilePath, conflation.firstBlockNumber(), conflation.lastBlockNumber());
-  }
-
-  public void replay(ChainConfig chain, TestInfo testInfo, ConflationSnapshot conflation) {
-    this.executeFrom(chain, conflation, systemContractDeployedPriorToConflation);
-    ExecutionEnvironment.checkTracer(
-        zkTracer,
-        new CorsetValidator(chain),
-        Optional.of(log),
-        conflation.firstBlockNumber(),
-        conflation.lastBlockNumber(),
-        testInfo);
   }
 
   /**

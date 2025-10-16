@@ -88,6 +88,7 @@ import static org.hyperledger.besu.evm.frame.MessageFrame.State.COMPLETED_SUCCES
 import java.util.*;
 import java.util.stream.Stream;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
@@ -213,8 +214,9 @@ public class ZkCounter implements LineCountingTracer {
 
   // Related to Bls
   // remove me when Linea supports Cancun & Prague precompiles
+  @Getter
   private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL) {};
-  private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
+  @Getter private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
 
   final IncrementingModule pointEvaluationEffectiveCall =
       new IncrementingModule(PRECOMPILE_BLS_POINT_EVALUATION_EFFECTIVE_CALLS);
@@ -416,8 +418,8 @@ public class ZkCounter implements LineCountingTracer {
         }
         txnData.updateTally(
             transactionHasEip1559GasSemantics(tx)
-                ? NB_ROWS_TXN_DATA_USER_1559_SEMANTIC
-                : NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC);
+                ? NB_ROWS_TXN_DATA_OSAKA_USER_1559_SEMANTIC
+                : NB_ROWS_TXN_DATA_OSAKA_USER_NO_1559_SEMANTIC);
         // deploymentTransaction:
         if (tx.isContractCreation()) {
           rlpAddr.updateTally(NB_ROWS_RLPADDR_CREATE);

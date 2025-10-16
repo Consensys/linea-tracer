@@ -14,7 +14,6 @@
  */
 package net.consensys.linea.zktracer.module.txndata.cancun;
 
-import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.*;
 
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.TxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.cancun.rows.TxnDataRow;
-import net.consensys.linea.zktracer.module.txndata.cancun.transactions.UserTransaction;
+import net.consensys.linea.zktracer.module.txndata.cancun.transactions.CancunUserTransaction;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
@@ -43,16 +42,12 @@ public abstract class CancunTxnDataOperation extends TxnDataOperation {
   public final short sysfTransactionNumber;
   public final List<TxnDataRow> rows = new ArrayList<>();
   public final TransactionProcessingType category;
+  public final BlockSnapshot blockSnapshot;
 
   protected abstract int ctMax();
 
   @Override
   public int computeLineCount() {
-    checkState(
-        rows.size() == 1 + ctMax(),
-        "Cancun TXN_DATA operation has rows size = %s != 1 + ctMax = %s",
-        rows.size(),
-        ctMax() + 1);
     return rows.size();
   }
 
@@ -66,19 +61,23 @@ public abstract class CancunTxnDataOperation extends TxnDataOperation {
     userTransactionNumber = hub.state.getUserTransactionNumber();
     sysfTransactionNumber = hub.state.sysfTransactionNumber();
     this.category = category;
+    blockSnapshot = txnData.getBlocks().getLast();
   }
 
-  public void traceTransaction(Trace.Txndata trace) {
+  public void traceTransaction(Trace.Txndata trace, long totalUserTransactionsInConflation) {
     short ct = 0;
     for (TxnDataRow row : rows) {
-      traceCommonSaveForFlags(trace, ct);
+      traceCommonSaveForFlags(trace, ct, totalUserTransactionsInConflation);
       row.traceRow(trace);
       trace.fillAndValidateRow();
       ct++;
     }
   }
 
-  private void traceCommonSaveForFlags(Trace.Txndata trace, int ct) {
+  private void traceCommonSaveForFlags(
+      Trace.Txndata trace, int ct, long totalUserTransactionsInConflation) {
+    final long relativeUserTxNumMax =
+        this instanceof CancunUserTransaction ? blockSnapshot.getNbOfTxsInBlock() : 0;
     trace
         // BLK_NUMBER is (defcomputed ...)
         // TOTL_TXN_NUMBER is (defcomputed ...)
@@ -91,11 +90,13 @@ public abstract class CancunTxnDataOperation extends TxnDataOperation {
         // CMPTN, HUB, RLP flags get traced by the rows themselves
         .ct(ct)
         .ctMax(ctMax())
+        .proverRelativeUserTxnNumberMax(relativeUserTxNumMax)
+        .proverUserTxnNumberMax(totalUserTransactionsInConflation)
     // GAS_CUMULATIVE gets traced for USER transactions only
     ;
 
-    if (this instanceof UserTransaction) {
-      UserTransaction userTransaction = (UserTransaction) this;
+    if (this instanceof CancunUserTransaction) {
+      CancunUserTransaction userTransaction = (CancunUserTransaction) this;
       trace.gasCumulative(Bytes.ofUnsignedLong(userTransaction.txn.getAccumulatedGasUsedInBlock()));
     }
   }

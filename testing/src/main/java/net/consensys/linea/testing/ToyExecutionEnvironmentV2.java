@@ -162,13 +162,13 @@ public class ToyExecutionEnvironmentV2 {
                 >= tracerCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()),
             "BLAKE event detection is different between tracer and counter");
 
-        // There is no point to check for conflation where an excluded PRC has been triggered:
-        if (lightCounterCount.get(POINT_EVAL.toString()) != 0
-            || lightCounterCount.get(BLS.toString()) != 0
-            || lightCounterCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString()) != 0
-            || lightCounterCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()) != 0) {
-          return;
-        }
+          // There is no point to check for conflation where an excluded PRC has been triggered:
+          // if (lightCounterCount.get(POINT_EVAL.toString()) != 0
+          //    || lightCounterCount.get(BLS.toString()) != 0
+          if (lightCounterCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString()) != 0
+              || lightCounterCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()) != 0) {
+            return;
+          }
 
         for (String module : moduleToCheck) {
           checkArgument(

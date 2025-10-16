@@ -144,16 +144,6 @@ public class ToyExecutionEnvironmentV2 {
                 .map(module -> module.moduleKey().toString())
                 .toList();
 
-        // check that event detection is the same between tracer and counter
-        checkArgument(
-            lightCounterCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString())
-                >= tracerCount.get(PRECOMPILE_RIPEMD_BLOCKS.toString()),
-            "RIP event detection is different between tracer and counter");
-        checkArgument(
-            lightCounterCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString())
-                >= tracerCount.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()),
-            "BLAKE event detection is different between tracer and counter");
-
         for (String module : moduleToCheck) {
           checkArgument(
               tracerCount.get(module) <= lightCounterCount.get(module),

@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.ModuleName.GAS;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NB_ROWS_ADD;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.NB_ROWS_BLAKEMODEPX_BLAKE;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.NB_ROWS_BLAKEMODEXP_MODEXP;
 import static net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData.NB_ROWS_BLOCK_DATA;
 import static net.consensys.linea.zktracer.module.blockhash.BlockhashOperation.NB_ROWS_BLOCKHASH;
@@ -42,6 +43,7 @@ import static net.consensys.linea.zktracer.module.hub.section.SstoreSection.NB_R
 import static net.consensys.linea.zktracer.module.hub.section.StackOnlySection.NB_ROWS_HUB_SIMPLE_STACK_OP;
 import static net.consensys.linea.zktracer.module.hub.section.StackRamSection.NB_ROWS_HUB_STACKRAM;
 import static net.consensys.linea.zktracer.module.hub.section.call.CallSection.NB_ROWS_HUB_CALL;
+import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.BlakeSubsection.NB_ROWS_HUB_PRC_BLAKE;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.EllipticCurvePrecompileSubsection.NB_ROWS_HUB_PRC_ELLIPTIC_CURVE;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.IdentitySubsection.NB_ROWS_HUB_PRC_IDENTITY;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ModexpSubsection.NB_ROWS_HUB_PRC_MODEXP;
@@ -707,15 +709,13 @@ public class ZkCounter implements LineCountingTracer {
       }
       case PRC_RIPEMD_160 -> {
         ripemdBlocks.detectEvent();
-        // Reenable me when RIPEMD is supported by the prover
-        // hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
-        // oob.updateTally(oobLineCountforPrc(precompile));
-        // mod.updateTally(NB_ROWS_MOD); // coming from OOB call
-        // if (prcSuccess && callDataSize != 0) {
-        //   shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) +
-        // NB_ROWS_SHAKIRA_RESULT);
-        //   ripemdBlocks.updateTally(callDataSize);
-        // }
+        hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
+        oob.updateTally(oobLineCountForPrc(precompile));
+        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        if (prcSuccess && callDataSize != 0) {
+          shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) + NB_ROWS_SHAKIRA_RESULT);
+          ripemdBlocks.updateTally(callDataSize);
+        }
       }
       case PRC_IDENTITY -> {
         hub.updateTally(NB_ROWS_HUB_PRC_IDENTITY);
@@ -750,7 +750,12 @@ public class ZkCounter implements LineCountingTracer {
         oob.updateTally(oobLineCountForPrc(precompile));
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
       }
-      case PRC_BLAKE2F -> blakeEffectiveCall.detectEvent();
+      case PRC_BLAKE2F -> {
+        blakeEffectiveCall.updateTally(true);
+        hub.updateTally(NB_ROWS_HUB_PRC_BLAKE);
+        blakemodexp.updateTally(NB_ROWS_BLAKEMODEPX_BLAKE);
+        // TODO: still unchecked module for now. blakeRounds.updateTally();
+      }
       case PRC_BLS_G1_ADD,
           PRC_BLS_G1_MSM,
           PRC_BLS_G2_ADD,
@@ -759,13 +764,14 @@ public class ZkCounter implements LineCountingTracer {
           PRC_BLS_MAP_FP_TO_G1,
           PRC_BLS_MAP_FP2_TO_G2,
           PRC_POINT_EVALUATION -> {
-        // TODO: reenable me
-        // if (callDataSize != 0) {
-        //   blsdata.callBls(0, precompile, frame.getInputData(), returnData, prcSuccess);
-        // }
+        if (callDataSize != 0) {
+          blsdata.callBls(0, precompile, frame.getInputData(), returnData, prcSuccess);
+        }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
         oob.updateTally(oobLineCountForPrc(precompile));
-        // TODO: check if we have some MOD coming from OOB call
+        if (precompile.isAnyOf(PRC_BLS_G1_MSM, PRC_BLS_G2_MSM, PRC_BLS_PAIRING_CHECK)) {
+          mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        }
       }
       default -> throw new IllegalStateException("Unsupported precompile: " + precompile);
     }

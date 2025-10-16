@@ -16,9 +16,14 @@
 package net.consensys.linea.blockcapture.reapers;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.Trace.HISTORY_BUFFER_LENGTH;
+import static net.consensys.linea.zktracer.Trace.HISTORY_SERVE_WINDOW;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.EIP2935_HISTORY_STORAGE_ADDRESS;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.EIP4788_BEACONROOT_ADDRESS;
 
 import java.util.*;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.blockcapture.snapshots.AccountSnapshot;
 import net.consensys.linea.blockcapture.snapshots.BlockSnapshot;
 import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
@@ -43,6 +48,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
  * <p>This data can than be collapsed into a “replay” ({@link ConflationSnapshot}), i.e. the minimal
  * required information to replay a conflation as if it were executed on the blockchain.
  */
+@Slf4j
 public class Reaper {
   /** Collect storage locations read / written by the entire conflation */
   private final StorageReaper conflationStorage = new StorageReaper();
@@ -74,6 +80,38 @@ public class Reaper {
         BlockSnapshot.of((org.hyperledger.besu.ethereum.core.BlockHeader) header, body));
     this.conflationAddresses.touch(miningBeneficiary);
     txIndex = 0; // reset
+    touchedBySystemTransactions(header);
+  }
+
+  private void touchedBySystemTransactions(BlockHeader header) {
+    // EIP 4788 (CANCUN):
+    try {
+      conflationAddresses.touch(EIP4788_BEACONROOT_ADDRESS);
+      final UInt256 timestamp = UInt256.valueOf(header.getTimestamp());
+      final UInt256 keyTimestamp = timestamp.mod(HISTORY_BUFFER_LENGTH);
+      conflationStorage.touch(EIP4788_BEACONROOT_ADDRESS, timestamp);
+      conflationStorage.touch(EIP4788_BEACONROOT_ADDRESS, keyTimestamp);
+    } catch (Exception e) {
+      log.warn(
+          "Failed to retrieve EIP4788 infos for block {}, exception caught is: {}",
+          header.getNumber(),
+          e.getMessage());
+    }
+
+    // EIP 2935 (PRAGUE)
+    try {
+      conflationAddresses.touch(EIP2935_HISTORY_STORAGE_ADDRESS);
+      final long blockNumber = header.getNumber();
+      final long previousBlockNumber = blockNumber == 0 ? 0 : blockNumber - 1;
+      final UInt256 previousBlockNumberMod8191 =
+          UInt256.valueOf(previousBlockNumber % HISTORY_SERVE_WINDOW);
+      conflationStorage.touch(EIP2935_HISTORY_STORAGE_ADDRESS, previousBlockNumberMod8191);
+    } catch (Exception e) {
+      log.warn(
+          "Failed to retrieve EIP2935 infos for block {}, exception caught is: {}",
+          header.getNumber(),
+          e.getMessage());
+    }
   }
 
   public void prepareTransaction(Transaction tx) {

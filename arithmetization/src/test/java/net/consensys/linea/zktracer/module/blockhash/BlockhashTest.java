@@ -30,6 +30,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +55,44 @@ public class BlockhashTest extends TracerTestBase {
                 .op(OpCode.NUMBER)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
+                .compile())
+        .run(chainConfig, testInfo);
+  }
+
+  /**
+   * Bytecode is 0x6101145b8043034050600290038060140160035700 We have a sepolia replay test where
+   * this bytecode is deployed. This code is called for two different blocks of tho different
+   * conflations separated by few blocks.
+   */
+  @Tag("weekly")
+  @Test
+  void singleBlockBigRangeBlockhashTest(TestInfo testInfo) {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram(chainConfig)
+                // initialize counter to BLOCKHASH_MAX_HISTORY + 20
+                // we will call BLOCKHASH with argument NUMBER - counter, for counter going from
+                // BLOCKHASH_MAX_HISTORY + 20 down to -20, by step of two
+                .push(BLOCKHASH_MAX_HISTORY + 20) // 20 is arbitrary
+                .op(OpCode.JUMPDEST) // at th PC 3
+                .op(OpCode.DUP1) // duplicate the argument to get a counter
+                .op(OpCode.NUMBER)
+                .op(OpCode.SUB)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+                // stack is counter
+                .push(2)
+                .op(OpCode.SWAP1)
+                .op(OpCode.SUB)
+                // stack is new_counter == old_counter -2 (we decrement by 2 to have some holes in
+                // the range)
+                .op(OpCode.DUP1)
+                // stack is new_counter, new_counter
+                .push(20)
+                .op(OpCode.ADD)
+                .push(3) // PC of the JUMPDEST
+                // stack is PC_JUMPDEST, new_counter != -20, new_counter
+                .op(OpCode.JUMPI)
+                .op(OpCode.STOP)
                 .compile())
         .run(chainConfig, testInfo);
   }

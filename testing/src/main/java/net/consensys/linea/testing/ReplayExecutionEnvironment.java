@@ -41,6 +41,7 @@ import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ConflationAwareOperationTracer;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.commons.io.FileUtils;
@@ -288,10 +289,12 @@ public class ReplayExecutionEnvironment {
           new BlockBody(
               blockSnapshot.txs().stream().map(TransactionSnapshot::toTransaction).toList(),
               new ArrayList<>());
+      // Determine mining beneficiay
       final Address miningBeneficiary =
           useCoinbaseAddressFromBlockHeader
               ? header.getCoinbase()
-              : CliqueHelpers.getProposerOfBlock(header);
+              : determineMiningBeneficiary(header, chain.fork);
+
       tracer.traceStartBlock(world.updater(), header, body, miningBeneficiary);
       runSystemInitialTransactions(protocolSpec, chain.fork, world, header, tracer);
 
@@ -319,6 +322,15 @@ public class ReplayExecutionEnvironment {
 
   public Hub getHub() {
     return zkTracer.getHub();
+  }
+
+  private static Address determineMiningBeneficiary(BlockHeader header, Fork fork) {
+    // Clique was only used on forks prior to Shanghai
+    if (Fork.isPostShanghai(fork)) {
+      return header.getCoinbase();
+    } else {
+      return CliqueHelpers.getProposerOfBlock(header);
+    }
   }
 
   /**

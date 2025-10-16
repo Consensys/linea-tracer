@@ -37,6 +37,7 @@ public class ChainConfig {
    * billion). As the name suggest, this is only intended for testing purposes.
    */
   public static final ChainConfig MAINNET_LONDON_TESTCONFIG = MAINNET_TESTCONFIG(LONDON);
+
   public static final ChainConfig SEPOLIA_PRAGUE_TESTCONFIG = SEPOLIA_TESTCONFIG(PRAGUE);
 
   public static final ChainConfig MAINNET_TESTCONFIG(final Fork fork) {

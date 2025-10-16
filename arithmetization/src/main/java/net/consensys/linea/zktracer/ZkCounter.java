@@ -210,8 +210,7 @@ public class ZkCounter implements LineCountingTracer {
   // related to Shakira:
   private final Keccak keccak;
   private final Sha256Blocks sha256Blocks = new Sha256Blocks();
-  private final IncrementAndDetectModule ripemdBlocks =
-      new IncrementAndDetectModule(PRECOMPILE_RIPEMD_BLOCKS);
+  private final CountingOnlyModule ripemdBlocks = new CountingOnlyModule(PRECOMPILE_RIPEMD_BLOCKS);
 
   // Related to Bls
   final IncrementingModule pointEvaluationEffectiveCall =
@@ -708,7 +707,6 @@ public class ZkCounter implements LineCountingTracer {
         }
       }
       case PRC_RIPEMD_160 -> {
-        ripemdBlocks.detectEvent();
         hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
         oob.updateTally(oobLineCountForPrc(precompile));
         mod.updateTally(NB_ROWS_MOD); // coming from OOB call
@@ -753,8 +751,9 @@ public class ZkCounter implements LineCountingTracer {
       case PRC_BLAKE2F -> {
         blakeEffectiveCall.updateTally(true);
         hub.updateTally(NB_ROWS_HUB_PRC_BLAKE);
+        oob.updateTally(oobLineCountForPrc(PRC_BLAKE2F));
         blakemodexp.updateTally(NB_ROWS_BLAKEMODEPX_BLAKE);
-        // TODO: still unchecked module for now. blakeRounds.updateTally();
+        // TODO: still unchecked module for now: blakeRounds.updateTally();
       }
       case PRC_BLS_G1_ADD,
           PRC_BLS_G1_MSM,

@@ -33,29 +33,4 @@ public class ShanghaiBlockData extends ParisBlockData {
       Hub hub, Wcp wcp, Euc euc, ChainConfig chain, Map<Long, Bytes> blobBaseFees) {
     super(hub, wcp, euc, chain, blobBaseFees);
   }
-
-  @Override
-  protected BlockDataOperation setBlockDataOperation(
-      Hub hub,
-      BlockHeader blockHeader,
-      BlockHeader previousBlockHeader,
-      int nbOfTxsInBlock,
-      Wcp wcp,
-      Euc euc,
-      ChainConfig chain,
-      OpCode opCode,
-      long firstBlockNumber,
-      Map<Long, Bytes> blobBaseFees) {
-    return new ShanghaiBlockDataOperation(
-        hub,
-        blockHeader,
-        previousBlockHeader,
-        txnData().numberOfUserTransactionsInCurrentBlock(),
-        wcp,
-        euc,
-        chain,
-        opCode,
-        firstBlockNumber,
-        blobBaseFees);
-  }
 }

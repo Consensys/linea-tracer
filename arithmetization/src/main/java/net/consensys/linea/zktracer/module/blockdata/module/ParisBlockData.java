@@ -44,32 +44,6 @@ public class ParisBlockData extends LondonBlockData {
   protected OpCode[] setOpCodes() {
     return new OpCode[] {COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, BASEFEE};
   }
-
-  @Override
-  protected BlockDataOperation setBlockDataOperation(
-      Hub hub,
-      BlockHeader blockHeader,
-      BlockHeader previousBlockHeader,
-      int nbOfTxsInBlock,
-      Wcp wcp,
-      Euc euc,
-      ChainConfig chain,
-      OpCode opCode,
-      long firstBlockNumber,
-      Map<Long, Bytes> blobBaseFees) {
-    return new ParisBlockDataOperation(
-        hub,
-        blockHeader,
-        previousBlockHeader,
-        txnData().numberOfUserTransactionsInCurrentBlock(),
-        wcp,
-        euc,
-        chain,
-        opCode,
-        firstBlockNumber,
-        blobBaseFees);
-  }
-
   @Override
   protected int numberOfLinesPerBlock() {
     return nROWS_DEPTH;

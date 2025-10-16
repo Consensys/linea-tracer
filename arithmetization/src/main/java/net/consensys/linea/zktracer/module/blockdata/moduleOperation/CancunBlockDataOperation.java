@@ -26,7 +26,6 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
@@ -74,13 +73,13 @@ public class CancunBlockDataOperation extends ShanghaiBlockDataOperation {
     }
   }
 
-  @Override
+/*  @Override
   protected void handleBlobBaseFee() {
     data = this.blobBaseFee();
 
     // row i
     wcpCallToGEQ(0, data(), EWord.ZERO);
-  }
+  }*/
 
   @Override
   public void traceTimestampAndNumber(Trace.Blockdata trace) {

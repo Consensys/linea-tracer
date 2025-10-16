@@ -46,29 +46,4 @@ public class LondonBlockData extends BlockData {
   protected int numberOfLinesPerBlock() {
     return nROWS_DEPTH;
   }
-
-  @Override
-  protected BlockDataOperation setBlockDataOperation(
-      Hub hub,
-      BlockHeader blockHeader,
-      BlockHeader previousBlockHeader,
-      int nbOfTxsInBlock,
-      Wcp wcp,
-      Euc euc,
-      ChainConfig chain,
-      OpCode opCode,
-      long firstBlockNumber,
-      Map<Long, Bytes> blobBaseFees) {
-    return new LondonBlockDataOperation(
-        hub,
-        blockHeader,
-        previousBlockHeader,
-        txnData().numberOfUserTransactionsInCurrentBlock(),
-        wcp,
-        euc,
-        chain,
-        opCode,
-        firstBlockNumber,
-        blobBaseFees);
-  }
 }

@@ -68,14 +68,6 @@ public class LondonBlockDataOperation extends BlockDataOperation {
   }
 
   @Override
-  protected void handleDifficulty() {
-    data = EWord.of(blockHeader().getDifficulty().getAsBigInteger());
-
-    // row i
-    wcpCallToGEQ(0, data(), EWord.ZERO);
-  }
-
-  @Override
   protected void handlePrevRandao() {
     throw new IllegalStateException("OpCode not in London fork. Only in Paris and after.");
   }

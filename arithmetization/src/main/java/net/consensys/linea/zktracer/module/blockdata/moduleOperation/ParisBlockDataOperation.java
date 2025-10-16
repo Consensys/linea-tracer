@@ -20,7 +20,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.PREVRANDAO;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -54,28 +53,11 @@ public class ParisBlockDataOperation extends LondonBlockDataOperation {
         blobBaseFees);
   }
 
-  @Override
-  protected void handleDifficulty() {
-    throw new IllegalStateException("OpCode in London fork only, not in Paris and after.");
-  }
-
-  @Override
-  protected void handlePrevRandao() {
-    data = EWord.of(blockHeader().getPrevRandao().get());
-
-    // row i
-    wcpCallToGEQ(0, data(), EWord.ZERO);
-  }
-
-  @Override
+  /*  @Override
   protected void traceIsDifficulty(Trace.Blockdata trace, OpCode opCode) {
     // Note: not a typo: for simplicity, the Paris BlockData has the same columns as the London
     // BlockData
     trace.isDifficulty(opCode == PREVRANDAO);
-  }
+  }*/
 
-  @Override
-  protected void traceIsPrevRandao(Trace.Blockdata trace, OpCode opCode) {
-    // prev randao is traced in difficulty columns
-  }
 }

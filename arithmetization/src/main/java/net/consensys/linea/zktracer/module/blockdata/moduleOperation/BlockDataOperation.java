@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.blockdata.moduleOperation;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_BF;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_CB;
@@ -120,83 +119,6 @@ public abstract class BlockDataOperation extends ModuleOperation {
     Arrays.fill(res, EWord.ZERO);
   }
 
-  private void handleCoinbase() {
-    data = EWord.ofHexString(hub.coinbaseAddressOfRelativeBlock(relBlock).toHexString());
-    // row i
-    wcpCallToLT(0, data, POWER_256_20);
-  }
-
-  private void handleTimestamp() {
-    data = EWord.of(Bytes.ofUnsignedLong(blockHeader.getTimestamp()));
-    final EWord prevData =
-        prevBlockHeader == null ? EWord.ZERO : EWord.of(prevBlockHeader.getTimestamp());
-
-    // row i
-    wcpCallToLT(0, data, POWER_256_8);
-
-    // row i + 1
-    wcpCallToGT(1, data, prevData);
-  }
-
-  private void handleNumber() {
-    data = EWord.of(blockHeader.getNumber());
-
-    wcpCallToISZERO(0, EWord.of(firstBlockNumber));
-
-    // row i
-    if (firstBlockInConflation) {
-      wcpCallToLT(1, data, POWER_256_8);
-    }
-  }
-
-  protected abstract void handleDifficulty();
-
-  protected abstract void handlePrevRandao();
-
-  protected abstract void handleBlobBaseFee();
-
-  private void handleGasLimit() {
-    data = EWord.of(blockHeader.getGasLimit());
-
-    // row i
-    // comparison to minimum
-    wcpCallToGEQ(0, data, gasLimitMinimum);
-
-    // row i + 1
-    // comparison to maximum
-    wcpCallToLEQ(1, data, gasLimitMaximum);
-
-    if (!firstBlockInConflation) {
-      final BigInteger prevGasLimit = BigInteger.valueOf(prevBlockHeader.getGasLimit());
-      // row i + 2
-      final Bytes maxDeviation =
-          eucCall(2, EWord.of(prevGasLimit), EWord.of(GAS_LIMIT_ADJUSTMENT_FACTOR));
-
-      final BigInteger gasLimitDeviationUpperBound =
-          prevGasLimit.add(maxDeviation.toUnsignedBigInteger());
-      final BigInteger gasLimitDeviationLowerBound =
-          prevGasLimit.subtract(maxDeviation.toUnsignedBigInteger());
-      // row i + 3
-      wcpCallToLT(3, data, EWord.of(gasLimitDeviationUpperBound));
-      // row i + 4
-      wcpCallToGT(4, data, EWord.of(gasLimitDeviationLowerBound));
-    }
-  }
-
-  private void handleChainId() {
-    data = EWord.of(chainId);
-
-    // row i
-    wcpCallToGEQ(0, data, EWord.ZERO);
-  }
-
-  private void handleBaseFee() {
-    data = EWord.of(blockHeader.getBaseFee().get().getAsBigInteger());
-
-    // row i
-    wcpCallToGEQ(0, data, EWord.ZERO);
-  }
-
   @Override
   protected int computeLineCount() {
     return nbRows;
@@ -252,66 +174,6 @@ public abstract class BlockDataOperation extends ModuleOperation {
   protected abstract void traceIsBlobBaseFee(Trace.Blockdata trace, OpCode opCode);
 
   protected abstract void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax);
-
-  // Module call macros
-  private boolean wcpCallTo(int w, EWord arg1, EWord arg2, int inst) {
-    checkArgument(arg1.bitLength() / 8 <= 32, "WCP: arg1 bit width too large");
-    checkArgument(arg2.bitLength() / 8 <= 32, "WCP: arg2 bit width too large");
-
-    this.arg1[w] = arg1;
-    this.arg2[w] = arg2;
-
-    final boolean r;
-    r =
-        switch (inst) {
-          case EVM_INST_LT -> wcp.callLT(arg1, arg2);
-          case EVM_INST_GT -> wcp.callGT(arg1, arg2);
-          case WCP_INST_LEQ -> wcp.callLEQ(arg1, arg2);
-          case WCP_INST_GEQ -> wcp.callGEQ(arg1, arg2);
-          case EVM_INST_ISZERO -> wcp.callISZERO(arg1);
-          default -> throw new IllegalStateException("Unexpected value: " + inst);
-        };
-    res[w] = booleanToBytes(r);
-
-    exoInst[w] = UnsignedByte.of(inst);
-
-    wcpFlag[w] = true;
-    eucFlag[w] = false;
-
-    return r;
-  }
-
-  private boolean wcpCallToLT(int w, EWord arg1, EWord arg2) {
-    return wcpCallTo(w, arg1, arg2, EVM_INST_LT);
-  }
-
-  private boolean wcpCallToGT(int w, EWord arg1, EWord arg2) {
-    return wcpCallTo(w, arg1, arg2, EVM_INST_GT);
-  }
-
-  private boolean wcpCallToLEQ(int w, EWord arg1, EWord arg2) {
-    return wcpCallTo(w, arg1, arg2, WCP_INST_LEQ);
-  }
-
-  boolean wcpCallToGEQ(int w, EWord arg1, EWord arg2) {
-    return wcpCallTo(w, arg1, arg2, WCP_INST_GEQ);
-  }
-
-  private boolean wcpCallToISZERO(int w, EWord arg1) {
-    return wcpCallTo(w, arg1, EWord.ZERO, EVM_INST_ISZERO);
-  }
-
-  private Bytes eucCall(int w, EWord arg1, EWord arg2) {
-    this.arg1[w] = arg1;
-    this.arg2[w] = arg2;
-
-    res[w] = euc.callEUC(arg1, arg2).quotient();
-
-    wcpFlag[w] = false;
-    eucFlag[w] = true;
-
-    return res[w];
-  }
 
   private int nbRows(OpCode opCode) {
     return switch (opCode) {

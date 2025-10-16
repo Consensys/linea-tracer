@@ -60,6 +60,22 @@ public class BlockDataExoCall {
         .build();
   }
 
+  public static BlockDataExoCall callToGT(final Wcp wcp, Bytes arg1, Bytes arg2) {
+
+    final EWord arg1B32 = EWord.of(arg1);
+    final EWord arg2B32 = EWord.of(arg2);
+
+    return BlockDataExoCall.builder()
+        .wcpFlag(true)
+        .instruction(EVM_INST_GT)
+        .arg1Hi(arg1B32.lo())
+        .arg1Lo(arg1B32.hi())
+        .arg2Hi(arg2B32.lo())
+        .arg2Lo(arg2B32.hi())
+        .res(booleanToBytes(wcp.callLT(arg1B32, arg2B32)))
+        .build();
+  }
+
   public static BlockDataExoCall callToLEQ(final Wcp wcp, Bytes arg1, Bytes arg2) {
 
     final EWord arg1B32 = EWord.of(arg1);

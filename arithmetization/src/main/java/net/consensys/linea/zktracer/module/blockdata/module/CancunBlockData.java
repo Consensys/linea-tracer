@@ -54,29 +54,4 @@ public class CancunBlockData extends ShanghaiBlockData {
   protected int numberOfLinesPerBlock() {
     return NB_ROWS_BLOCK_DATA;
   }
-
-  @Override
-  protected BlockDataOperation setBlockDataOperation(
-      Hub hub,
-      BlockHeader blockHeader,
-      BlockHeader previousBlockHeader,
-      int nbOfTxsInBlock,
-      Wcp wcp,
-      Euc euc,
-      ChainConfig chain,
-      OpCode opCode,
-      long firstBlockNumber,
-      Map<Long, Bytes> blobBaseFees) {
-    return new CancunBlockDataOperation(
-        hub,
-        blockHeader,
-        previousBlockHeader,
-        txnData().numberOfUserTransactionsInCurrentBlock(),
-        wcp,
-        euc,
-        chain,
-        opCode,
-        firstBlockNumber,
-        blobBaseFees);
-  }
 }

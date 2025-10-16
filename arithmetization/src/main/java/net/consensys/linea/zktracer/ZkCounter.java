@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
+import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Ecdata.TOTAL_SIZE_ECPAIRING_DATA_MIN;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
@@ -763,13 +764,16 @@ public class ZkCounter implements LineCountingTracer {
           PRC_BLS_MAP_FP_TO_G1,
           PRC_BLS_MAP_FP2_TO_G2,
           PRC_POINT_EVALUATION -> {
-        if (callDataSize != 0) {
+        if (validCallDataSize(precompile, callDataSize)) {
           blsdata.callBls(0, precompile, frame.getInputData(), returnData, prcSuccess);
         }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
         oob.updateTally(oobLineCountForPrc(precompile));
-        if (precompile.isAnyOf(PRC_BLS_G1_MSM, PRC_BLS_G2_MSM, PRC_BLS_PAIRING_CHECK)) {
+        if (precompile == PRC_BLS_PAIRING_CHECK) {
           mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        }
+        if (precompile.isAnyOf(PRC_BLS_G1_MSM, PRC_BLS_G2_MSM)) {
+          mod.updateTally(2 * NB_ROWS_MOD); // coming from OOB call
         }
       }
       default -> throw new IllegalStateException("Unsupported precompile: " + precompile);

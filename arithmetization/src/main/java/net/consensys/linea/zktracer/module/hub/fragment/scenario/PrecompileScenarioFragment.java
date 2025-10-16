@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
 import static java.util.Map.entry;
+import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_IDENTITY;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_RIPEMD;
 import static net.consensys.linea.zktracer.TracePrague.Blsdata.CT_MAX_POINT_EVALUATION;
@@ -226,6 +227,22 @@ public class PrecompileScenarioFragment implements TraceFragment {
         case PRC_BLS_MAP_FP_TO_G1 -> 1 + CT_MAX_BLS_MAP_FP_TO_G1;
         case PRC_BLS_MAP_FP2_TO_G2 -> 1 + CT_MAX_BLS_MAP_FP2_TO_G2;
         default -> throw new IllegalArgumentException("Precompile not supported:" + prc);
+      };
+    }
+
+    public static boolean validCallDataSize(
+        PrecompileScenarioFragment.PrecompileFlag prc, int cds) {
+      return switch (prc) {
+        case PRC_BLS_G1_ADD -> cds == PRECOMPILE_CALL_DATA_SIZE___G1_ADD;
+        case PRC_BLS_G2_ADD -> cds == PRECOMPILE_CALL_DATA_SIZE___G2_ADD;
+        case PRC_BLS_MAP_FP2_TO_G2 -> cds == PRECOMPILE_CALL_DATA_SIZE___FP2_TO_G2;
+        case PRC_BLS_MAP_FP_TO_G1 -> cds == PRECOMPILE_CALL_DATA_SIZE___FP_TO_G1;
+        case PRC_POINT_EVALUATION -> cds == PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION;
+        case PRC_BLS_G1_MSM -> cds != 0 && cds % PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G1_MSM == 0;
+        case PRC_BLS_G2_MSM -> cds != 0 && cds % PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G2_MSM == 0;
+        case PRC_BLS_PAIRING_CHECK -> cds != 0
+            && cds % PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK == 0;
+        default -> throw new IllegalArgumentException("not implemented for prc: " + prc);
       };
     }
   }

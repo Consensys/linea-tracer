@@ -119,7 +119,7 @@ public class MultiBlockExecutionEnvironment {
 
   public void run() {
     final ConflationSnapshot conflationSnapshot = buildConflationSnapshot();
-    final Map<Long, Hash> historicalBlockhashes = conflationSnapshot.blockHashes();
+    final Map<Long, Hash> historicalBlockhashes = conflationSnapshot.historicalBlockHashes();
     // Remove the last block number as it's not part of the historical blockhashes
     historicalBlockhashes.remove(conflationSnapshot.lastBlockNumber());
     tracer = new ZkTracer(chainConfig, historicalBlockhashes);

@@ -90,8 +90,12 @@ public record BlockHeaderSnapshot(
             .blockHeaderFunctions(new CliqueBlockHeaderFunctions());
 
     this.baseFee.ifPresent(baseFee -> builder.baseFee(Wei.fromHexString(baseFee)));
-    this.parentBeaconBlockRoot.ifPresent(
+    // Following null check appears to be necessary for older replays.
+    if(this.parentBeaconBlockRoot != null) {
+      this.parentBeaconBlockRoot.ifPresent(
         root -> builder.parentBeaconBlockRoot(Bytes32.fromHexString(root)));
+    }
+    //
     return builder.buildBlockHeader();
   }
 }

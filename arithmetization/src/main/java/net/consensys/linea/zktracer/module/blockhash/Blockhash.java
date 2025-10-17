@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.blockhash;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_HASH;
@@ -64,7 +63,6 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   private final Map<Long, Hash> blockHashMap;
   private final Map<Long, Boolean> successfulBlockhashAttempt = new HashMap<>();
   private Hash lastBlockHash;
-  private final boolean tracingInProd;
 
   private long firstBlockOfConflation = -1;
   private long absBlock;
@@ -72,7 +70,6 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
   public Blockhash(Hub hub, Wcp wcp, Map<Long, Hash> historicalBlockHashes) {
     blockHashMap = historicalBlockHashes;
-    tracingInProd = !historicalBlockHashes.isEmpty();
     this.hub = hub;
     this.wcp = wcp;
   }
@@ -149,7 +146,6 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
       if (blockHashMap.containsKey(blockNumber)) {
         checkArgument(op.blockhashRes().equals(blockHashMap.get(blockNumber)));
       } else {
-        checkState(!tracingInProd, "In production mode, all blockhashes must be already known");
         blockHashMap.put(blockNumber, op.blockhashRes());
       }
     }

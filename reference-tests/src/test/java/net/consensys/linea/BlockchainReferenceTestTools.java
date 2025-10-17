@@ -70,8 +70,7 @@ public class BlockchainReferenceTestTools {
   // Keep the forkName and the zkevm_fork in github worklow in PascalCase
   private static final Fork fork = getForkOrDefault(LONDON);
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
-      ReferenceTestProtocolSchedules.create();
-
+      ReferenceTestProtocolSchedules.getInstance();
   private static final List<String> NETWORKS_TO_RUN = List.of(toPascalCase(fork));
 
   public static final JsonTestParameters<?, ?> PARAMS =
@@ -94,10 +93,6 @@ public class BlockchainReferenceTestTools {
      */
 
     if (isPostPrague(fork)) {
-
-      // REENABLE once BLS ref table calls fix is merged
-      PARAMS.ignore(
-          "stSpecialTest/failed_tx_xcf416c53_ParisFiller.json::failed_tx_xcf416c53_Paris\\[fork_Prague-blockchain_test_from_state_test-\\]");
 
       // TODO: should be re-enabled for Prague v2.0
       PARAMS.ignore("/prague/eip2537_bls_12_381_precompiles/");

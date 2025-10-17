@@ -188,6 +188,6 @@ public class Reaper {
     // Collapse storage
     final List<StorageSnapshot> storage = conflationStorage.collapse(world);
     // Done
-    return new ConflationSnapshot(blocks, accounts, storage, conflationHashes);
+    return ConflationSnapshot.from(blocks, accounts, storage, conflationHashes);
   }
 }

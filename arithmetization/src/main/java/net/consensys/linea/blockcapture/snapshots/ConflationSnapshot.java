@@ -37,7 +37,14 @@ public record ConflationSnapshot(
     List<BlockSnapshot> blocks,
     List<AccountSnapshot> accounts,
     List<StorageSnapshot> storage,
-    Map<Long, Hash> blockHashes) {
+    List<BlockHashSnapshot> blockHashes) {
+
+  public static ConflationSnapshot from(List<BlockSnapshot> blocks,
+                                        List<AccountSnapshot> accounts,
+                                        List<StorageSnapshot> storage,
+                                        Map<Long, Hash> blockHashes) {
+    throw new IllegalArgumentException();
+  }
 
   public long firstBlockNumber() {
     if (blocks.isEmpty()) {
@@ -58,9 +65,16 @@ public record ConflationSnapshot(
   public Map<Long, Hash> historicalBlockHashes() {
     final long firstBlockToRetrieve = Math.max(0, firstBlockNumber() - BLOCKHASH_MAX_HISTORY);
     final long lastBlockToRetrieve = Math.max(0, lastBlockNumber() - 1);
-    return blockHashes.entrySet().stream()
-        .filter(e -> e.getKey() >= firstBlockToRetrieve && e.getKey() <= lastBlockToRetrieve)
-        .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
+    final HashMap<Long,Hash> hashes = new HashMap<>();
+    // Initialise map of historical hashes
+    for (BlockHashSnapshot blkHash : blockHashes) {
+      long key = blkHash.blockNumber();
+      if(key >= firstBlockToRetrieve && key <= lastBlockToRetrieve) {
+        hashes.put(key, Hash.fromHexString(blkHash.blockHash()));
+      }
+    }
+    // Done
+    return hashes;
   }
 
   /**
@@ -74,8 +88,9 @@ public record ConflationSnapshot(
     // capture and, hence, we must support this case (at least for now).
     if (blockHashes() != null) {
       // Initialise block hash cache
-      for (Long blockNumber : blockHashes().keySet()) {
-        map.blockHashCache.put(blockNumber, blockHashes.get(blockNumber));
+      for (BlockHashSnapshot h : blockHashes) {
+        Hash blockHash = Hash.fromHexString(h.blockHash());
+        map.blockHashCache.put(h.blockNumber(), blockHash);
       }
     }
     // Done

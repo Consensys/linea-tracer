@@ -167,6 +167,6 @@ public class MultiBlockExecutionEnvironment {
           block.header().number(), block.header().toBlockHeader().getBlockHash());
     }
 
-    return new ConflationSnapshot(blocks, accountSnapshots, storageSnapshots, blockHashSnapshots);
+    return ConflationSnapshot.from(blocks, accountSnapshots, storageSnapshots, blockHashSnapshots);
   }
 }

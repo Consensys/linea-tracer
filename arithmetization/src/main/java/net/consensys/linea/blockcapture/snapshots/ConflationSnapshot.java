@@ -17,6 +17,7 @@ package net.consensys.linea.blockcapture.snapshots;
 
 import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,14 @@ public record ConflationSnapshot(
       List<AccountSnapshot> accounts,
       List<StorageSnapshot> storage,
       Map<Long, Hash> blockHashes) {
-    throw new IllegalArgumentException();
+    ArrayList<BlockHashSnapshot> blockHashSnapshots = new ArrayList<>();
+    //
+    for (Map.Entry<Long, Hash> e : blockHashes.entrySet()) {
+      String h = e.getValue().toHexString();
+      blockHashSnapshots.add(new BlockHashSnapshot(e.getKey(), h));
+    }
+    //
+    return new ConflationSnapshot(blocks, accounts, storage, blockHashSnapshots);
   }
 
   public long firstBlockNumber() {

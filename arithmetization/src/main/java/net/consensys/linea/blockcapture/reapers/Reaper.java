@@ -162,7 +162,7 @@ public class Reaper {
   }
 
   public void touchBlockHash(final long blockNumber, Hash blockHash) {
-    if (conflationHashes.get(blockNumber).isEmpty()) {
+    if (!conflationHashes.containsKey(blockNumber) || conflationHashes.get(blockNumber).isEmpty()) {
       conflationHashes.put(blockNumber, blockHash);
     } else {
       checkArgument(

@@ -1,6 +1,8 @@
 # The purpose of this workflow is to upload the necessary assets when
 # a release is made manually on github.
 name: Manual Release Assets
+permissions:
+  contents: read
 
 on:
   release:
@@ -70,48 +72,44 @@ jobs:
   # Unit Tests
   # ==================================================================
   unit-tests-london:
-    if: github.event.pull_request.draft == false && github.base_ref != 'main'
     needs: [ build ]
     uses: ./.github/workflows/reusable-unit-tests.yml
     with:
       zkevm_fork: LONDON
-      tests-with-ssh: ${{ inputs.tests-with-ssh || false }}
+      tests-with-ssh: false
 
   unit-tests-paris:
-    if: github.event.pull_request.draft == false && github.base_ref != 'main'
     needs: [ build ]
     uses: ./.github/workflows/reusable-unit-tests.yml
     with:
       zkevm_fork: PARIS
-      tests-with-ssh: ${{ inputs.tests-with-ssh || false}}
+      tests-with-ssh: false
 
   unit-tests-shanghai:
-    if: github.event.pull_request.draft == false && github.base_ref != 'main'
     needs: [ build ]
     uses: ./.github/workflows/reusable-unit-tests.yml
     with:
       zkevm_fork: SHANGHAI
-      tests-with-ssh: ${{ inputs.tests-with-ssh || false}}
+      tests-with-ssh: false
 
   unit-tests-cancun:
     needs: [ build ]
     uses: ./.github/workflows/reusable-unit-tests.yml
     with:
       zkevm_fork: CANCUN
-      tests-with-ssh: ${{ inputs.tests-with-ssh || false}}
+      tests-with-ssh: false
 
   unit-tests-prague:
     needs: [ build ]
     uses: ./.github/workflows/reusable-unit-tests.yml
     with:
       zkevm_fork: PRAGUE
-      tests-with-ssh: ${{ inputs.tests-with-ssh || false}}
+      tests-with-ssh: false
 
   # ==================================================================
   # Fast Replay Tests
   # ==================================================================
   replay-tests:
-    if: github.event.pull_request.draft == false && github.base_ref != 'main'
     needs: [ build ]
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
     steps:
@@ -123,7 +121,7 @@ jobs:
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
         with:
-          enable-ssh: ${{ inputs.tests-with-ssh }}
+          enable-ssh: false
 
       - name: Run replay tests
         run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:fastReplayTests
@@ -161,6 +159,9 @@ jobs:
     needs: [build, unit-tests-london, unit-tests-paris, unit-tests-shanghai, unit-tests-cancun, unit-tests-prague, replay-tests]
     if: github.event_name != 'pull_request'
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
+    permissions:
+      contents: write
+      packages: write
     env:
       architecture: "amd64"
       GRADLE_OPTS: "-Xmx6g -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4"

@@ -91,9 +91,9 @@ public record BlockHeaderSnapshot(
 
     this.baseFee.ifPresent(baseFee -> builder.baseFee(Wei.fromHexString(baseFee)));
     // Following null check appears to be necessary for older replays.
-    if(this.parentBeaconBlockRoot != null) {
+    if (this.parentBeaconBlockRoot != null) {
       this.parentBeaconBlockRoot.ifPresent(
-        root -> builder.parentBeaconBlockRoot(Bytes32.fromHexString(root)));
+          root -> builder.parentBeaconBlockRoot(Bytes32.fromHexString(root)));
     }
     //
     return builder.buildBlockHeader();

@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.blockhash;
 
+import static net.consensys.linea.replaytests.ReplayTestTools.replay;
+import static net.consensys.linea.zktracer.ChainConfig.SEPOLIA_PRAGUE_TESTCONFIG;
 import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 
 import java.util.List;
@@ -30,6 +32,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -95,6 +98,23 @@ public class BlockhashTest extends TracerTestBase {
                 .op(OpCode.STOP)
                 .compile())
         .run(chainConfig, testInfo);
+  }
+
+  @Tag("replay")
+  @Test
+  void someHistoricalHashesAreChecked(TestInfo testInfo) {
+    replay(SEPOLIA_PRAGUE_TESTCONFIG, "19562398.mainnet.json.gz", testInfo);
+  }
+
+  /**
+   * The purpose of this second replay tests is to provide two consecutive conflation to the prover,
+   * with BLOCKHASH checking the "historical hashes" in both conflations.
+   */
+  @Tag("replay")
+  @Disabled("Disabled, see comment")
+  @Test
+  void conflationFollowingThePreviousOneWithAgainHistoricalBlockhashesChecked(TestInfo testInfo) {
+    replay(SEPOLIA_PRAGUE_TESTCONFIG, "19562399-19562417.mainnet.json.gz", testInfo);
   }
 
   /**

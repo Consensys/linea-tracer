@@ -39,10 +39,11 @@ public record ConflationSnapshot(
     List<StorageSnapshot> storage,
     List<BlockHashSnapshot> blockHashes) {
 
-  public static ConflationSnapshot from(List<BlockSnapshot> blocks,
-                                        List<AccountSnapshot> accounts,
-                                        List<StorageSnapshot> storage,
-                                        Map<Long, Hash> blockHashes) {
+  public static ConflationSnapshot from(
+      List<BlockSnapshot> blocks,
+      List<AccountSnapshot> accounts,
+      List<StorageSnapshot> storage,
+      Map<Long, Hash> blockHashes) {
     throw new IllegalArgumentException();
   }
 
@@ -65,11 +66,11 @@ public record ConflationSnapshot(
   public Map<Long, Hash> historicalBlockHashes() {
     final long firstBlockToRetrieve = Math.max(0, firstBlockNumber() - BLOCKHASH_MAX_HISTORY);
     final long lastBlockToRetrieve = Math.max(0, lastBlockNumber() - 1);
-    final HashMap<Long,Hash> hashes = new HashMap<>();
+    final HashMap<Long, Hash> hashes = new HashMap<>();
     // Initialise map of historical hashes
     for (BlockHashSnapshot blkHash : blockHashes) {
       long key = blkHash.blockNumber();
-      if(key >= firstBlockToRetrieve && key <= lastBlockToRetrieve) {
+      if (key >= firstBlockToRetrieve && key <= lastBlockToRetrieve) {
         hashes.put(key, Hash.fromHexString(blkHash.blockHash()));
       }
     }

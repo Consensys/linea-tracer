@@ -343,6 +343,9 @@ public class MxpxThresholdTests extends TracerTestBase {
 
   // Main test
   private void singleMcopy(Bytes targetOffset, Bytes sourceOffset, Bytes size, TestInfo testInfo) {
+    if (!isPostCancun(chainConfig.fork)) {
+      return; // MCOPY is introduced in Cancun
+    }
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
     final ToyAccount codeOwnerAccount =
         ToyAccount.builder()

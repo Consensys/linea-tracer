@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.testing;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.Long.parseLong;
 import static net.consensys.linea.testing.ShomeiNode.MerkelProofResponse;
 import static net.consensys.linea.zktracer.Fork.OSAKA;
@@ -174,6 +176,9 @@ public class BesuExecutionTools {
             new NetConditions(new NetTransactions()),
             new ThreadBesuNodeRunner());
     try {
+
+      checkArgument(!transactions.isEmpty(), "At least one transaction (including null) is required");
+
       shomeiThread.start();
       besuCluster.start(besuNode);
 
@@ -186,14 +191,24 @@ public class BesuExecutionTools {
       Iterator<Transaction> txs = transactions.iterator();
       Boolean txHasNext = txs.hasNext();
 
+      int numberOfLeadingEmptyBlocks = 0;
+      for (Transaction tx : transactions) {
+          if (tx != null) { break; }
+          numberOfLeadingEmptyBlocks++;
+      }
+      boolean allTransactionsAreNull = (numberOfLeadingEmptyBlocks == transactions.size());
+
       while (txHasNext) {
         // Send transaction to the transaction pool with eth_sendRawTransaction
         // If oneTxPerBlock is true, we send one transaction per block
         if (oneTxPerBlock) {
-          String txHash =
-              besuNode.execute(
-                  ethTransactions.sendRawTransaction(txs.next().encoded().toHexString()));
-          txHashes.add(txHash);
+          final Transaction tx = txs.next();
+          if (tx != null) {
+              String txHash =
+                      besuNode.execute(
+                              ethTransactions.sendRawTransaction(tx.encoded().toHexString()));
+              txHashes.add(txHash);
+          }
           txHasNext = txs.hasNext();
         } else {
           // Send all transactions in the same block
@@ -217,29 +232,33 @@ public class BesuExecutionTools {
         // We check that the transactions are included in a block
         waitForTxReceipts(besuNode, ethTransactions, txHashes, txReceiptProcessed, blockNumbers);
         currentFork = nextFork;
-
-        // We trace the conflation
-        assertThat(blockNumbers).isNotEmpty();
-        long startBlockNumber = Collections.min(blockNumbers);
-        long endBlockNumber = Collections.max(blockNumbers);
-        TraceFile traceFile = traceAndCheckTracer(startBlockNumber, endBlockNumber, currentFork);
-        Path traceFilePath = Path.of(traceFile.conflatedTracesFileName());
-
-        // Clean up for next transaction
-        resetTxReceipts(txReceiptProcessed);
-        resetBlockNumbers(blockNumbers);
-        resetTxHashes(txHashes);
-
-        // Execution proof request
-        requestAndStoreExecutionProof(
-            besuNode,
-            ethTransactions,
-            startBlockNumber,
-            endBlockNumber,
-            traceFile,
-            traceFilePath,
-            testDataDir);
       }
+
+      // We trace the conflation
+      checkState(blockNumbers.isEmpty() == allTransactionsAreNull);
+      long firstBlockNumber = blockNumbers.isEmpty() ? 1 : Collections.min(blockNumbers);
+      long finalBlockNumber = blockNumbers.isEmpty() ? transactions.size() : Collections.max(blockNumbers);
+      if (oneTxPerBlock && !allTransactionsAreNull) {
+          firstBlockNumber -= numberOfLeadingEmptyBlocks;
+          finalBlockNumber = firstBlockNumber + transactions.size() - 1;
+      }
+      TraceFile traceFile = traceAndCheckTracer(firstBlockNumber, finalBlockNumber, currentFork);
+      Path traceFilePath = Path.of(traceFile.conflatedTracesFileName());
+
+      // Clean up for next transaction
+      resetTxReceipts(txReceiptProcessed);
+      resetBlockNumbers(blockNumbers);
+      resetTxHashes(txHashes);
+
+      // Execution proof request
+      requestAndStoreExecutionProof(
+          besuNode,
+          ethTransactions,
+          firstBlockNumber,
+          finalBlockNumber,
+          traceFile,
+          traceFilePath,
+          testDataDir);
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     } finally {

@@ -43,119 +43,127 @@ import org.junit.jupiter.api.TestInfo;
 
 public class EmptyBlockTests extends TracerTestBase {
 
+  enum BlockType {
+    EMPTY_BLOCK,
+    MONO_TRANSACTION_BLOCK___STORING,
+    MONO_TRANSACTION_BLOCK___READING,
+  }
+
+  final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
+  final Address senderAddress =
+      Address.extract(Hash.hash(senderKeyPair.getPublicKey().getEncodedBytes()));
+
+  final ToyAccount senderAccount =
+      ToyAccount.builder().balance(Wei.fromEth(128)).nonce(5).address(senderAddress).build();
+
+  final ToyAccount receivingAccount =
+      ToyAccount.builder()
+          .balance(Wei.fromEth(1))
+          .nonce(116)
+          .address(Address.fromHexStringStrict("0x1122334455667788990011223344556677889900"))
+          .code(
+              BytecodeCompiler.newProgram(chainConfig)
+                  .push(0) // ret size
+                  .push(0) // ret offset
+                  .push(0) // size
+                  .push(0) // offset
+
+                  // address:
+                  .op(OpCode.CALLDATASIZE) // size
+                  .push(0) // offset
+                  .push(0) // dest offset
+                  .op(OpCode.CALLDATACOPY)
+                  .push(0) // offset
+                  .op(OpCode.MLOAD)
+                  .push(100000) // gas
+                  .op(OpCode.DELEGATECALL)
+                  .compile())
+          .build();
+
+  final ToyAccount storingNumber =
+      ToyAccount.builder()
+          .balance(Wei.fromEth(1))
+          .nonce(116)
+          .address(Address.wrap(leftPadTo(Bytes.minimalBytes(1111111), 20)))
+          .code(
+              BytecodeCompiler.newProgram(chainConfig)
+                  .op(OpCode.NUMBER) // value
+                  .push(Bytes.fromHexString("c7e0")) // key
+                  .op(OpCode.SSTORE)
+                  .compile())
+          .build();
+
+  final ToyAccount logging =
+      ToyAccount.builder()
+          .balance(Wei.fromEth(1))
+          .nonce(116)
+          .address(Address.wrap(leftPadTo(Bytes.minimalBytes(222222), 20)))
+          .code(
+              BytecodeCompiler.newProgram(chainConfig)
+                  .push(2)
+                  .op(OpCode.NUMBER)
+                  .op(OpCode.SUB)
+                  .push(Bytes.fromHexString("c7e0")) // key
+                  .op(OpCode.SLOAD)
+                  .op(OpCode.SUB)
+                  // We now have on the stack one arg, (NUMBER -2 ) - SLOAD
+                  .push(18) // counter to go (and there STOP) if condition is true, as we want
+                  // to log if false
+                  .op(OpCode.JUMPI)
+                  // LOG to check the output
+                  .push(0)
+                  .push(0)
+                  .op(OpCode.LOG0)
+                  .op(OpCode.STOP)
+                  .op(OpCode.JUMPDEST)
+                  .op(OpCode.STOP)
+                  .compile())
+          .build();
+
+  final Transaction storing =
+      ToyTransaction.builder()
+          .sender(senderAccount)
+          .to(receivingAccount)
+          .payload(Bytes32.leftPad(storingNumber.getAddress()))
+          .keyPair(senderKeyPair)
+          .value(Wei.of(123))
+          .build();
+
+  final Transaction reading =
+      ToyTransaction.builder()
+          .sender(senderAccount)
+          .to(receivingAccount)
+          .payload(Bytes32.leftPad(logging.getAddress()))
+          .keyPair(senderKeyPair)
+          .value(Wei.of(123))
+          .nonce(senderAccount.getNonce() + 1)
+          .build();
+
+  /**
+   * Mix of empty and non empty blocks
+   *
+   * <ul>
+   *   <li><b>E</b> stands for <b>E</b>mpty block
+   *   <li><b>N</b> stands for <b>N</b>onempty block
+   * </ul>
+   *
+   * @param testInfo
+   */
   @Test
-  void mixOfEmptyAndNonEmptyBlocks(TestInfo testInfo) {
+  void mixOfEmptyAndNonEmptyBlocks_EENENE(TestInfo testInfo) {
     // Empty block are allowed only after Cancun
     if (isPostCancun(chainConfig.fork)) {
 
-      final ToyAccount receivingAccount =
-          ToyAccount.builder()
-              .balance(Wei.fromEth(1))
-              .nonce(116)
-              .address(Address.fromHexStringStrict("0x1122334455667788990011223344556677889900"))
-              .code(
-                  BytecodeCompiler.newProgram(chainConfig)
-                      .push(0) // ret size
-                      .push(0) // ret offset
-                      .push(0) // size
-                      .push(0) // offset
-
-                      // address:
-                      .op(OpCode.CALLDATASIZE) // size
-                      .push(0) // offset
-                      .push(0) // dest offset
-                      .op(OpCode.CALLDATACOPY)
-                      .push(0) // offset
-                      .op(OpCode.MLOAD)
-                      .push(100000) // gas
-                      .op(OpCode.DELEGATECALL)
-                      .compile())
-              .build();
-
-      final ToyAccount storingNumber =
-          ToyAccount.builder()
-              .balance(Wei.fromEth(1))
-              .nonce(116)
-              .address(Address.wrap(leftPadTo(Bytes.minimalBytes(1111111), 20)))
-              .code(
-                  BytecodeCompiler.newProgram(chainConfig)
-                      .op(OpCode.NUMBER) // value
-                      .push(Bytes.fromHexString("c7e0")) // key
-                      .op(OpCode.SSTORE)
-                      .compile())
-              .build();
-
-      final ToyAccount logging =
-          ToyAccount.builder()
-              .balance(Wei.fromEth(1))
-              .nonce(116)
-              .address(Address.wrap(leftPadTo(Bytes.minimalBytes(222222), 20)))
-              .code(
-                  BytecodeCompiler.newProgram(chainConfig)
-                      .push(2)
-                      .op(OpCode.NUMBER)
-                      .op(OpCode.SUB)
-                      .push(Bytes.fromHexString("c7e0")) // key
-                      .op(OpCode.SLOAD)
-                      .op(OpCode.SUB)
-                      // We now have on the stack one arg, (NUMBER -2 ) - SLOAD
-                      .push(18) // counter to go (and there STOP) if condition is true, as we want
-                      // to log if false
-                      .op(OpCode.JUMPI)
-                      // LOG to check the output
-                      .push(0)
-                      .push(0)
-                      .op(OpCode.LOG0)
-                      .op(OpCode.STOP)
-                      .op(OpCode.JUMPDEST)
-                      .op(OpCode.STOP)
-                      .compile())
-              .build();
-
-      final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
-      final Address senderAddress =
-          Address.extract(Hash.hash(senderKeyPair.getPublicKey().getEncodedBytes()));
-      final ToyAccount senderAccount =
-          ToyAccount.builder().balance(Wei.fromEth(128)).nonce(5).address(senderAddress).build();
-
-      final Transaction storing =
-          ToyTransaction.builder()
-              .sender(senderAccount)
-              .to(receivingAccount)
-              .payload(Bytes32.leftPad(storingNumber.getAddress()))
-              .keyPair(senderKeyPair)
-              .value(Wei.of(123))
-              .build();
-
-      final Transaction reading =
-          ToyTransaction.builder()
-              .sender(senderAccount)
-              .to(receivingAccount)
-              .payload(Bytes32.leftPad(logging.getAddress()))
-              .keyPair(senderKeyPair)
-              .value(Wei.of(123))
-              .nonce(senderAccount.getNonce() + 1)
-              .build();
-
-      final MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
-          MultiBlockExecutionEnvironment.builder(chainConfig, testInfo)
-              .accounts(List.of(senderAccount, storingNumber, logging, receivingAccount));
-
-      // Two blocks are empty
-      builder.addBlock(List.of());
-      builder.addBlock(List.of());
-
-      // Third block has a single transaction
-      builder.addBlock(List.of(storing));
-
-      // One more empty block
-      builder.addBlock(List.of());
-
-      // Fifth block has a single transaction
-      builder.addBlock(List.of(reading));
-
-      // One more empty block
-      builder.addBlock(List.of());
+      MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
+          builderFromBlockTypeList(
+              List.of(
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.MONO_TRANSACTION_BLOCK___STORING,
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.MONO_TRANSACTION_BLOCK___READING,
+                  BlockType.EMPTY_BLOCK),
+              testInfo);
 
       final MultiBlockExecutionEnvironment env = builder.build();
       env.run();
@@ -180,15 +188,107 @@ public class EmptyBlockTests extends TracerTestBase {
   }
 
   @Test
-  void onlyOneEmptyBlock(TestInfo testInfo) {
+  void mixOfEmptyAndNonEmptyBlocks_NEEN(TestInfo testInfo) {
     // Empty block are allowed only after Cancun
     if (isPostCancun(chainConfig.fork)) {
 
-      final MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
-          MultiBlockExecutionEnvironment.builder(chainConfig, testInfo);
+      MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
+          builderFromBlockTypeList(
+              List.of(
+                  BlockType.MONO_TRANSACTION_BLOCK___STORING,
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.MONO_TRANSACTION_BLOCK___READING),
+              testInfo);
 
-      // One empty block
-      builder.addBlock(List.of());
+      final MultiBlockExecutionEnvironment env = builder.build();
+      env.run();
+    }
+  }
+
+  @Test
+  void mixOfEmptyAndNonEmptyBlocks_NEEE(TestInfo testInfo) {
+    // Empty block are allowed only after Cancun
+    if (isPostCancun(chainConfig.fork)) {
+
+      MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
+          builderFromBlockTypeList(
+              List.of(
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.MONO_TRANSACTION_BLOCK___STORING),
+              testInfo);
+
+      final MultiBlockExecutionEnvironment env = builder.build();
+      env.run();
+    }
+  }
+
+  @Test
+  void mixOfEmptyAndNonEmptyBlocks_ENNE(TestInfo testInfo) {
+    // Empty block are allowed only after Cancun
+    if (isPostCancun(chainConfig.fork)) {
+
+      MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
+          builderFromBlockTypeList(
+              List.of(
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.MONO_TRANSACTION_BLOCK___STORING,
+                  BlockType.MONO_TRANSACTION_BLOCK___READING,
+                  BlockType.EMPTY_BLOCK),
+              testInfo);
+
+      final MultiBlockExecutionEnvironment env = builder.build();
+      env.run();
+    }
+  }
+
+  @Test
+  void mixOfEmptyAndNonEmptyBlocks_EEEE(TestInfo testInfo) {
+    // Empty block are allowed only after Cancun
+    if (isPostCancun(chainConfig.fork)) {
+
+      MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
+          builderFromBlockTypeList(
+              List.of(
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.EMPTY_BLOCK),
+              testInfo);
+
+      final MultiBlockExecutionEnvironment env = builder.build();
+      env.run();
+    }
+  }
+
+  @Test
+  void mixOfEmptyAndNonEmptyBlocks_EEEN(TestInfo testInfo) {
+    // Empty block are allowed only after Cancun
+    if (isPostCancun(chainConfig.fork)) {
+
+      MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
+          builderFromBlockTypeList(
+              List.of(
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.EMPTY_BLOCK,
+                  BlockType.MONO_TRANSACTION_BLOCK___STORING),
+              testInfo);
+
+      final MultiBlockExecutionEnvironment env = builder.build();
+      env.run();
+    }
+  }
+
+  @Test
+  void mixOfEmptyAndNonEmptyBlocks_E(TestInfo testInfo) {
+    // Empty blocks are allowed only after Cancun
+    if (isPostCancun(chainConfig.fork)) {
+
+      MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
+          builderFromBlockTypeList(List.of(BlockType.EMPTY_BLOCK), testInfo);
 
       final MultiBlockExecutionEnvironment env = builder.build();
       env.run();
@@ -196,5 +296,23 @@ public class EmptyBlockTests extends TracerTestBase {
           env.getHub().txStack().transactions().isEmpty(),
           "There should be no transaction in the state");
     }
+  }
+
+  private MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder
+      builderFromBlockTypeList(List<BlockType> blockTypes, TestInfo testInfo) {
+
+    final MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
+        MultiBlockExecutionEnvironment.builder(chainConfig, testInfo)
+            .accounts(List.of(senderAccount, storingNumber, logging, receivingAccount));
+
+    for (BlockType blockType : blockTypes) {
+      switch (blockType) {
+        case EMPTY_BLOCK -> builder.addBlock(List.of());
+        case MONO_TRANSACTION_BLOCK___STORING -> builder.addBlock(List.of(storing));
+        case MONO_TRANSACTION_BLOCK___READING -> builder.addBlock(List.of(reading));
+      }
+    }
+
+    return builder;
   }
 }

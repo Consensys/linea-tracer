@@ -177,7 +177,8 @@ public class BesuExecutionTools {
             new ThreadBesuNodeRunner());
     try {
 
-      checkArgument(!transactions.isEmpty(), "At least one transaction (including null) is required");
+      checkArgument(
+          !transactions.isEmpty(), "At least one transaction (including null) is required");
 
       shomeiThread.start();
       besuCluster.start(besuNode);
@@ -193,8 +194,10 @@ public class BesuExecutionTools {
 
       int numberOfLeadingEmptyBlocks = 0;
       for (Transaction tx : transactions) {
-          if (tx != null) { break; }
-          numberOfLeadingEmptyBlocks++;
+        if (tx != null) {
+          break;
+        }
+        numberOfLeadingEmptyBlocks++;
       }
       boolean allTransactionsAreNull = (numberOfLeadingEmptyBlocks == transactions.size());
 
@@ -204,10 +207,9 @@ public class BesuExecutionTools {
         if (oneTxPerBlock) {
           final Transaction tx = txs.next();
           if (tx != null) {
-              String txHash =
-                      besuNode.execute(
-                              ethTransactions.sendRawTransaction(tx.encoded().toHexString()));
-              txHashes.add(txHash);
+            String txHash =
+                besuNode.execute(ethTransactions.sendRawTransaction(tx.encoded().toHexString()));
+            txHashes.add(txHash);
           }
           txHasNext = txs.hasNext();
         } else {
@@ -237,10 +239,11 @@ public class BesuExecutionTools {
       // We trace the conflation
       checkState(blockNumbers.isEmpty() == allTransactionsAreNull);
       long firstBlockNumber = blockNumbers.isEmpty() ? 1 : Collections.min(blockNumbers);
-      long finalBlockNumber = blockNumbers.isEmpty() ? transactions.size() : Collections.max(blockNumbers);
+      long finalBlockNumber =
+          blockNumbers.isEmpty() ? transactions.size() : Collections.max(blockNumbers);
       if (oneTxPerBlock && !allTransactionsAreNull) {
-          firstBlockNumber -= numberOfLeadingEmptyBlocks;
-          finalBlockNumber = firstBlockNumber + transactions.size() - 1;
+        firstBlockNumber -= numberOfLeadingEmptyBlocks;
+        finalBlockNumber = firstBlockNumber + transactions.size() - 1;
       }
       TraceFile traceFile = traceAndCheckTracer(firstBlockNumber, finalBlockNumber, currentFork);
       Path traceFilePath = Path.of(traceFile.conflatedTracesFileName());

@@ -17,6 +17,8 @@ package net.consensys.linea.testing;
 
 import static net.consensys.linea.reporting.TracerTestBase.chainConfig;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
+import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
+import static net.consensys.linea.zktracer.Fork.CANCUN;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
 import static net.consensys.linea.zktracer.types.PublicInputs.getDefaultBlobBaseFees;
 
@@ -121,21 +123,44 @@ public class MultiBlockExecutionEnvironment {
   }
 
   public void run() {
-    final ConflationSnapshot conflationSnapshot = buildConflationSnapshot();
-    final Map<Long, Hash> historicalBlockhashes = conflationSnapshot.historicalBlockHashes();
-    // Remove the last block number as it's not part of the historical blockhashes
-    historicalBlockhashes.remove(conflationSnapshot.lastBlockNumber());
-    tracer =
-        new ZkTracer(
-            chainConfig,
-            new PublicInputs(historicalBlockhashes, conflationSnapshot.blobBaseFees()));
-    ReplayExecutionEnvironment.builder()
-        .zkTracer(tracer)
-        .useCoinbaseAddressFromBlockHeader(true)
-        .transactionProcessingResultValidator(transactionProcessingResultValidator)
-        .systemContractDeployedPriorToConflation(systemContractDeployedPriorToConflation)
-        .build()
-        .replay(testsChain, testInfo, conflationSnapshot);
+      if (System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
+          List<Transaction> transactionsIncludingNullTransactionsForEmptyBlocks = new ArrayList<>();
+          for (BlockSnapshot block : blocks) {
+              if (block.txs().isEmpty()) {
+                  // Add a null transaction to represent an empty block
+                  transactionsIncludingNullTransactionsForEmptyBlocks.add(null);
+              } else {
+                  for (TransactionSnapshot txSnapshot : block.txs()) {
+                      transactionsIncludingNullTransactionsForEmptyBlocks.add(txSnapshot.toTransaction());
+                  }
+              }
+          }
+          BesuExecutionTools besuExecTools =
+                  new BesuExecutionTools(
+                          Optional.of(testInfo),
+                          chainConfig,
+                          ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS,
+                          accounts,
+                          transactionsIncludingNullTransactionsForEmptyBlocks,
+                          true,
+                          null);
+          besuExecTools.executeTest();
+      } else {
+          final ConflationSnapshot conflationSnapshot = buildConflationSnapshot();
+          final Map<Long, Hash> historicalBlockhashes = conflationSnapshot.historicalBlockHashes();
+          // Remove the last block number as it's not part of the historical blockhashes
+          historicalBlockhashes.remove(conflationSnapshot.lastBlockNumber());
+          tracer = new ZkTracer(
+                  chainConfig,
+                  new PublicInputs(historicalBlockhashes, conflationSnapshot.blobBaseFees()));
+          ReplayExecutionEnvironment.builder()
+                  .zkTracer(tracer)
+                  .useCoinbaseAddressFromBlockHeader(true)
+                  .transactionProcessingResultValidator(transactionProcessingResultValidator)
+                  .systemContractDeployedPriorToConflation(systemContractDeployedPriorToConflation)
+                  .build()
+                  .replay(testsChain, testInfo, conflationSnapshot);
+      }
   }
 
   public Hub getHub() {

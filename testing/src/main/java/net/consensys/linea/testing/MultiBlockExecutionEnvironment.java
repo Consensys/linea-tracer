@@ -16,6 +16,8 @@
 package net.consensys.linea.testing;
 
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
+import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
+import static net.consensys.linea.zktracer.Fork.CANCUN;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
 
 import java.math.BigInteger;
@@ -123,6 +125,30 @@ public class MultiBlockExecutionEnvironment {
   }
 
   public void run() {
+    if (System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
+      List<Transaction> transactionsIncludingNullTransactionsForEmptyBlocks = new ArrayList<>();
+      for (BlockSnapshot block : blocks) {
+        if (block.txs().isEmpty()) {
+          // Add a null transaction to represent an empty block
+          transactionsIncludingNullTransactionsForEmptyBlocks.add(null);
+        } else {
+          for (TransactionSnapshot txSnapshot : block.txs()) {
+            transactionsIncludingNullTransactionsForEmptyBlocks.add(txSnapshot.toTransaction());
+          }
+        }
+      }
+      BesuExecutionTools besuExecTools =
+          new BesuExecutionTools(
+              Optional.of(testInfo),
+              MAINNET_TESTCONFIG(CANCUN), // TODO: make configurable ?
+              ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS,
+              accounts,
+              transactionsIncludingNullTransactionsForEmptyBlocks,
+              true,
+              null);
+      besuExecTools.executeTest();
+      return;
+    }
     ReplayExecutionEnvironment.builder()
         .zkTracer(tracer)
         .useCoinbaseAddressFromBlockHeader(true)

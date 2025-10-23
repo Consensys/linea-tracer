@@ -23,7 +23,6 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
@@ -83,10 +82,10 @@ public class BinOperation extends ModuleOperation {
 
   public void traceBinOperation(int stamp, Trace.Bin trace) {
     trace
-        .inst(UnsignedByte.of(this.opCode().byteValue()))
-        .argument1(this.arg1.getBytes32())
-        .argument2(this.arg2.getBytes32())
-        .res(this.getResult().getBytes32())
+        .inst(opCode.unsignedByteValue())
+        .argument1(arg1.getBytes32())
+        .argument2(arg2.getBytes32())
+        .res(getResult().getBytes32())
         .validateRow();
   }
 }

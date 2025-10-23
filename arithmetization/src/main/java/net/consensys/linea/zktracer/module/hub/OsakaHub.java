@@ -16,8 +16,6 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.txndata.osaka.OsakaTxnData;
 
@@ -29,11 +27,5 @@ public class OsakaHub extends PragueHub {
   @Override
   protected TxnData setTxnData() {
     return new OsakaTxnData(this, wcp(), euc());
-  }
-
-  @Override
-  protected void setClzSection(MessageFrame frame) {
-    new StackOnlySection(this);
-    log2().callLog2(frame.getStackItem(0));
   }
 }

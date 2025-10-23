@@ -82,7 +82,6 @@ import net.consensys.linea.zktracer.module.limits.L1BlockSize;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
-import net.consensys.linea.zktracer.module.log2.Log2;
 import net.consensys.linea.zktracer.module.logdata.LogData;
 import net.consensys.linea.zktracer.module.loginfo.LogInfo;
 import net.consensys.linea.zktracer.module.mmio.Mmio;
@@ -215,7 +214,6 @@ public abstract class Hub implements Module {
   private final Shf shf = new Shf();
   private final Trm trm;
   private final Module rlpUtils = setRlpUtils(wcp);
-  private final Log2 log2 = new Log2();
 
   // other
   private final Blockdata blockdata;
@@ -386,7 +384,6 @@ public abstract class Hub implements Module {
         gas,
         logData,
         logInfo,
-        log2,
         mmu, // WARN: must be traced before the MMIO
         mmio,
         mod,
@@ -471,7 +468,6 @@ public abstract class Hub implements Module {
                     euc,
                     ext,
                     gas,
-                    log2,
                     mmio,
                     mmu,
                     mod,
@@ -1005,13 +1001,6 @@ public abstract class Hub implements Module {
 
     this.handleStack(frame);
 
-    // Trigger basic operations modules
-    if (Exceptions.none(pch.exceptions())) {
-      for (Module m : modules) {
-        m.tracePreOpcode(frame, opCode());
-      }
-    }
-
     if (currentFrame().stack().isOk()) {
       // Tracer for the HUB
       this.traceOpcode(frame);
@@ -1035,26 +1024,18 @@ public abstract class Hub implements Module {
   void traceOpcode(MessageFrame frame) {
     final OpCodeData op = opCodeData();
     switch (op.instructionFamily()) {
-      case ADD, MOD, SHF, WCP, EXT, BATCH, PUSH_POP, DUP, SWAP -> new StackOnlySection(this);
-      case BIN -> {
-        switch (op.mnemonic()) {
-          case AND, OR, XOR, NOT, SIGNEXTEND, BYTE -> {
-            new StackOnlySection(this);
-            bin.callBin(frame, op.mnemonic());
-          }
-          case CLZ -> setClzSection(frame);
-        }
-      }
+      case ADD, BIN, MOD, SHF, WCP, EXT, BATCH, PUSH_POP, DUP, SWAP -> new StackOnlySection(
+          this, op);
       case MACHINE_STATE -> {
         switch (op.mnemonic()) {
           case MSIZE -> new MsizeSection(this);
-          default -> new StackOnlySection(this);
+          default -> new StackOnlySection(this, op);
         }
       }
       case MUL -> {
         switch (op.mnemonic()) {
           case EXP -> new ExpSection(this);
-          case MUL -> new StackOnlySection(this);
+          case MUL -> new StackOnlySection(this, op);
           default -> throw new IllegalStateException(
               String.format("opcode %s not part of the MUL instruction family", this.opCode()));
         }

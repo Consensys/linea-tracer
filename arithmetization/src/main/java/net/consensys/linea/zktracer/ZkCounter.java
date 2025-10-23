@@ -22,7 +22,6 @@ import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.ModuleName.GAS;
-import static net.consensys.linea.zktracer.module.ModuleName.LOG2;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NB_ROWS_ADD;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.NB_ROWS_BLAKEMODEPX_BLAKE;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.NB_ROWS_BLAKEMODEXP_MODEXP;
@@ -158,7 +157,6 @@ public class ZkCounter implements LineCountingTracer {
   final Ext ext = new Ext();
   final CountingOnlyModule gas = new CountingOnlyModule(GAS, trace.gas().spillage());
   final CountingOnlyModule hub = new CountingOnlyModule(HUB, trace.hub().spillage());
-  final CountingOnlyModule log2 = new CountingOnlyModule(LOG2, trace.log2().spillage());
   final CountingOnlyModule logData = new CountingOnlyModule(LOG_DATA, trace.logdata().spillage());
   final CountingOnlyModule logInfo = new CountingOnlyModule(LOG_INFO, trace.loginfo().spillage());
   final CountingOnlyModule mmio = new CountingOnlyModule(MMIO, trace.mmio().spillage());
@@ -256,7 +254,6 @@ public class ZkCounter implements LineCountingTracer {
   public List<Module> uncheckedModules() {
     return List.of(
         euc, // need MMU
-        log2, // some counts come from EXP and is a tiny module so don't care
         mmio, // need MMU
         mmu, // not trivial
         rlpTxn, // need a refacto to have rlpTxn using not only TransactionProcessingMetadata
@@ -476,27 +473,27 @@ public class ZkCounter implements LineCountingTracer {
       }
       case ADD -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        add.tracePreOpcode(frame, opcode.mnemonic());
+        add.callAdd(frame, opcode.mnemonic());
       }
       case MOD -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        mod.tracePreOpcode(frame, opcode.mnemonic());
+        mod.callMod(frame, opcode.mnemonic());
       }
       case SHF -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        shf.tracePreOpcode(frame, opcode.mnemonic());
+        shf.callShf(frame, opcode.mnemonic());
       }
       case BIN -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        bin.tracePreOpcode(frame, opcode.mnemonic());
+        bin.callBin(frame, opcode.mnemonic());
       }
       case WCP -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        // if we count WCP:  wcp.tracePreOpcode(frame, opcode.mnemonic());
+        // if we count WCP:  wcp.callWco(frame, opcode.mnemonic());
       }
       case EXT -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        ext.tracePreOpcode(frame, opcode.mnemonic());
+        ext.callExt(frame, opcode.mnemonic());
       }
       case MACHINE_STATE -> {
         if (opcode.mnemonic() == MSIZE) {
@@ -511,11 +508,11 @@ public class ZkCounter implements LineCountingTracer {
           case OpCode.EXP -> {
             hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP + 1);
             exp.call(new ExplogExpCall(frame));
-            mul.tracePreOpcode(frame, opcode.mnemonic());
+            mul.callMul(frame, opcode.mnemonic());
           }
           case OpCode.MUL -> {
             hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-            mul.tracePreOpcode(frame, opcode.mnemonic());
+            mul.callMul(frame, opcode.mnemonic());
           }
         }
       }

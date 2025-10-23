@@ -99,7 +99,6 @@ import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.PowerRt;
-import net.consensys.linea.zktracer.module.tables.bin.BinRt;
 import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.trm.Trm;
@@ -272,10 +271,6 @@ public abstract class Hub implements Module {
   private final BlakeRounds blakeRounds = new BlakeRounds();
 
   // Related to Bls
-  // TODO: remove me when Linea supports Cancun & Prague precompiles
-  private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL) {};
-  private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
-
   final IncrementingModule pointEvaluationEffectiveCall =
       new IncrementingModule(PRECOMPILE_BLS_POINT_EVALUATION_EFFECTIVE_CALLS);
   final IncrementingModule pointEvaluationFailureCall =
@@ -337,9 +332,7 @@ public abstract class Hub implements Module {
         blsG1MembershipCalls,
         blsG2MembershipCalls,
         l1BlockSize,
-        l2L1Logs,
-        pointEval,
-        bls);
+        l2L1Logs);
   }
 
   /*
@@ -459,7 +452,7 @@ public abstract class Hub implements Module {
     blockhash = new Blockhash(this, wcp, historicalBlockHashes);
 
     refTableModules =
-        Stream.of(new BinRt(), setBlsRt(), setInstructionDecoder(), setPower())
+        Stream.of(setBlsRt(), setInstructionDecoder(), setPower())
             .filter(Objects::nonNull)
             .toList();
 

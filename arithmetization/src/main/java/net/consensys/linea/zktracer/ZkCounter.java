@@ -76,8 +76,8 @@ import static net.consensys.linea.zktracer.module.stp.StpOperation.NB_ROWS_STP;
 import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysfNoopTransaction.NB_ROWS_TXN_DATA_SYSF_NOOP;
 import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysiEip2935Transaction.NB_ROWS_TXN_DATA_SYSI_EIP2935;
 import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysiEip4788Transaction.NB_ROWS_TXN_DATA_SYSI_EIP4788;
-import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.UserTransaction.NB_ROWS_TXN_DATA_USER_1559_SEMANTIC;
-import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.UserTransaction.NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC;
+import static net.consensys.linea.zktracer.module.txndata.osaka.OsakaUserTransaction.NB_ROWS_TXN_DATA_OSAKA_USER_1559_SEMANTIC;
+import static net.consensys.linea.zktracer.module.txndata.osaka.OsakaUserTransaction.NB_ROWS_TXN_DATA_OSAKA_USER_NO_1559_SEMANTIC;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static net.consensys.linea.zktracer.types.TransactionProcessingMetadata.computeRequiresEvmExecution;
@@ -88,6 +88,7 @@ import static org.hyperledger.besu.evm.frame.MessageFrame.State.COMPLETED_SUCCES
 import java.util.*;
 import java.util.stream.Stream;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
@@ -213,8 +214,10 @@ public class ZkCounter implements LineCountingTracer {
 
   // Related to Bls
   // remove me when Linea supports Cancun & Prague precompiles
+  @Getter
   private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL) {};
-  private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
+
+  @Getter private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
 
   final IncrementingModule pointEvaluationEffectiveCall =
       new IncrementingModule(PRECOMPILE_BLS_POINT_EVALUATION_EFFECTIVE_CALLS);
@@ -416,8 +419,8 @@ public class ZkCounter implements LineCountingTracer {
         }
         txnData.updateTally(
             transactionHasEip1559GasSemantics(tx)
-                ? NB_ROWS_TXN_DATA_USER_1559_SEMANTIC
-                : NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC);
+                ? NB_ROWS_TXN_DATA_OSAKA_USER_1559_SEMANTIC
+                : NB_ROWS_TXN_DATA_OSAKA_USER_NO_1559_SEMANTIC);
         // deploymentTransaction:
         if (tx.isContractCreation()) {
           rlpAddr.updateTally(NB_ROWS_RLPADDR_CREATE);
@@ -771,7 +774,8 @@ public class ZkCounter implements LineCountingTracer {
           bls.detectEvent();
         }
         if (callDataSize != 0) {
-          blsdata.callBls(0, precompile, frame.getInputData(), returnData, prcSuccess);
+          // TODO: temporary commented out
+          // blsdata.callBls(0, precompile, frame.getInputData(), returnData, prcSuccess);
         }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
         oob.updateTally(oobLineCountForPrc(precompile));

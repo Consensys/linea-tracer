@@ -18,10 +18,17 @@ package net.consensys.linea.zktracer.module.hub;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import net.consensys.linea.zktracer.module.txndata.TxnData;
+import net.consensys.linea.zktracer.module.txndata.osaka.OsakaTxnData;
 
 public class OsakaHub extends PragueHub {
   public OsakaHub(ChainConfig chain) {
     super(chain);
+  }
+
+  @Override
+  protected TxnData setTxnData() {
+    return new OsakaTxnData(this, wcp(), euc());
   }
 
   @Override

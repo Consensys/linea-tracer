@@ -80,7 +80,7 @@ public class BinOperation extends ModuleOperation {
     return BaseBytes.fromBytes32(Bytes32.leftPad(Bytes.ofUnsignedShort(result)));
   }
 
-  public void traceBinOperation(int stamp, Trace.Bin trace) {
+  public void traceBinOperation(Trace.Bin trace) {
     trace
         .inst(opCode.unsignedByteValue())
         .argument1(arg1.getBytes32())

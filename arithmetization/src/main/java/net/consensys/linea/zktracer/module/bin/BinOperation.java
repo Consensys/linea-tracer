@@ -54,7 +54,7 @@ public class BinOperation extends ModuleOperation {
       case NOT -> arg1.not();
       case BYTE -> byteResult();
       case SIGNEXTEND -> signExtensionResult();
-      case CLZ -> fromInt(arg1.isZero() ? 256 : arg1.getBytes32().bitLength());
+      case CLZ -> fromInt(256 - arg1.getBytes32().bitLength());
       default -> throw new IllegalStateException("Bin doesn't support OpCode" + opCode);
     };
   }

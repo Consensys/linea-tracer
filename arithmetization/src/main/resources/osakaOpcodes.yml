@@ -221,7 +221,8 @@ opcodes:
       pattern: ONE_ONE
       alpha: 1
       delta: 1
-      staticGas: G_VERY_LOW
+      staticGas: G_LOW
+      flag1: true
   - mnemonic: SHA3
     value: 0x20
     instructionFamily: KEC

@@ -68,7 +68,6 @@ import static net.consensys.linea.zktracer.module.hub.section.transients.TStoreS
 import static net.consensys.linea.zktracer.module.hub.section.txInitializationSection.TxInitializationSection.NB_ROWS_HUB_INIT;
 import static net.consensys.linea.zktracer.module.logdata.LogData.lineCountForLogData;
 import static net.consensys.linea.zktracer.module.loginfo.LogInfo.lineCountForLogInfo;
-import static net.consensys.linea.zktracer.module.mod.ModOperation.NB_ROWS_MOD;
 import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunMSizeMxpCall.NB_ROWS_MXP_MSIZE;
 import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpdateMxpCall.NB_ROWS_MXP_UPDT_B;
 import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpdateWordPricingMxpCall.NB_ROWS_MXP_UPDT_W;
@@ -687,7 +686,6 @@ public class ZkCounter implements LineCountingTracer {
     final boolean prcSuccess = frame.getState() == COMPLETED_SUCCESS;
     final Bytes returnData = output == null ? Bytes.EMPTY : output;
 
-    // MMU
     switch (precompile) {
       case PRC_ECRECOVER, PRC_ECADD, PRC_ECMUL -> {
         // trigger EcData to count the underlying EC operations
@@ -701,7 +699,7 @@ public class ZkCounter implements LineCountingTracer {
       case PRC_SHA2_256 -> {
         hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
         oob.updateTally(oobLineCountForPrc(precompile));
-        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        mod.updateTally(modLinesComingFromOobCall(precompile));
         if (prcSuccess && callDataSize != 0) {
           shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) + NB_ROWS_SHAKIRA_RESULT);
           sha256Blocks.updateTally(callData.size());
@@ -710,7 +708,7 @@ public class ZkCounter implements LineCountingTracer {
       case PRC_RIPEMD_160 -> {
         hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
         oob.updateTally(oobLineCountForPrc(precompile));
-        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        mod.updateTally(modLinesComingFromOobCall(precompile));
         if (prcSuccess && callDataSize != 0) {
           shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) + NB_ROWS_SHAKIRA_RESULT);
           ripemdBlocks.updateTally(callDataSize);
@@ -719,7 +717,7 @@ public class ZkCounter implements LineCountingTracer {
       case PRC_IDENTITY -> {
         hub.updateTally(NB_ROWS_HUB_PRC_IDENTITY);
         oob.updateTally(oobLineCountForPrc(precompile));
-        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        mod.updateTally(modLinesComingFromOobCall(precompile));
       }
       case PRC_MODEXP -> {
         hub.updateTally(NB_ROWS_HUB_PRC_MODEXP);
@@ -737,7 +735,7 @@ public class ZkCounter implements LineCountingTracer {
           exp.call(modexpLogCallToExp);
         }
         oob.updateTally(oobLineCountForPrc(precompile));
-        mod.updateTally(2 * NB_ROWS_MOD); // 2 coming from OOB pricing call
+        mod.updateTally(modLinesComingFromOobCall(precompile));
       }
       case PRC_ECPAIRING -> {
         // trigger EcData to count the underlying EC operations
@@ -747,7 +745,7 @@ public class ZkCounter implements LineCountingTracer {
         }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
         oob.updateTally(oobLineCountForPrc(precompile));
-        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        mod.updateTally(modLinesComingFromOobCall(precompile));
       }
       case PRC_BLAKE2F -> {
         blakeEffectiveCall.updateTally(true);
@@ -769,12 +767,7 @@ public class ZkCounter implements LineCountingTracer {
         }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
         oob.updateTally(oobLineCountForPrc(precompile));
-        if (precompile == PRC_BLS_PAIRING_CHECK) {
-          mod.updateTally(NB_ROWS_MOD); // coming from OOB call
-        }
-        if (precompile.isAnyOf(PRC_BLS_G1_MSM, PRC_BLS_G2_MSM)) {
-          mod.updateTally(2 * NB_ROWS_MOD); // coming from OOB call
-        }
+        mod.updateTally(modLinesComingFromOobCall(precompile));
       }
       default -> throw new IllegalStateException("Unsupported precompile: " + precompile);
     }

@@ -27,10 +27,10 @@ public class ExpSection extends TraceSection {
     // 1 + 1     (stack, misc)
     // 1 + 1 + 1 (stack, misc, context)
     super(hub, Exceptions.none(hub.pch().exceptions()) ? (short) 3 : (short) 2);
-    final MessageFrame currentFrame = hub.messageFrame();
-    final ExpCall expCall = new ExplogExpCall(currentFrame);
+    final MessageFrame messageFrame = hub.messageFrame();
+    final ExpCall expCall = new ExplogExpCall(messageFrame);
     final ImcFragment miscFragment = ImcFragment.empty(hub).callExp(expCall);
     this.addStackAndFragments(hub, miscFragment);
-    hub.mul().callMul(currentFrame, hub.opCode());
+    hub.mul().callMul(messageFrame, hub.opCode());
   }
 }

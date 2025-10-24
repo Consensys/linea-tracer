@@ -17,6 +17,10 @@ package net.consensys.linea.zktracer.forkSpecific.osaka;
 
 import static net.consensys.linea.zktracer.Trace.EVM_INST_CLZ;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -27,10 +31,6 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
 
 public class ClzTests extends TracerTestBase {
   /** Tests from the EIP: <a href="https://eips.ethereum.org/EIPS/eip-7939#test-cases">...</a> */
@@ -122,23 +122,23 @@ public class ClzTests extends TracerTestBase {
         .run(chainConfig, testInfo);
   }
 
-  @Tag("nightly")
+  @Tag("weekly")
   @ParameterizedTest
   @MethodSource("allBitTestForClzSource")
-  void extensiveIncompletePushTest(Bytes32 i, TestInfo testInfo) {
+  void extensiveBitPossibilityForClz(Bytes32 i, TestInfo testInfo) {
     BytecodeRunner.of(
-                    BytecodeCompiler.newProgram(chainConfig)
-                            .push(i)
-                            .immediate(EVM_INST_CLZ) // CLZ
-                            .compile())
-            .run(chainConfig, testInfo);
+            BytecodeCompiler.newProgram(chainConfig)
+                .push(i)
+                .immediate(EVM_INST_CLZ) // CLZ
+                .compile())
+        .run(chainConfig, testInfo);
   }
 
   private static Stream<Arguments> allBitTestForClzSource() {
     final Bytes32 maxBytes32 = Bytes32.repeat((byte) 0xff);
     final List<Arguments> allBitPosition = new ArrayList<>();
     for (int k = 0; k <= 256; k++) {
-        allBitPosition.add(Arguments.of(maxBytes32.shiftRight(k)));
+      allBitPosition.add(Arguments.of(maxBytes32.shiftRight(k)));
     }
     return allBitPosition.stream();
   }

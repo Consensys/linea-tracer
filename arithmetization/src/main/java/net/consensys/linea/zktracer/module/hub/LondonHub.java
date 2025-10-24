@@ -163,9 +163,4 @@ public class LondonHub extends Hub {
   protected void setSelfdestructSection(final Hub hub, final MessageFrame frame) {
     new LondonSelfdestructSection(hub, frame);
   }
-
-  @Override
-  protected void setClzSection(MessageFrame frame) {
-    throw new IllegalStateException("CLZ opcode appears in Osaka");
-  }
 }

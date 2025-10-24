@@ -1191,6 +1191,4 @@ public abstract class Hub implements Module {
   protected abstract void traceSystemFinalTransaction();
 
   protected abstract void setSelfdestructSection(Hub hub, final MessageFrame frame);
-
-  protected abstract void setClzSection(final MessageFrame frame);
 }

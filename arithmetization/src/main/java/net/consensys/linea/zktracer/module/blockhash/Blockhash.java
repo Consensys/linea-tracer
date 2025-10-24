@@ -37,7 +37,6 @@ import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
@@ -95,8 +94,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
     lastBlockHash = blockHeader.getBlockHash();
   }
 
-  public void callBlockHashPreExecution(MessageFrame frame, OpCode opcode) {
-    checkArgument(opcode == BLOCKHASH, "Only BLOCKHASH opcode is allowed");
+  public void callBlockhash(MessageFrame frame) {
     blockhashArg = Bytes32.leftPad(frame.getStackItem(0));
     hub.defers().scheduleForPostExecution(this);
   }

@@ -8,14 +8,14 @@ import net.consensys.linea.zktracer.module.blockdata.BlockDataExoCall;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class CoinbaseInstruction extends BlockDataInstruction {
 
-  private final int relBlock;
-
   public CoinbaseInstruction(
+      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -23,12 +23,11 @@ public class CoinbaseInstruction extends BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
-    super(chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
-    this.relBlock = (int) (blockHeader.getNumber() - firstBlockNumber + 1);
+    super(opCode, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
   }
 
   public void handle() {
-    EWord data = EWord.ofHexString(this.hub.coinbaseAddressOfRelativeBlock(relBlock).toHexString());
+    data = EWord.ofHexString(this.hub.coinbaseAddressOfRelativeBlock(relBlock).toHexString());
     // row i
     exoCalls[0] = BlockDataExoCall.callToLT(this.wcp, data, POWER_256_20);
   }

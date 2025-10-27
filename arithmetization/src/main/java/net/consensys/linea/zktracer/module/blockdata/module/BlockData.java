@@ -58,12 +58,14 @@ public abstract class BlockData implements Module {
     protected final Map<Long, Bytes> blobBaseFees;
   @Getter private final List<BlockDataOperation> operations = new ArrayList<>();
   @Getter public final List<BlockDataInstruction> instructions = new ArrayList<>();
+  @Getter public final Map<Long, List<BlockDataInstruction>> blockInstructions = new HashMap<>();
   @Getter public long firstBlockNumber;
+  public long blockTimestamp;
+  public long blockNumber;
 
   private boolean conflationFinished = false;
 
   @Getter public final OpCode[] opCodes = setOpCodes();
-  @Getter public final BlockDataInstruction[] instructionsList = setInstructions();
 
   @Override
   public ModuleName moduleKey() {
@@ -96,31 +98,22 @@ public abstract class BlockData implements Module {
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    final long blockNumber = blockHeader.getNumber();
-    if (instructions.isEmpty()) {
+    blockNumber = blockHeader.getNumber();
+    blockTimestamp = blockHeader.getTimestamp();
+    if (blockInstructions.isEmpty()) {
       firstBlockNumber = blockNumber;
     }
     final BlockHeader previousBlockHeader = null;
     // instructions.isEmpty() ? null : instructions.getLast().blockHeader();
+    List<BlockDataInstruction> blockDataInstructionList = new ArrayList<>();
     for (OpCode opCode : opCodes) {
       BlockDataInstruction blockDataInstruction =
           getInstruction(opCode, blockHeader, previousBlockHeader);
       blockDataInstruction.handle();
-      instructions.addLast(blockDataInstruction);
+      blockDataInstructionList.addLast(blockDataInstruction);
     }
+    blockInstructions.put(blockNumber - firstBlockNumber, blockDataInstructionList);
   }
-
-  protected abstract BlockDataOperation setBlockDataOperation(
-      Hub hub,
-      BlockHeader blockHeader,
-      BlockHeader previousBlockHeader,
-      int nbOfTxsInBlock,
-      Wcp wcp,
-      Euc euc,
-      ChainConfig chain,
-      OpCode opCode,
-      long firstBlockNumber,
-      Map<Long, Bytes> blobBaseFees);
 
   protected abstract OpCode[] setOpCodes();
 
@@ -132,7 +125,7 @@ public abstract class BlockData implements Module {
 
   @Override
   public int lineCount() {
-    final int numberOfBlock = (operations.size() / opCodes.length) + (conflationFinished ? 0 : 1);
+    final int numberOfBlock = blockInstructions.size() + (conflationFinished ? 0 : 1);
     return numberOfBlock * numberOfLinesPerBlock();
   }
 
@@ -148,10 +141,19 @@ public abstract class BlockData implements Module {
     return trace.blockdata().headers(this.lineCount());
   }
 
+  protected abstract void traceTimestampAndNumber(Trace.Blockdata trace);
+
+  protected abstract void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax);
+
   @Override
   public void commit(Trace trace) {
-    for (BlockDataOperation blockData : operations) {
-      blockData.trace(trace.blockdata());
+
+    for (Map.Entry<Long, List<BlockDataInstruction>> entry : blockInstructions.entrySet()) {
+      Long key = entry.getKey();
+      List<BlockDataInstruction> value = entry.getValue();
+      for (BlockDataInstruction blockDataInstruction : value) {
+        blockDataInstruction.trace(trace.blockdata());
+      }
     }
   }
 
@@ -165,21 +167,21 @@ public abstract class BlockData implements Module {
       case COINBASE -> new CoinbaseInstruction(
           chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case TIMESTAMP -> new TimestampInstruction(
-          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          OpCode.TIMESTAMP, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case NUMBER -> new NumberInstruction(
-          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          OpCode.NUMBER, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case DIFFICULTY -> new DifficultyInstruction(
-          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          OpCode.DIFFICULTY, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case PREVRANDAO -> new PrevRandaoInstruction(
-          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          OpCode.PREVRANDAO, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case GASLIMIT -> new GasLimitInstruction(
-          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          OpCode.GASLIMIT, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case CHAINID -> new ChainIdInstruction(
-          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          OpCode.CHAINID, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case BASEFEE -> new BaseFeeInstruction(
-          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          OpCode.BASEFEE, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case BLOBBASEFEE -> new BlobBaseFeeInstruction(
-          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          OpCode.BLOBBASEFEE, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       default -> throw new IllegalArgumentException("[BlockData] Unsupported opcode " + opCode);
     };
   }

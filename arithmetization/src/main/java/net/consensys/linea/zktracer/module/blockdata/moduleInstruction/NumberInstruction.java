@@ -8,6 +8,7 @@ import net.consensys.linea.zktracer.module.blockdata.BlockDataExoCall;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
@@ -16,6 +17,7 @@ public class NumberInstruction extends BlockDataInstruction {
   private final boolean firstBlockInConflation;
 
   public NumberInstruction(
+      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -23,12 +25,12 @@ public class NumberInstruction extends BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
-    super(chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+    super(opCode, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
     this.firstBlockInConflation = (blockHeader.getNumber() == firstBlockNumber);
   }
 
   public void handle() {
-    EWord data = EWord.of(blockHeader.getNumber());
+    data = EWord.of(blockHeader.getNumber());
 
     exoCalls[0] = BlockDataExoCall.callToIsZero(this.wcp, EWord.of(firstBlockNumber));
 

@@ -8,12 +8,14 @@ import net.consensys.linea.zktracer.module.blockdata.BlockDataExoCall;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class ChainIdInstruction extends BlockDataInstruction {
 
   public ChainIdInstruction(
+      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -21,11 +23,11 @@ public class ChainIdInstruction extends BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
-    super(chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+    super(opCode, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
   }
 
   public void handle() {
-    EWord data = EWord.of(chainConfig.id);
+    data = EWord.of(chainConfig.id);
     // row i
     exoCalls[0] = BlockDataExoCall.callToGEQ(wcp, data, EWord.ZERO);
   }

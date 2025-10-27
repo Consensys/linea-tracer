@@ -9,12 +9,14 @@ import net.consensys.linea.zktracer.module.blockdata.BlockDataExoCall;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class BlobBaseFeeInstruction extends BlockDataInstruction {
 
   public BlobBaseFeeInstruction(
+      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -22,11 +24,11 @@ public class BlobBaseFeeInstruction extends BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
-    super(chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+    super(opCode, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
   }
 
   public void handle() {
-    EWord data = EWord.of(LINEA_BLOB_BASE_FEE);
+    data = EWord.of(LINEA_BLOB_BASE_FEE);
 
     // row i
     exoCalls[0] = BlockDataExoCall.callToGEQ(this.wcp, data, EWord.ZERO);

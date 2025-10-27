@@ -1,6 +1,9 @@
 package net.consensys.linea.zktracer.module.blockdata.moduleInstruction;
 
+import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.Trace.TWOFIFTYSIX_TO_THE_TWENTY;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
@@ -10,10 +13,13 @@ import net.consensys.linea.zktracer.module.blockdata.BlockDataExoCall;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public abstract class BlockDataInstruction {
+  public final OpCode opCode;
   public final Hub hub;
   public final Wcp wcp;
   public final Euc euc;
@@ -21,6 +27,9 @@ public abstract class BlockDataInstruction {
   public final BlockHeader prevBlockHeader;
   public final ChainConfig chainConfig;
   public final long firstBlockNumber;
+
+  protected EWord data;
+  private final int relBlock;
 
   public static final EWord POWER_256_20 = EWord.of(TWOFIFTYSIX_TO_THE_TWENTY);
   public static final EWord POWER_256_8 = EWord.of(BigInteger.ONE.shiftLeft(8 * 8));
@@ -30,6 +39,7 @@ public abstract class BlockDataInstruction {
   public final BlockDataExoCall[] exoCalls = new BlockDataExoCall[nbRows()];
 
   public BlockDataInstruction(
+      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -37,6 +47,7 @@ public abstract class BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
+    this.opCode = opCode;
     this.hub = hub;
     this.wcp = wcp;
     this.euc = euc;
@@ -44,6 +55,7 @@ public abstract class BlockDataInstruction {
     this.chainConfig = chain;
     this.firstBlockNumber = firstBlockNumber;
     this.prevBlockHeader = prevBlockHeader;
+    this.relBlock = (int) (blockHeader.getNumber() - firstBlockNumber + 1);
   }
 
   public abstract void handle();
@@ -51,4 +63,34 @@ public abstract class BlockDataInstruction {
   public abstract int nbRows();
 
   public abstract void traceInstruction(Trace.Blockdata trace);
+
+  public void trace(Trace.Blockdata trace) {
+    int nbRows = nbRows();
+    for (short ct = 0; ct < nbRows; ct++) {
+      trace
+          .iomf(true)
+          .ctMax(nbRows - 1)
+          .ct(ct)
+          .inst(opCode.unsignedByteValue()) // not fork dependant
+          .coinbaseHi(hub.coinbaseAddressOfRelativeBlock(relBlock).slice(0, 4).toLong())
+          .coinbaseLo(hub.coinbaseAddressOfRelativeBlock(relBlock).slice(4, LLARGE))
+          .blockGasLimit(Bytes.ofUnsignedLong(blockHeader.getGasLimit()))
+          .basefee(bigIntegerToBytes(blockHeader.getBaseFee().get().getAsBigInteger()))
+          .firstBlockNumber(firstBlockNumber)
+          .relBlock((short) relBlock)
+          .dataHi(data.hi())
+          .dataLo(data.lo())
+          .arg1Hi(exoCalls[ct].arg1Hi())
+          .arg1Lo(exoCalls[ct].arg1Lo())
+          .arg2Hi(exoCalls[ct].arg2Hi())
+          .arg2Lo(exoCalls[ct].arg2Lo())
+          .res(exoCalls[ct].res())
+          .exoInst(exoCalls[ct].instruction())
+          .wcpFlag(exoCalls[ct].wcpFlag())
+          .eucFlag(exoCalls[ct].eucFlag());
+      // traceRelTxNumMax(trace, (short) relTxMax);
+      // traceTimestampAndNumber(trace);
+      trace.fillAndValidateRow();
+    }
+  }
 }

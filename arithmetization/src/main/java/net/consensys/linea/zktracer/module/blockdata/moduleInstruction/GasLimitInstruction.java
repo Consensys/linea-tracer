@@ -11,6 +11,7 @@ import net.consensys.linea.zktracer.module.blockdata.BlockDataExoCall;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.data.BlockHeader;
@@ -22,6 +23,7 @@ public class GasLimitInstruction extends BlockDataInstruction {
   private final EWord gasLimitMaximum;
 
   public GasLimitInstruction(
+      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -29,14 +31,14 @@ public class GasLimitInstruction extends BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
-    super(chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+    super(opCode, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
     this.firstBlockInConflation = (blockHeader.getNumber() == firstBlockNumber);
     this.gasLimitMinimum = EWord.of(chain.gasLimitMinimum);
     this.gasLimitMaximum = EWord.of(chain.gasLimitMaximum);
   }
 
   public void handle() {
-    EWord data = EWord.of(blockHeader.getGasLimit());
+    data = EWord.of(blockHeader.getGasLimit());
 
     // row i
     // comparison to minimum

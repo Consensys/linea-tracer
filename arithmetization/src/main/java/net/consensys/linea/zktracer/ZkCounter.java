@@ -196,6 +196,8 @@ public class ZkCounter implements LineCountingTracer {
       new CountingOnlyModule(PRECOMPILE_ECPAIRING_MILLER_LOOPS);
   private final IncrementingModule ecPairingFinalExponentiations =
       new IncrementingModule(PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS);
+  private final IncrementingModule p256VerifyEffectiveCalls =
+      new IncrementingModule(PRECOMPILE_P256_VERIFY_EFFECTIVE_CALLS);
 
   //  related to Modexp
   private final IncrementAndDetectModule modexpEffectiveCall =
@@ -337,7 +339,8 @@ public class ZkCounter implements LineCountingTracer {
             ecRecoverEffectiveCall,
             ecPairingG2MembershipCalls,
             ecPairingMillerLoops,
-            ecPairingFinalExponentiations);
+            ecPairingFinalExponentiations,
+            p256VerifyEffectiveCalls);
     blsdata =
         new BlsData(
             wcp,

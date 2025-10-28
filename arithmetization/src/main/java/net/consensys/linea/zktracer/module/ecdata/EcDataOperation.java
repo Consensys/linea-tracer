@@ -122,6 +122,8 @@ public class EcDataOperation extends ModuleOperation {
   @Getter private int circuitSelectorEcPairingCounter = 0;
   @Getter private int circuitSelectorG2MembershipCounter = 0;
 
+  private boolean circuitSelectorP256Verify;
+
   private final List<Boolean> notOnG2; // counter-constant
   private final List<Boolean> notOnG2Acc; // counter-constant
   @Getter private boolean notOnG2AccMax; // index-constant
@@ -761,6 +763,7 @@ public class EcDataOperation extends ModuleOperation {
           .circuitSelectorEcadd(circuitSelectorEcadd)
           .circuitSelectorEcmul(circuitSelectorEcmul)
           .circuitSelectorEcpairing(circuitSelectorEcPairing)
+          .circuitSelectorP256Verify(circuitSelectorP256Verify)
           .circuitSelectorG2Membership(g2MembershipTestRequired) // = circuitSelectorG2Membership
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))

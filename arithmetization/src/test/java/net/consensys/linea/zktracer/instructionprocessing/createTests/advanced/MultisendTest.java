@@ -32,7 +32,7 @@ import org.junit.jupiter.api.TestInfo;
 public class MultisendTest extends TracerTestBase {
 
   @Test
-  void deployScenario1NoRevert(TestInfo testInfo) {
+  void test(TestInfo testInfo) {
 
     // Account where smart contrat lies
     ToyAccount customAccountSmartContract =
@@ -52,6 +52,7 @@ public class MultisendTest extends TracerTestBase {
         ToyTransaction.builder()
             .to(customAccountSmartContract)
             .payload(multiSendPayload)
+            .sender(userAccount)
             .keyPair(keyPair)
             .gasLimit(gasLimit)
             .build();

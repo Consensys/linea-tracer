@@ -17,20 +17,16 @@ package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 import java.util.Arrays;
 import java.util.Collections;
 
-import net.consensys.linea.testing.generated.MultiSendCallOnly;
+import net.consensys.linea.testing.generated.OdosRouterV2;
 import org.apache.tuweni.bytes.Bytes;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Function;
 
-public class MultisendPayload {
+public class OdosRouterV2Payload {
 
-  public static Bytes multiSend(String payload) {
+  public static Bytes swapCompact() {
     final Function function =
-        new Function(
-            MultiSendCallOnly.FUNC_MULTISEND,
-            Arrays.asList(
-                new org.web3j.abi.datatypes.DynamicBytes(Bytes.fromHexString(payload).toArray())),
-            Collections.emptyList());
+        new Function(OdosRouterV2.FUNC_SWAPCOMPACT, Arrays.asList(), Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 }

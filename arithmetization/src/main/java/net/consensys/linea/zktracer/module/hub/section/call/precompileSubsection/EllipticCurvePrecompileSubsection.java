@@ -30,17 +30,18 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.CommonPrecompileOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.EcPairingOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.BlsPairingCheckOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsG1AddOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsG2AddOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsMapFp2ToG2OobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsMapFpToG1OobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsPointEvaluationOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.msm.BlsG1MsmOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.msm.BlsG2MsmOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.ecAddMulRecover.EcAddOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.ecAddMulRecover.EcMulOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.ecAddMulRecover.EcRecoverOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.postCancun.BlsPairingCheckOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.postCancun.fixedSizeFixedGasCost.BlsG1AddOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.postCancun.fixedSizeFixedGasCost.BlsG2AddOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.postCancun.fixedSizeFixedGasCost.BlsMapFp2ToG2OobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.postCancun.fixedSizeFixedGasCost.BlsMapFpToG1OobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.postCancun.fixedSizeFixedGasCost.BlsPointEvaluationOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.postCancun.fixedSizeFixedGasCost.P256VerifyOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.postCancun.msm.BlsG1MsmOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.postCancun.msm.BlsG2MsmOobCall;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
@@ -70,6 +71,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
           case PRC_BLS_PAIRING_CHECK -> new BlsPairingCheckOobCall(calleeGas);
           case PRC_BLS_MAP_FP_TO_G1 -> new BlsMapFpToG1OobCall(calleeGas);
           case PRC_BLS_MAP_FP2_TO_G2 -> new BlsMapFp2ToG2OobCall(calleeGas);
+          case PRC_P256_VERIFY -> new P256VerifyOobCall(calleeGas);
           default -> throw new IllegalArgumentException(
               String.format(
                   "Precompile address %s not supported by constructor", this.flag().toString()));

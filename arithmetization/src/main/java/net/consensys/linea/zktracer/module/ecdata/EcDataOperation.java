@@ -46,9 +46,24 @@ import static net.consensys.linea.zktracer.Trace.PHASE_ECPAIRING_DATA;
 import static net.consensys.linea.zktracer.Trace.PHASE_ECPAIRING_RESULT;
 import static net.consensys.linea.zktracer.Trace.PHASE_ECRECOVER_DATA;
 import static net.consensys.linea.zktracer.Trace.PHASE_ECRECOVER_RESULT;
+import static net.consensys.linea.zktracer.Trace.PHASE_P256_VERIFY_DATA;
+import static net.consensys.linea.zktracer.Trace.PHASE_P256_VERIFY_RESULT;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.A_COEFF_R1_HI;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.A_COEFF_R1_LO;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.B_COEFF_R1_HI;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.B_COEFF_R1_LO;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.INDEX_MAX_P256_VERIFY_DATA;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.INDEX_MAX_P256_VERIFY_RESULT;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.P_R1_HI;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.P_R1_LO;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.SECP256R1N_HI;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.SECP256R1N_LO;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.TOTAL_SIZE_P256_VERIFY_DATA;
+import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.TOTAL_SIZE_P256_VERIFY_RESULT;
 import static net.consensys.linea.zktracer.module.Util.rightPaddedSlice;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
+import static net.consensys.linea.zktracer.types.EWord.ZERO;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.util.List;
@@ -73,6 +88,12 @@ public class EcDataOperation extends ModuleOperation {
   private static final EWord P_BN = EWord.of(P_BN_HI, P_BN_LO);
   public static final EWord SECP256K1N = EWord.of(SECP256K1N_HI, SECP256K1N_LO);
   public static final int nBYTES_OF_DELTA_BYTES = 4;
+
+  public static final EWord P_R1 = EWord.of(P_R1_HI, P_R1_LO);
+  public static final EWord SECP256R1N = EWord.of(SECP256R1N_HI, SECP256R1N_LO);
+
+  public static final EWord A_COEFF_R1 = EWord.of(A_COEFF_R1_HI, A_COEFF_R1_LO);
+  public static final EWord B_COEFF_R1 = EWord.of(B_COEFF_R1_HI, B_COEFF_R1_LO);
 
   private final Bytes returnData;
 
@@ -159,6 +180,7 @@ public class EcDataOperation extends ModuleOperation {
                 callDataSize % TOTAL_SIZE_ECPAIRING_DATA_MIN);
             yield callDataSize;
           }
+          case PRC_P256_VERIFY -> TOTAL_SIZE_P256_VERIFY_DATA;
           default -> throw new IllegalArgumentException(
               "EcDataOperation expects to be called on an elliptic curve precompile, not on "
                   + precompileFlag.name());
@@ -225,6 +247,7 @@ public class EcDataOperation extends ModuleOperation {
       case PRC_ECADD -> ecDataOperation.handleAdd();
       case PRC_ECMUL -> ecDataOperation.handleMul();
       case PRC_ECPAIRING -> ecDataOperation.handlePairing();
+      case PRC_P256_VERIFY -> ecDataOperation.handleP256Verify();
     }
     return ecDataOperation;
   }
@@ -237,6 +260,7 @@ public class EcDataOperation extends ModuleOperation {
         case PRC_ECADD -> TOTAL_SIZE_ECADD_DATA;
         case PRC_ECMUL -> TOTAL_SIZE_ECMUL_DATA;
         case PRC_ECPAIRING -> TOTAL_SIZE_ECPAIRING_DATA_MIN * totalPairings;
+        case PRC_P256_VERIFY -> TOTAL_SIZE_P256_VERIFY_DATA;
         default -> throw new IllegalArgumentException("invalid EC type");
       };
     } else {
@@ -245,6 +269,7 @@ public class EcDataOperation extends ModuleOperation {
         case PRC_ECADD -> successBit ? TOTAL_SIZE_ECADD_RESULT : 0;
         case PRC_ECMUL -> successBit ? TOTAL_SIZE_ECMUL_RESULT : 0;
         case PRC_ECPAIRING -> successBit ? TOTAL_SIZE_ECPAIRING_RESULT : 0;
+        case PRC_P256_VERIFY -> successBit ? TOTAL_SIZE_P256_VERIFY_RESULT : 0;
         default -> throw new IllegalArgumentException("invalid EC type");
       };
     }
@@ -258,6 +283,7 @@ public class EcDataOperation extends ModuleOperation {
         case PRC_ECADD -> PHASE_ECADD_DATA;
         case PRC_ECMUL -> PHASE_ECMUL_DATA;
         case PRC_ECPAIRING -> PHASE_ECPAIRING_DATA;
+        case PRC_P256_VERIFY -> PHASE_P256_VERIFY_DATA;
         default -> throw new IllegalArgumentException("invalid EC type");
       };
     } else {
@@ -266,6 +292,7 @@ public class EcDataOperation extends ModuleOperation {
         case PRC_ECADD -> PHASE_ECADD_RESULT;
         case PRC_ECMUL -> PHASE_ECMUL_RESULT;
         case PRC_ECPAIRING -> PHASE_ECPAIRING_RESULT;
+        case PRC_P256_VERIFY -> PHASE_P256_VERIFY_RESULT;
         default -> throw new IllegalArgumentException("invalid EC type");
       };
     }
@@ -279,6 +306,7 @@ public class EcDataOperation extends ModuleOperation {
         case PRC_ECADD -> INDEX_MAX_ECADD_DATA;
         case PRC_ECMUL -> INDEX_MAX_ECMUL_DATA;
         case PRC_ECPAIRING -> (INDEX_MAX_ECPAIRING_DATA_MIN + 1) * totalPairings - 1;
+        case PRC_P256_VERIFY -> INDEX_MAX_P256_VERIFY_DATA;
         default -> throw new IllegalArgumentException("invalid EC type");
       };
     } else {
@@ -287,6 +315,7 @@ public class EcDataOperation extends ModuleOperation {
         case PRC_ECADD -> INDEX_MAX_ECADD_RESULT;
         case PRC_ECMUL -> INDEX_MAX_ECMUL_RESULT;
         case PRC_ECPAIRING -> INDEX_MAX_ECPAIRING_RESULT;
+        case PRC_P256_VERIFY -> INDEX_MAX_P256_VERIFY_RESULT;
         default -> throw new IllegalArgumentException("invalid EC type");
       };
     }
@@ -348,13 +377,13 @@ public class EcDataOperation extends ModuleOperation {
     boolean rIsInRange = callWcp(0, OpCode.LT, r, SECP256K1N); // r < secp256k1N
 
     // row i + 1
-    boolean rIsPositive = callWcp(1, OpCode.LT, EWord.ZERO, r); // 0 < r
+    boolean rIsPositive = callWcp(1, OpCode.LT, ZERO, r); // 0 < r
 
     // row i + 2
     boolean sIsInRange = callWcp(2, OpCode.LT, s, SECP256K1N); // s < secp256k1N
 
     // row i + 3
-    boolean sIsPositive = callWcp(3, OpCode.LT, EWord.ZERO, s); // 0 < s
+    boolean sIsPositive = callWcp(3, OpCode.LT, ZERO, s); // 0 < s
 
     // row i+ 4
     boolean vIs27 = callWcp(4, OpCode.EQ, v, EWord.of(27)); // v == 27
@@ -379,7 +408,7 @@ public class EcDataOperation extends ModuleOperation {
     }
 
     // Set result rows
-    EWord recoveredAddress = EWord.ZERO;
+    EWord recoveredAddress = ZERO;
 
     // Extract output
     if (internalChecksPassed) {
@@ -428,8 +457,8 @@ public class EcDataOperation extends ModuleOperation {
     circuitSelectorEcadd = internalChecksPassed;
 
     // Set result rows
-    EWord resX = EWord.ZERO;
-    EWord resY = EWord.ZERO;
+    EWord resX = ZERO;
+    EWord resY = ZERO;
 
     // Extract output
     if (internalChecksPassed && returnData.toArray().length != 0) {
@@ -479,8 +508,8 @@ public class EcDataOperation extends ModuleOperation {
     circuitSelectorEcmul = internalChecksPassed;
 
     // Set result rows
-    EWord resX = EWord.ZERO;
-    EWord resY = EWord.ZERO;
+    EWord resX = ZERO;
+    EWord resY = ZERO;
 
     // Extract output
     if (internalChecksPassed && returnData.toArray().length != 0) {
@@ -633,7 +662,7 @@ public class EcDataOperation extends ModuleOperation {
     }
 
     // Set result rows
-    EWord pairingResult = EWord.ZERO;
+    EWord pairingResult = ZERO;
 
     // Extract output
     if (internalChecksPassed) {
@@ -653,6 +682,63 @@ public class EcDataOperation extends ModuleOperation {
 
     // acceptablePairOfPointsForPairingCircuit, g2MembershipTestRequired, circuitSelectorEcpairing,
     // circuitSelectorG2Membership are set in the trace method
+  }
+
+  private void handleP256Verify() {
+    // Extract inputs
+    final EWord h = EWord.of(rightPaddedCallData.slice(0, 32));
+    final EWord r = EWord.of(rightPaddedCallData.slice(32, 32));
+    final EWord s = EWord.of(rightPaddedCallData.slice(64, 32));
+    final EWord qX = EWord.of(rightPaddedCallData.slice(96, 32));
+    final EWord qY = EWord.of(rightPaddedCallData.slice(128, 32));
+
+    // Set input limb
+    limb.set(0, h.hi());
+    limb.set(1, h.lo());
+    limb.set(2, r.hi());
+    limb.set(3, r.lo());
+    limb.set(4, s.hi());
+    limb.set(5, s.lo());
+    limb.set(6, qX.hi());
+    limb.set(7, qX.lo());
+    limb.set(8, qY.hi());
+    limb.set(9, qY.lo());
+
+    // Compute internal checks
+    // row i
+    boolean rIsInRange = callWcp(0, OpCode.LT, r, SECP256R1N); // r < secp256r1N
+
+    // row i + 1
+    boolean rIsPositive = callWcp(1, OpCode.LT, ZERO, r); // 0 < r
+
+    // row i + 2
+    boolean sIsInRange = callWcp(2, OpCode.LT, s, SECP256R1N); // s < secp256r1N
+
+    // row i + 3
+    boolean sIsPositive = callWcp(3, OpCode.LT, ZERO, s); // 0 < s
+
+    // row i+ 4
+    boolean r1Membership = callToR1Membership(4, qX, qY).getLeft();
+
+    // Set hurdle
+    hurdle.set(0, rIsInRange && rIsPositive);
+    hurdle.set(1, sIsInRange && sIsPositive);
+    hurdle.set(2, hurdle.get(0) && hurdle.get(1));
+    hurdle.set(INDEX_MAX_P256_VERIFY_DATA, r1Membership && hurdle.get(2));
+
+    // Set internal checks passed
+    internalChecksPassed = hurdle.get(INDEX_MAX_P256_VERIFY_DATA);
+
+    // Set circuitSelectorEcrecover
+    circuitSelectorP256Verify = internalChecksPassed;
+
+    // Set result rows
+    EWord recoveredAddress = ZERO;
+
+    // Set success bit and output limb
+    successBit = returnData.bitLength() / 8 == TOTAL_SIZE_P256_VERIFY_RESULT;
+    limb.set(8, Bytes.EMPTY);
+    limb.set(9, successBit ? returnData.slice(16, 16) : Bytes.EMPTY);
   }
 
   void trace(Trace.Ecdata trace, final int stamp, final long previousId) {
@@ -808,29 +894,36 @@ public class EcDataOperation extends ModuleOperation {
 
   private Pair<Boolean, Boolean> callToC1Membership(int k, EWord pX, EWord pY) {
     // EXT
-    EWord pYSquare = callExt(k, OpCode.MULMOD, pY, pY, P_BN);
-    EWord pXSquare = callExt(k + 1, OpCode.MULMOD, pX, pX, P_BN);
-    EWord pXCube = callExt(k + 2, OpCode.MULMOD, pXSquare, pX, P_BN);
-    EWord pXCubePlus3 = callExt(k + 3, OpCode.ADDMOD, pXCube, EWord.of(3), P_BN);
+    EWord pYSquare = callExt(k, OpCode.MULMOD, pY, pY, P_R1);
+    EWord pXSquare = callExt(k + 1, OpCode.MULMOD, pX, pX, P_R1);
+    EWord pXCube = callExt(k + 2, OpCode.MULMOD, pXSquare, pX, P_R1);
+    EWord aTimesPx = callExt(k + 3, OpCode.MULMOD, A_COEFF_R1, pX, P_R1);
+    EWord pXCubePlusAPx = callExt(k + 4, OpCode.ADDMOD, pXCube, aTimesPx, P_R1);
+    EWord pXCubePlusAPxPlusB = callExt(k + 5, OpCode.ADDMOD, pXCubePlusAPx, B_COEFF_R1, P_R1);
 
     // WCP
-    boolean pXIsInRange = callWcp(k, OpCode.LT, pX, P_BN);
-    boolean pYIsInRange = callWcp(k + 1, OpCode.LT, pY, P_BN);
-    boolean pSatisfiesCubic = callWcp(k + 2, OpCode.EQ, pYSquare, pXCubePlus3);
+    boolean pXIsInRange = callWcp(k, OpCode.LT, pX, P_R1);
+    boolean pYIsInRange = callWcp(k + 1, OpCode.LT, pY, P_R1);
+    boolean pSatisfiesCubic = callWcp(k + 2, OpCode.EQ, pYSquare, pXCubePlusAPxPlusB);
 
     // Set hurdle
     boolean pIsRange = pXIsInRange && pYIsInRange;
     boolean pIsPointAtInfinity = pIsRange && pX.isZero() && pY.isZero();
-    boolean c1Membership = pIsRange && (pIsPointAtInfinity || pSatisfiesCubic);
+    boolean r1Membership = pIsRange && !pIsPointAtInfinity && pSatisfiesCubic;
     hurdle.set(k + 1, pIsRange);
-    hurdle.set(k, c1Membership);
+    hurdle.set(k, r1Membership);
 
     // Set isInfinity
     for (int i = 0; i <= CT_MAX_SMALL_POINT; i++) {
       isInfinity.set(i + k, pIsPointAtInfinity);
     }
 
-    return Pair.of(c1Membership, pIsPointAtInfinity);
+    return Pair.of(r1Membership, pIsPointAtInfinity);
+  }
+
+  private Pair<Boolean, Boolean> callToR1Membership(int k, EWord pX, EWord pY) {
+    // TODO
+    return Pair.of(true, true);
   }
 
   private Pair<Boolean, Boolean> callToWellFormedCoordinates(

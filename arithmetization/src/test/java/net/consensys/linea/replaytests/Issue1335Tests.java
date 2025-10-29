@@ -14,6 +14,6 @@ public class Issue1335Tests extends TracerTestBase {
 
   @Test
   void issue1335(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(PRAGUE), "25022126.json", testInfo);
+    replay(MAINNET_TESTCONFIG(PRAGUE), "25022126.mainnet.json", testInfo);
   }
 }

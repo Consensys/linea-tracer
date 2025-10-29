@@ -119,6 +119,9 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
           PRC_BLS_MAP_FP2_TO_G2 -> {
         // Note that BLS sanity checks are computed in BlsOperation
       }
+      case PRC_P256_VERIFY -> checkArgument(
+          returnDataRange.extract().size() == (callSuccess ? 2 * WORD_SIZE : 0),
+          "P256_VERIFY return data size mismatch");
       default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
     }
 
@@ -130,6 +133,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
     //    hubSuccess ≡ true
 
     // ECRECOVER can only be FAILURE_KNOWN_TO_HUB or some form of SUCCESS_XXXX_REVERT
+    // TODO: what about P256_VERIFY?
     if (flag().isAnyOf(PRC_ECADD, PRC_ECMUL, PRC_ECPAIRING) || flag().isBlsPrecompile()) {
       if (oobCall.isHubSuccess() && !callSuccess) {
         precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_RAM);
@@ -165,8 +169,9 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
             PRC_BLS_G2_MSM,
             PRC_BLS_PAIRING_CHECK,
             PRC_BLS_MAP_FP_TO_G1,
-            PRC_BLS_MAP_FP2_TO_G2 -> firstMmuCall =
-            MmuCall.callDataExtractionForBlsPrecompiles(hub, this, successBitMmuCall);
+            PRC_BLS_MAP_FP2_TO_G2,
+            PRC_P256_VERIFY -> firstMmuCall =
+            MmuCall.callDataExtractionForPostCancunPrecompiles(hub, this, successBitMmuCall);
         default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
       }
       firstImcFragment.callMmu(firstMmuCall);
@@ -230,12 +235,13 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
             PRC_BLS_G2_MSM,
             PRC_BLS_PAIRING_CHECK,
             PRC_BLS_MAP_FP_TO_G1,
-            PRC_BLS_MAP_FP2_TO_G2 -> {
+            PRC_BLS_MAP_FP2_TO_G2,
+            PRC_P256_VERIFY -> {
           // Note that for BLS precompiles nonemptyCallData is always true at this point
           secondMmuCall =
-              MmuCall.fullReturnDataTransferForBlsPrecompiles(hub, this, successBitMmuCall);
+              MmuCall.fullReturnDataTransferForPostCancunPrecompiles(hub, this, successBitMmuCall);
           if (callerMayReceiveReturnData) {
-            thirdMmuCall = MmuCall.partialCopyOfReturnDataForBlsPrecompiles(hub, this);
+            thirdMmuCall = MmuCall.partialCopyOfReturnDataForPostCancunPrecompiles(hub, this);
           }
         }
         default -> throw new IllegalArgumentException("Not an elliptic curve precompile");

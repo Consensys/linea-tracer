@@ -574,24 +574,29 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .phase(PHASE_ECPAIRING_DATA);
   }
 
-  public static MmuCall callDataExtractionForBlsPrecompiles(
+  public static MmuCall callDataExtractionForPostCancunPrecompiles(
       Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
     final int precompileContextNumber = subsection.exoModuleOperationId();
-    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING) // Note: there will be no padding
-        .sourceId(hub.currentFrame().contextNumber())
-        .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
-        .targetId(precompileContextNumber)
-        .exoBytes(Optional.of(subsection.extractCallData()))
-        .sourceOffset(EWord.of(subsection.callDataOffset()))
-        .size(subsection.callDataSize())
-        .referenceSize(subsection.callDataSize())
-        // constant
-        .successBit(successBit)
-        .setBlsData()
-        .phase(subsection.flag().dataPhase());
+    MmuCall mmuCall =
+        new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING) // Note: there will be no padding
+            .sourceId(hub.currentFrame().contextNumber())
+            .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
+            .targetId(precompileContextNumber)
+            .exoBytes(Optional.of(subsection.extractCallData()))
+            .sourceOffset(EWord.of(subsection.callDataOffset()))
+            .size(subsection.callDataSize())
+            .referenceSize(subsection.callDataSize())
+            // constant
+            .successBit(successBit)
+            .phase(subsection.flag().dataPhase());
+    if (subsection.flag() == PrecompileScenarioFragment.PrecompileFlag.PRC_P256_VERIFY) {
+      return mmuCall.setEcData();
+    } else {
+      return mmuCall.setBlsData();
+    }
   }
 
-  public static MmuCall fullReturnDataTransferForBlsPrecompiles(
+  public static MmuCall fullReturnDataTransferForPostCancunPrecompiles(
       final Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
 
     final int precompileContextNumber = subsection.exoModuleOperationId();
@@ -599,32 +604,46 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     final long expectedReturnDataSize = BlsDataOperation.expectedReturnDataSize(subsection.flag());
     checkState(
         subsection.returnDataRange.getRange().size() == expectedReturnDataSize,
-        "The return data size for BLS precompile does not match our expectation of it");
+        "The return data size for post-cancun precompile does not match our expectation of it");
 
-    return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-        .sourceId(precompileContextNumber)
-        .exoBytes(Optional.of(subsection.returnDataRange.extract()))
-        .targetId(precompileContextNumber)
-        .targetRamBytes(Optional.of(Bytes.EMPTY))
-        .size(expectedReturnDataSize)
-        .phase(subsection.flag().resultPhase())
-        .successBit(successBit)
-        .setBlsData();
+    MmuCall mmuCall =
+        new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+            .sourceId(precompileContextNumber)
+            .exoBytes(Optional.of(subsection.returnDataRange.extract()))
+            .targetId(precompileContextNumber)
+            .targetRamBytes(Optional.of(Bytes.EMPTY))
+            .size(expectedReturnDataSize)
+            .phase(subsection.flag().resultPhase())
+            .successBit(successBit);
+
+    if (subsection.flag() == PrecompileScenarioFragment.PrecompileFlag.PRC_P256_VERIFY) {
+      return mmuCall.setEcData();
+    } else {
+      return mmuCall.setBlsData();
+    }
   }
 
-  public static MmuCall partialCopyOfReturnDataForBlsPrecompiles(
+  public static MmuCall partialCopyOfReturnDataForPostCancunPrecompiles(
       final Hub hub, PrecompileSubsection subsection) {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     final int returnDataSize = (int) subsection.returnDataRange.getRange().size();
 
-    return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
-        .sourceId(precompileContextNumber)
-        .sourceRamBytes(Optional.of(subsection.returnDataRange.extract()))
-        .targetId(hub.currentFrame().contextNumber())
-        .targetRamBytes(Optional.of(subsection.rawCallerMemory()))
-        .size(returnDataSize)
-        .referenceOffset(subsection.returnAtOffset())
-        .referenceSize(subsection.returnAtCapacity());
+    MmuCall mmuCall =
+        new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
+            .sourceId(precompileContextNumber)
+            .sourceRamBytes(Optional.of(subsection.returnDataRange.extract()))
+            .targetId(hub.currentFrame().contextNumber())
+            .targetRamBytes(Optional.of(subsection.rawCallerMemory()))
+            .size(returnDataSize)
+            .referenceOffset(subsection.returnAtOffset())
+            .referenceSize(subsection.returnAtCapacity());
+
+    // TODO: do we need this?
+    if (subsection.flag() == PrecompileScenarioFragment.PrecompileFlag.PRC_P256_VERIFY) {
+      return mmuCall.setEcData();
+    } else {
+      return mmuCall.setBlsData();
+    }
   }
 
   /**

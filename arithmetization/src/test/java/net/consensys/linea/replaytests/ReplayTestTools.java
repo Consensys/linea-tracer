@@ -98,6 +98,7 @@ public class ReplayTestTools {
         .filename(filename)
         .zkTracer(new ZkTracer(chain, historicalBlockHashes))
         .txResultChecking(resultChecking)
+        .useCoinbaseAddressFromBlockHeader(true)
         .build()
         .replay(chain, testInfo, conflation);
   }

@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.blockhash;
 
-import static net.consensys.linea.replaytests.ReplayTestTools.replay;
+import static net.consensys.linea.ReplayTestTools.replay;
 import static net.consensys.linea.zktracer.ChainConfig.SEPOLIA_PRAGUE_TESTCONFIG;
 import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 

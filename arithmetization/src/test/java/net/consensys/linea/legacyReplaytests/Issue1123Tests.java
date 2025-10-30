@@ -12,9 +12,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.replaytests;
+package net.consensys.linea.legacyReplaytests;
 
-import static net.consensys.linea.replaytests.ReplayTestTools.replay;
+import static net.consensys.linea.ReplayTestTools.replay;
 import static net.consensys.linea.zktracer.ChainConfig.OLD_MAINNET_TESTCONFIG;
 
 import net.consensys.linea.UnitTestWatcher;
@@ -25,13 +25,27 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+/** Same underlying NPE issue as that solved in #1216. */
 @Tag("replay")
+@Disabled
 @ExtendWith(UnitTestWatcher.class)
-public class Issue1109Tests extends TracerTestBase {
+public class Issue1123Tests extends TracerTestBase {
 
-  @Disabled("Fails to create the ConflationSnapshot from the gson file")
+  @Tag("nightly")
   @Test
-  void issue_1090_block_6690_6699(TestInfo testInfo) {
-    replay(OLD_MAINNET_TESTCONFIG, "6690-6699.mainnet.json.gz", testInfo);
+  void issue_1123_mainnet_block_8043758(TestInfo testInfo) {
+    replay(OLD_MAINNET_TESTCONFIG, "legacy/8043758.mainnet.json.gz", testInfo);
+  }
+
+  @Tag("weekly")
+  @Test
+  void issue_1123_mainnet_block_8019521(TestInfo testInfo) {
+    replay(OLD_MAINNET_TESTCONFIG, "legacy/8019521.mainnet.json.gz", testInfo);
+  }
+
+  @Tag("weekly")
+  @Test
+  void issue_1123_mainnet_block_8005327(TestInfo testInfo) {
+    replay(OLD_MAINNET_TESTCONFIG, "legacy/8005327.mainnet.json.gz", testInfo);
   }
 }

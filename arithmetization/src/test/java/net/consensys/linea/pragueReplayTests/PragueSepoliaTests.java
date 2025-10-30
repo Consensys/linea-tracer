@@ -12,10 +12,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.replaytests;
+package net.consensys.linea.pragueReplayTests;
 
-import static net.consensys.linea.replaytests.ReplayTestTools.replay;
-import static net.consensys.linea.zktracer.ChainConfig.OLD_MAINNET_TESTCONFIG;
+import static net.consensys.linea.ReplayTestTools.replay;
+import static net.consensys.linea.zktracer.ChainConfig.SEPOLIA_PRAGUE_TESTCONFIG;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
@@ -24,19 +24,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-/** STP constraints were failing for these ranges */
 @Tag("replay")
-@Tag("weekly")
 @ExtendWith(UnitTestWatcher.class)
-public class Issue1124Tests extends TracerTestBase {
+public class PragueSepoliaTests extends TracerTestBase {
 
   @Test
-  void issue_1124_range_4323962_4324012(TestInfo testInfo) {
-    replay(OLD_MAINNET_TESTCONFIG, "4323962-4324012.mainnet.json.gz", testInfo);
+  void block_19562398(TestInfo testInfo) {
+    replay(SEPOLIA_PRAGUE_TESTCONFIG, "prague/19562398.mainnet.json.gz", testInfo);
   }
 
   @Test
-  void issue_1124_range_4343434_4343473(TestInfo testInfo) {
-    replay(OLD_MAINNET_TESTCONFIG, "4343434-4343473.mainnet.json.gz", testInfo);
+  void block_19562399_19562417(TestInfo testInfo) {
+    replay(SEPOLIA_PRAGUE_TESTCONFIG, "prague/19562399-19562417.mainnet.json.gz", testInfo);
   }
 }

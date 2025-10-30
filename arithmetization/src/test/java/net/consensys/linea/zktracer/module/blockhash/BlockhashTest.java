@@ -100,12 +100,6 @@ public class BlockhashTest extends TracerTestBase {
         .run(chainConfig, testInfo);
   }
 
-  @Tag("replay")
-  @Test
-  void someHistoricalHashesAreChecked(TestInfo testInfo) {
-    replay(SEPOLIA_PRAGUE_TESTCONFIG, "19562398.mainnet.json.gz", testInfo);
-  }
-
   /**
    * The purpose of this second replay tests is to provide two consecutive conflation to the prover,
    * with BLOCKHASH checking the "historical hashes" in both conflations.

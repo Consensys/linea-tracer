@@ -26,15 +26,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @Tag("replay")
 @ExtendWith(UnitTestWatcher.class)
-public class PragueSepoliaTests extends TracerTestBase {
+public class SepoliaTests extends TracerTestBase {
 
   @Test
   void block_19562398(TestInfo testInfo) {
-    replay(SEPOLIA_PRAGUE_TESTCONFIG, "prague/19562398.mainnet.json.gz", testInfo);
+    replay(SEPOLIA_PRAGUE_TESTCONFIG, "prague/19562398.sepolia.prague.json.gz", testInfo);
   }
 
   @Test
   void block_19562399_19562417(TestInfo testInfo) {
-    replay(SEPOLIA_PRAGUE_TESTCONFIG, "prague/19562399-19562417.mainnet.json.gz", testInfo);
+    replay(SEPOLIA_PRAGUE_TESTCONFIG, "prague/19562399-19562417.sepolia.prague.json.gz", testInfo);
   }
 }

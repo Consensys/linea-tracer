@@ -37,4 +37,14 @@ public class PragueSepoliaTests extends TracerTestBase {
   void block_19562399_19562417(TestInfo testInfo) {
     replay(SEPOLIA_PRAGUE_TESTCONFIG, "19562399-19562417.mainnet.json.gz", testInfo);
   }
+
+  @Test
+  void block_20074160(TestInfo testInfo) {
+    replay(SEPOLIA_PRAGUE_TESTCONFIG, "20074160.sepolia.json", testInfo);
+  }
+
+  @Test
+  void block_20074161(TestInfo testInfo) {
+    replay(SEPOLIA_PRAGUE_TESTCONFIG, "20074161.sepolia.json", testInfo);
+  }
 }

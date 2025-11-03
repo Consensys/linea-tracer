@@ -161,6 +161,13 @@ public class TrivialExecutionTests extends TracerTestBase {
             DominantCost.FLOOR_COST_DOMINATES,
             noSenderRecipientCollision));
 
+    // Case ALL_ZEROS with sender-recipient collision.
+    // This explores a case which blew up on mainnet, where a transaction had sender == recipient,
+    // non-empty call
+    // data, and a bug in the senderAddressCollision() case of TxSkipSection was triggered.
+    //
+    // The transaction execution cost (TX_SKIP) is 21000 + 4.
+    // The floor cost is 21000 + 10.
     arguments.add(
         Arguments.of(
             buildCallData(CallDataSetting.ALL_ZEROS, true, 1),

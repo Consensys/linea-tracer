@@ -54,6 +54,7 @@ public final class Bytecode {
    * Create an instance from {@link Bytes}.
    *
    * @param bytes the bytecode
+   * @param calculateByteCodeHash indicates if we need to compute the hash of the bytecode or not
    */
   public Bytecode(Bytes bytes, boolean calculateByteCodeHash) {
     this.bytecode = Objects.requireNonNullElse(bytes, Bytes.EMPTY);

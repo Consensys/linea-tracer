@@ -321,11 +321,16 @@ public class EcDataOperation extends ModuleOperation {
     }
   }
 
+  private boolean callWCPISZERO(int i, EWord arg) {
+    return callWcp(i, OpCode.ISZERO, arg, ZERO);
+  }
+
   private boolean callWcp(int i, OpCode wcpInst, EWord arg1, EWord arg2) {
     final boolean wcpRes =
         switch (wcpInst) {
           case LT -> wcp.callLT(arg1, arg2);
           case EQ -> wcp.callEQ(arg1, arg2);
+          case ISZERO -> wcp.callISZERO(arg1);
           default -> throw new IllegalStateException("Unexpected value: " + wcpInst);
         };
 
@@ -377,13 +382,13 @@ public class EcDataOperation extends ModuleOperation {
     boolean rIsInRange = callWcp(0, OpCode.LT, r, SECP256K1N); // r < secp256k1N
 
     // row i + 1
-    boolean rIsPositive = callWcp(1, OpCode.LT, ZERO, r); // 0 < r
+    boolean rIsPositive = !callWCPISZERO(1, r); // 0 < r
 
     // row i + 2
     boolean sIsInRange = callWcp(2, OpCode.LT, s, SECP256K1N); // s < secp256k1N
 
     // row i + 3
-    boolean sIsPositive = callWcp(3, OpCode.LT, ZERO, s); // 0 < s
+    boolean sIsPositive = !callWCPISZERO(3, s); // 0 < s
 
     // row i+ 4
     boolean vIs27 = callWcp(4, OpCode.EQ, v, EWord.of(27)); // v == 27
@@ -709,13 +714,13 @@ public class EcDataOperation extends ModuleOperation {
     boolean rIsInRange = callWcp(0, OpCode.LT, r, SECP256R1N); // r < secp256r1N
 
     // row i + 1
-    boolean rIsPositive = callWcp(1, OpCode.LT, ZERO, r); // 0 < r
+    boolean rIsPositive = !callWCPISZERO(1, r); // 0 < r
 
     // row i + 2
     boolean sIsInRange = callWcp(2, OpCode.LT, s, SECP256R1N); // s < secp256r1N
 
     // row i + 3
-    boolean sIsPositive = callWcp(3, OpCode.LT, ZERO, s); // 0 < s
+    boolean sIsPositive = !callWCPISZERO(3, s); // 0 < s
 
     // row i+ 4
     boolean r1Membership = callToR1Membership(4, qX, qY).getLeft();

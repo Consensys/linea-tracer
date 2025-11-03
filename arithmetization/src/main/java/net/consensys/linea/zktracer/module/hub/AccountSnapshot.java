@@ -89,8 +89,10 @@ public class AccountSnapshot {
     final Account account = worldView.get(address);
     final Bytecode bytecode =
         deploymentInfo.getDeploymentStatus(address)
-            ? new Bytecode(deploymentInfo.getInitializationCode(address))
-            : (account == null) ? new Bytecode(Bytes.EMPTY) : new Bytecode(account.getCode());
+            ? new Bytecode(deploymentInfo.getInitializationCode(address), true)
+            : (account == null)
+                ? new Bytecode(Bytes.EMPTY, true)
+                : new Bytecode(account.getCode(), true);
     if (account != null) {
       return new AccountSnapshot(
           account.getAddress(),
@@ -140,7 +142,7 @@ public class AccountSnapshot {
                     a.getNonce(),
                     a.getBalance().copy(),
                     isWarm,
-                    new Bytecode(a.getCode().copy()),
+                    new Bytecode(a.getCode().copy(), true),
                     deploymentNumber,
                     deploymentStatus))
         .orElseGet(() -> AccountSnapshot.empty(isWarm, deploymentNumber, deploymentStatus));

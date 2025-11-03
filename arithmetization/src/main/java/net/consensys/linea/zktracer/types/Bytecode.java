@@ -51,6 +51,19 @@ public final class Bytecode {
   }
 
   /**
+   * Create an instance from {@link Bytes}.
+   *
+   * @param bytes the bytecode
+   */
+  public Bytecode(Bytes bytes, boolean calculateByteCodeHash) {
+    this.bytecode = Objects.requireNonNullElse(bytes, Bytes.EMPTY);
+    if (calculateByteCodeHash) {
+      if (bytes.isEmpty()) this.hash = Hash.EMPTY;
+      else this.hash = Hash.hash(bytes);
+    }
+  }
+
+  /**
    * Create an instance from Besu {@link Code}.
    *
    * @param code the bytecode

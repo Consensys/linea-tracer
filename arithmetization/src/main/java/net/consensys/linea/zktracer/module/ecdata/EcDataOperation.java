@@ -134,16 +134,11 @@ public class EcDataOperation extends ModuleOperation {
   private final List<OpCode> extInst;
 
   @Getter private boolean successBit;
-  private boolean circuitSelectorEcrecover;
-  private boolean circuitSelectorEcadd;
-  private boolean circuitSelectorEcmul;
 
   // pairing-specific
   @Getter private final int totalPairings;
   @Getter private int circuitSelectorEcPairingCounter = 0;
   @Getter private int circuitSelectorG2MembershipCounter = 0;
-
-  private boolean circuitSelectorP256Verify;
 
   private final List<Boolean> notOnG2; // counter-constant
   private final List<Boolean> notOnG2Acc; // counter-constant
@@ -407,11 +402,6 @@ public class EcDataOperation extends ModuleOperation {
 
     // Success bit is set in setReturnData
 
-    // Set circuitSelectorEcrecover
-    if (internalChecksPassed) {
-      circuitSelectorEcrecover = true;
-    }
-
     // Set result rows
     EWord recoveredAddress = ZERO;
 
@@ -457,9 +447,6 @@ public class EcDataOperation extends ModuleOperation {
     internalChecksPassed = hurdle.get(INDEX_MAX_ECADD_DATA);
 
     // Success bit is set in setReturnData
-
-    // set circuitSelectorEcadd
-    circuitSelectorEcadd = internalChecksPassed;
 
     // Set result rows
     EWord resX = ZERO;
@@ -508,9 +495,6 @@ public class EcDataOperation extends ModuleOperation {
     internalChecksPassed = hurdle.get(INDEX_MAX_ECMUL_DATA);
 
     // Success bit is set in setReturnData
-
-    // Set circuitSelectorEcmul
-    circuitSelectorEcmul = internalChecksPassed;
 
     // Set result rows
     EWord resX = ZERO;
@@ -685,8 +669,7 @@ public class EcDataOperation extends ModuleOperation {
       successBit = !notOnG2AccMax;
     }
 
-    // acceptablePairOfPointsForPairingCircuit, g2MembershipTestRequired, circuitSelectorEcpairing,
-    // circuitSelectorG2Membership are set in the trace method
+    // acceptablePairOfPointsForPairingCircuit, g2MembershipTestRequired are set in the trace method
   }
 
   private void handleP256Verify() {
@@ -733,9 +716,6 @@ public class EcDataOperation extends ModuleOperation {
 
     // Set internal checks passed
     internalChecksPassed = hurdle.get(INDEX_MAX_P256_VERIFY_DATA);
-
-    // Set circuitSelectorEcrecover
-    circuitSelectorP256Verify = internalChecksPassed;
 
     // Set result rows
     EWord recoveredAddress = ZERO;
@@ -787,13 +767,6 @@ public class EcDataOperation extends ModuleOperation {
               && !largePointIsAtInfinity
               && !smallPointIsAtInfinity;
 
-      boolean circuitSelectorEcPairing = false;
-      if (isData && precompileFlag == PRC_ECPAIRING) {
-        circuitSelectorEcPairing = acceptablePairOfPointsForPairingCircuit;
-      } else if (!isData && precompileFlag == PRC_ECPAIRING) {
-        circuitSelectorEcPairing = successBit && !isOverallTrivialPairing();
-      }
-
       if (precompileFlag != PRC_ECPAIRING || !isData) {
         checkArgument(
             ct == 0,
@@ -822,7 +795,11 @@ public class EcDataOperation extends ModuleOperation {
           .isEcmulData(precompileFlag == PRC_ECMUL && isData)
           .isEcmulResult(precompileFlag == PRC_ECMUL && !isData)
           .isEcpairingData(precompileFlag == PRC_ECPAIRING && isData)
-          .isEcpairingResult(precompileFlag == PRC_ECPAIRING && !isData)
+          .isEcpairingResult(precompileFlag == PRC_ECPAIRING && !isData);
+      if (precompileFlag == PRC_P256_VERIFY) {
+        trace.isP256VerifyData(isData).isP256VerifyResult(!isData);
+      }
+      trace
           .totalPairings(totalPairings)
           .accPairings(
               precompileFlag == PRC_ECPAIRING && isData
@@ -850,12 +827,6 @@ public class EcDataOperation extends ModuleOperation {
                       i)) // && conditions necessary because default value is true
           .g2MembershipTestRequired(g2MembershipTestRequired)
           .acceptablePairOfPointsForPairingCircuit(acceptablePairOfPointsForPairingCircuit)
-          .circuitSelectorEcrecover(circuitSelectorEcrecover)
-          .circuitSelectorEcadd(circuitSelectorEcadd)
-          .circuitSelectorEcmul(circuitSelectorEcmul)
-          .circuitSelectorEcpairing(circuitSelectorEcPairing)
-          .circuitSelectorP256Verify(circuitSelectorP256Verify)
-          .circuitSelectorG2Membership(g2MembershipTestRequired) // = circuitSelectorG2Membership
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))
           .wcpArg1Lo(wcpArg1Lo.get(i))

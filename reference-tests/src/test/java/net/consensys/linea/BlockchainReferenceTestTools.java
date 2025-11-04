@@ -725,7 +725,7 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignore(
           "modexpFiller.json::modexp\\[fork_.*-blockchain_test_from_state_test-d37-g[0-3]\\]");
 
-      // byte sizes 512 < xbs ≤ 1024t 
+      // byte sizes 512 < xbs ≤ 1024
       PARAMS.ignore(
           "test_modexp_thresholds.py::test_modexp_variable_gas_cost_exceed_tx_gas_cap\\[fork_.*-blockchain_test_from_state_test-Z16-gas-cap-test\\]");
       PARAMS.ignore(
@@ -736,6 +736,16 @@ public class BlockchainReferenceTestTools {
           "test_modexp_thresholds.py::test_vectors_from_eip\\[fork_.*-blockchain_test_from_state_test-nagydani-5-qube\\]");
       PARAMS.ignore(
           "test_modexp_thresholds.py::test_vectors_from_eip\\[fork_.*-blockchain_test_from_state_test-nagydani-5-square\\]");
+
+      // massive xbs'
+      PARAMS.ignore(
+          "test_modexp_thresholds.py::test_modexp_invalid_inputs\\[fork_.*-blockchain_test_from_state_test--invalid-case-[1-3]\\]");
+
+      // Osaka legal xbs's (at most one being 1024)
+      PARAMS.ignore(
+          "test_modexp_thresholds.py::test_modexp_variable_gas_cost\\[fork_.*-blockchain_test_from_state_test-Z[2-4|7]\\]");
+      PARAMS.ignore(
+          "test_modexp_thresholds.py::test_modexp_variable_gas_cost\\[fork_.*-blockchain_test_from_state_test-Z1[2-5]\\]");
     }
 
     // unsupported behaviour: uncle blocks, re-orgs, forks, side chain (?)

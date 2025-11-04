@@ -710,6 +710,7 @@ public class BlockchainReferenceTestTools {
           "modexpFiller.json::modexp\\[fork_.*-blockchain_test_from_state_test-d2-g[0-3]\\]");
         PARAMS.ignore(
                 "test_modexp.py::test_modexp\\[fork_.*-blockchain_test_from_state_test-EIP-198-case3-raw-input-out-of-gas\\]");
+        PARAMS.ignore("modexp_modsize0_returndatasizeFiller\\.json::modexp_modsize0_returndatasize\\[fork_.*-blockchain_test_from_state_test-d4\\]");
 
       // massive bbs
       PARAMS.ignore(

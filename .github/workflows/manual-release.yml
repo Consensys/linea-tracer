@@ -126,7 +126,7 @@ jobs:
   # ==================================================================
   publish-conditional-to-units-and-replay-tests:
     needs: [ build, unit-tests-prague, replay-tests ]
-    if: ${{ github.event_name != 'pull_request' && inputs.wait-for-tests-bef-publish == 'true'}}
+    if: ${{ github.event_name != 'pull_request' && ( github.event_name == 'release' || inputs.wait-for-tests-bef-publish == 'true') }}
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
     env:
       architecture: "amd64"

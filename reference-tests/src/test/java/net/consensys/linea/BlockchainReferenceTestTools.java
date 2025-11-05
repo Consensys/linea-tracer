@@ -708,9 +708,10 @@ public class BlockchainReferenceTestTools {
       // massive mbs
       PARAMS.ignore(
           "modexpFiller.json::modexp\\[fork_.*-blockchain_test_from_state_test-d2-g[0-3]\\]");
-        PARAMS.ignore(
-                "test_modexp.py::test_modexp\\[fork_.*-blockchain_test_from_state_test-EIP-198-case3-raw-input-out-of-gas\\]");
-        PARAMS.ignore("modexp_modsize0_returndatasizeFiller\\.json::modexp_modsize0_returndatasize\\[fork_.*-blockchain_test_from_state_test-d4\\]");
+      PARAMS.ignore(
+          "test_modexp.py::test_modexp\\[fork_.*-blockchain_test_from_state_test-EIP-198-case3-raw-input-out-of-gas\\]");
+      PARAMS.ignore(
+          "modexp_modsize0_returndatasizeFiller\\.json::modexp_modsize0_returndatasize\\[fork_.*-blockchain_test_from_state_test-d4\\]");
 
       // massive bbs
       PARAMS.ignore(
@@ -728,7 +729,7 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignore(
           "modexpFiller.json::modexp\\[fork_.*-blockchain_test_from_state_test-d37-g[0-3]\\]");
       PARAMS.ignore(
-              "randomStatetest650Filler.json::randomStatetest650\\[fork_.*-blockchain_test_from_state_test-\\]");
+          "randomStatetest650Filler.json::randomStatetest650\\[fork_.*-blockchain_test_from_state_test-\\]");
 
       // byte sizes 512 < xbs ≤ 1024
       PARAMS.ignore(

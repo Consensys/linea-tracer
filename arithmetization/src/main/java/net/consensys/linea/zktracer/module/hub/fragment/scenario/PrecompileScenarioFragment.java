@@ -330,8 +330,7 @@ public class PrecompileScenarioFragment implements TraceFragment {
 
     // Osaka
     if (flag == PRC_P256_VERIFY) {
-      // TODO
-      // trace.pScenarioPrcP256Verify(true);
+      trace.pScenarioPrcP256Verify(true);
     }
 
     return trace;

@@ -1,4 +1,6 @@
 name: "Reusable fast replay tests workflow"
+permissions:
+  contents: read
 
 on:
   workflow_call:

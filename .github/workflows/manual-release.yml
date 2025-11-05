@@ -145,23 +145,23 @@ jobs:
           CLOUDSMITH_USER: ${{ secrets.CLOUDSMITH_USER }}
           CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
 
-    publish-as-soon-as-ready:
-      needs: [ build ]
-      if: ${{ github.event_name != 'pull_request' && inputs.wait-for-tests-bef-publish == 'false'}}
-      runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
-      env:
-        architecture: "amd64"
-        GRADLE_OPTS: "-Xmx6g -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4"
+  publish-as-soon-as-ready:
+    needs: [ build ]
+    if: ${{ github.event_name != 'pull_request' && inputs.wait-for-tests-bef-publish == 'false'}}
+    runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
+    env:
+      architecture: "amd64"
+      GRADLE_OPTS: "-Xmx6g -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4"
 
-      steps:
-        - name: Checkout
-          uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-        - name: Setup Environment
-          uses: ./.github/actions/setup-environment
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
 
-        - name: Publish Java artifacts
-          run: ./gradlew publish
-          env:
-            CLOUDSMITH_USER: ${{ secrets.CLOUDSMITH_USER }}
-            CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+      - name: Publish Java artifacts
+        run: ./gradlew publish
+        env:
+          CLOUDSMITH_USER: ${{ secrets.CLOUDSMITH_USER }}
+          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}

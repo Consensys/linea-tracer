@@ -91,7 +91,7 @@ public class ModexpLimitsTests extends TracerTestBase {
             .sender(senderAccount)
             .to(callPRC)
             .keyPair(senderKeyPair)
-            .gasLimit(30000000L)
+            .gasLimit(16777216L)
             .value(Wei.of(10000000))
             .build();
 

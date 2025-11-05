@@ -14,6 +14,11 @@ on:
         required: true
         type: string
         default: "v1.2.3"
+      wait-for-tests-bef-publish:
+        description: 'If "false", the release jar will be published when ready without waiting for the unit and replay tests to pass.'
+        required: false
+        type: string
+        default: 'true'
 
 jobs:
   # ==================================================================
@@ -112,53 +117,16 @@ jobs:
   # ==================================================================
   replay-tests:
     needs: [ build ]
-    runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          submodules: false
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          enable-ssh: false
-
-      - name: Run replay tests
-        run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:fastReplayTests
-        env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
-          JUNIT_TESTS_PARALLELISM: 4
-          GOCORSET_FLAGS: -b1024 -v --ansi-escapes=false --report --air
-          ZKEVM_FORK: LONDON
-
-      - name: Upload test report
-        if: ${{ always() }}
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
-        with:
-          name: replay-tests-report
-          path: arithmetization/build/reports/tests/**/*
-
-      - name: Upload jacoco fast replay tests coverage report
-        if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
-        with:
-          name: jacoco-fast-replay-tests-coverage-report
-          path: arithmetization/build/reports/jacoco/jacocoFastReplayTestsReport/**/*
-
-      - name: Upload jacoco fast replay tests exec file
-        if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
-        with:
-          name: jacoco-fast-replay-tests-exec-file
-          path: arithmetization/build/jacoco/fastReplayTests.exec
+    uses: ./.github/workflows/reusable-fast-replay-tests.yml
+    with:
+      tests-with-ssh: ${{ inputs.tests-with-ssh || false}}
 
   # ==================================================================
   # Publish release post tests
   # ==================================================================
-  publish:
-    needs: [ build ]
-    if: github.event_name != 'pull_request'
+  publish-conditional-to-units-and-replay-tests:
+    needs: [ build, unit-tests-prague, replay-tests ]
+    if: ${{ github.event_name != 'pull_request' && inputs.wait-for-tests-bef-publish == 'true'}}
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
     env:
       architecture: "amd64"
@@ -176,3 +144,24 @@ jobs:
         env:
           CLOUDSMITH_USER: ${{ secrets.CLOUDSMITH_USER }}
           CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+
+    publish-as-soon-as-ready:
+      needs: [ build ]
+      if: ${{ github.event_name != 'pull_request' && inputs.wait-for-tests-bef-publish == 'false'}}
+      runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
+      env:
+        architecture: "amd64"
+        GRADLE_OPTS: "-Xmx6g -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4"
+
+      steps:
+        - name: Checkout
+          uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+        - name: Setup Environment
+          uses: ./.github/actions/setup-environment
+
+        - name: Publish Java artifacts
+          run: ./gradlew publish
+          env:
+            CLOUDSMITH_USER: ${{ secrets.CLOUDSMITH_USER }}
+            CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}

@@ -749,7 +749,7 @@ public class BlockchainReferenceTestTools {
 
       // Osaka legal xbs's (at most one being 1024)
       PARAMS.ignore(
-          "test_modexp_thresholds.py::test_modexp_variable_gas_cost\\[fork_.*-blockchain_test_from_state_test-Z[2-4|7]\\]");
+          "test_modexp_thresholds.py::test_modexp_variable_gas_cost\\[fork_.*-blockchain_test_from_state_test-Z[2347]\\]");
       PARAMS.ignore(
           "test_modexp_thresholds.py::test_modexp_variable_gas_cost\\[fork_.*-blockchain_test_from_state_test-Z1[2-5]\\]");
     }

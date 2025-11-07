@@ -870,6 +870,33 @@ public class EcDataOperation extends ModuleOperation {
 
   private Pair<Boolean, Boolean> callToC1Membership(int k, EWord pX, EWord pY) {
     // EXT
+    EWord pYSquare = callExt(k, OpCode.MULMOD, pY, pY, P_BN);
+    EWord pXSquare = callExt(k + 1, OpCode.MULMOD, pX, pX, P_BN);
+    EWord pXCube = callExt(k + 2, OpCode.MULMOD, pXSquare, pX, P_BN);
+    EWord pXCubePlus3 = callExt(k + 3, OpCode.ADDMOD, pXCube, EWord.of(3), P_BN);
+
+    // WCP
+    boolean pXIsInRange = callWcp(k, OpCode.LT, pX, P_BN);
+    boolean pYIsInRange = callWcp(k + 1, OpCode.LT, pY, P_BN);
+    boolean pSatisfiesCubic = callWcp(k + 2, OpCode.EQ, pYSquare, pXCubePlus3);
+
+    // Set hurdle
+    boolean pIsRange = pXIsInRange && pYIsInRange;
+    boolean pIsPointAtInfinity = pIsRange && pX.isZero() && pY.isZero();
+    boolean c1Membership = pIsRange && (pIsPointAtInfinity || pSatisfiesCubic);
+    hurdle.set(k + 1, pIsRange);
+    hurdle.set(k, c1Membership);
+
+    // Set isInfinity
+    for (int i = 0; i <= CT_MAX_SMALL_POINT; i++) {
+      isInfinity.set(i + k, pIsPointAtInfinity);
+    }
+
+    return Pair.of(c1Membership, pIsPointAtInfinity);
+  }
+
+  private Pair<Boolean, Boolean> callToR1Membership(int k, EWord pX, EWord pY) {
+    // EXT
     EWord pYSquare = callExt(k, OpCode.MULMOD, pY, pY, P_R1);
     EWord pXSquare = callExt(k + 1, OpCode.MULMOD, pX, pX, P_R1);
     EWord pXCube = callExt(k + 2, OpCode.MULMOD, pXSquare, pX, P_R1);
@@ -895,11 +922,6 @@ public class EcDataOperation extends ModuleOperation {
     }
 
     return Pair.of(r1Membership, pIsPointAtInfinity);
-  }
-
-  private Pair<Boolean, Boolean> callToR1Membership(int k, EWord pX, EWord pY) {
-    // TODO
-    return Pair.of(true, true);
   }
 
   private Pair<Boolean, Boolean> callToWellFormedCoordinates(

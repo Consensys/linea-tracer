@@ -929,10 +929,8 @@ public class BlockchainReferenceTestTools {
         context
             .getWorldStateArchive()
             .getWorldState(
-                WorldStateQueryParams.withStateRootAndBlockHashAndUpdateNodeHead(
-                    genesisBlockHeader.getStateRoot(), genesisBlockHeader.getHash()))
+                WorldStateQueryParams.withBlockHeaderAndNoUpdateNodeHead(genesisBlockHeader))
             .orElseThrow();
-
     log.info(
         "checking roothash {} is {}", worldState.rootHash(), genesisBlockHeader.getStateRoot());
     assertThat(worldState.rootHash()).isEqualTo(genesisBlockHeader.getStateRoot());

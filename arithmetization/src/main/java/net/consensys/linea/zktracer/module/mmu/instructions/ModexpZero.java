@@ -16,8 +16,8 @@
 package net.consensys.linea.zktracer.module.mmu.instructions;
 
 import static net.consensys.linea.zktracer.Trace.MMIO_INST_LIMB_VANISHES;
-import static net.consensys.linea.zktracer.Trace.Mmu.NB_MICRO_ROWS_TOT_MODEXP_ZERO;
 import static net.consensys.linea.zktracer.Trace.Mmu.NB_PP_ROWS_MODEXP_ZERO;
+import static net.consensys.linea.zktracer.TraceOsaka.Mmu.NB_MICRO_ROWS_TOT_MODEXP_ZERO;
 
 import java.util.ArrayList;
 import java.util.List;

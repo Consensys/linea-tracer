@@ -109,7 +109,8 @@ public class CallSection extends TraceSection
               Map.entry(BLS12_G2MULTIEXP, EllipticCurvePrecompileSubsection::new),
               Map.entry(BLS12_PAIRING, EllipticCurvePrecompileSubsection::new),
               Map.entry(BLS12_MAP_FP_TO_G1, EllipticCurvePrecompileSubsection::new),
-              Map.entry(BLS12_MAP_FP2_TO_G2, EllipticCurvePrecompileSubsection::new));
+              Map.entry(BLS12_MAP_FP2_TO_G2, EllipticCurvePrecompileSubsection::new),
+              Map.entry(P256_VERIFY, EllipticCurvePrecompileSubsection::new));
 
   public Optional<Address> precompileAddress;
 

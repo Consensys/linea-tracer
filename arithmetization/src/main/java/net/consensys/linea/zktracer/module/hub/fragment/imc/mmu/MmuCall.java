@@ -598,10 +598,12 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
   public static MmuCall fullReturnDataTransferForPostCancunPrecompiles(
       final Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
-
     final int precompileContextNumber = subsection.exoModuleOperationId();
 
-    final long expectedReturnDataSize = BlsDataOperation.expectedReturnDataSize(subsection.flag());
+    final long expectedReturnDataSize =
+        subsection.flag() != PrecompileScenarioFragment.PrecompileFlag.PRC_P256_VERIFY
+            ? BlsDataOperation.expectedReturnDataSize(subsection.flag())
+            : PRECOMPILE_RETURN_DATA_SIZE___P256_VERIFY;
     checkState(
         subsection.returnDataRange.getRange().size() == expectedReturnDataSize,
         "The return data size for post-cancun precompile does not match our expectation of it");

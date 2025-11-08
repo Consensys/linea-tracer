@@ -718,7 +718,7 @@ public class EcDataOperation extends ModuleOperation {
     internalChecksPassed = hurdle.get(INDEX_MAX_P256_VERIFY_DATA);
 
     // Set success bit and output limb
-    successBit = returnData.bitLength() / 8 == TOTAL_SIZE_P256_VERIFY_RESULT;
+    successBit = returnData.toArray().length == TOTAL_SIZE_P256_VERIFY_RESULT;
     limb.set(8, Bytes.EMPTY);
     limb.set(9, successBit ? returnData.slice(16, 16) : Bytes.EMPTY);
   }

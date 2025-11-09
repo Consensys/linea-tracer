@@ -719,8 +719,8 @@ public class EcDataOperation extends ModuleOperation {
 
     // Set success bit and output limb
     successBit = returnData.toArray().length == TOTAL_SIZE_P256_VERIFY_RESULT;
-    limb.set(8, Bytes.EMPTY);
-    limb.set(9, successBit ? returnData.slice(16, 16) : Bytes.EMPTY);
+    limb.set(10, Bytes.EMPTY);
+    limb.set(11, successBit ? returnData.slice(16, 16) : Bytes.EMPTY);
   }
 
   void trace(Trace.Ecdata trace, final int stamp, final long previousId) {

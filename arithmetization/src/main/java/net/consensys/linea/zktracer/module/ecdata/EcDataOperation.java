@@ -95,7 +95,7 @@ public class EcDataOperation extends ModuleOperation {
   public static final EWord A_COEFF_R1 = EWord.of(A_COEFF_R1_HI, A_COEFF_R1_LO);
   public static final EWord B_COEFF_R1 = EWord.of(B_COEFF_R1_HI, B_COEFF_R1_LO);
 
-  private final Bytes returnData;
+  @Getter private final Bytes returnData;
 
   private final Wcp wcp;
   private final Ext ext;

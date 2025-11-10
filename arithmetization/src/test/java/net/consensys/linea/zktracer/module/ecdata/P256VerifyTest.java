@@ -17,11 +17,19 @@ package net.consensys.linea.zktracer.module.ecdata;
 
 import static net.consensys.linea.zktracer.Fork.isPostOsaka;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_RETURN_DATA_SIZE___P256_VERIFY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -42,7 +50,7 @@ public class P256VerifyTest extends TracerTestBase {
 
   @ParameterizedTest
   @MethodSource("p256VerifySource")
-  void testP256Verify(String inputAsAsString, TestInfo testInfo) {
+  void testP256Verify(String inputAsAsString, String expectedAsString, TestInfo testInfo) {
     final Bytes input = Bytes.fromHexString(inputAsAsString);
 
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
@@ -79,15 +87,32 @@ public class P256VerifyTest extends TracerTestBase {
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
 
     if (isPostOsaka(fork)) {
-      // TODO: assert ...
+      assertEquals(
+          Bytes.fromHexString(expectedAsString),
+          bytecodeRunner.getHub().ecData().ecDataOperation().returnData());
     }
   }
 
-  private static Stream<Arguments> p256VerifySource() {
+  private static Stream<Arguments> p256VerifySource() throws IOException {
+    List<Arguments> arguments = new ArrayList<>(p256VerifySourceNightly().toList());
+    Collections.shuffle(arguments, new Random(LocalDate.now().toEpochDay()));
+    return arguments.stream().limit(arguments.size() / 40); // Execute 2.5 % of the tests
+  }
+
+  // TODO: add this later
+  private static Stream<Arguments> p256VerifySourceNightly() throws IOException {
+    // Read json
+    InputStream inputStream =
+        P256VerifyTest.class.getResourceAsStream("/p256_verify_test_vectors.json");
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode root = mapper.readTree(inputStream);
+    // Fill list of arguments
     List<Arguments> arguments = new ArrayList<>();
-    arguments.add(
-        Arguments.of(
-            "bb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca6050232ba3a8be6b94d5ec80a6d9d1190a436effe50d85a1eee859b8cc6af9bd5c2e184cd60b855d442f5b3c7b11eb6c4e0ae7525fe710fab9aa7c77a67f79e6fadd762927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838c7787964eaac00e5921fb1498a60f4606766b3d9685001558d1a974e7341513e"));
+    for (JsonNode node : root) {
+      String input = node.get("Input").asText();
+      String expected = node.get("Expected").asText();
+      arguments.add(Arguments.of(input, expected));
+    }
     return arguments.stream();
   }
 }

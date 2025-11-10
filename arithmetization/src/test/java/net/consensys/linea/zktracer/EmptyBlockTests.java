@@ -152,7 +152,7 @@ public class EmptyBlockTests extends TracerTestBase {
   @Test
   void mixOfEmptyAndNonEmptyBlocks_EENENE(TestInfo testInfo) {
     // Empty block are allowed only after Cancun
-    if (isPostCancun(chainConfig.fork)) {
+    if (isPostCancun(fork)) {
 
       MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
           builderFromBlockTypeList(
@@ -165,7 +165,7 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.EMPTY_BLOCK),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
       env.run();
 
       final State hub = env.getHub().state();
@@ -190,7 +190,7 @@ public class EmptyBlockTests extends TracerTestBase {
   @Test
   void mixOfEmptyAndNonEmptyBlocks_NEEN(TestInfo testInfo) {
     // Empty block are allowed only after Cancun
-    if (isPostCancun(chainConfig.fork)) {
+    if (isPostCancun(fork)) {
 
       MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
           builderFromBlockTypeList(
@@ -201,7 +201,7 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.MONO_TRANSACTION_BLOCK___READING),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
       env.run();
     }
   }
@@ -209,7 +209,7 @@ public class EmptyBlockTests extends TracerTestBase {
   @Test
   void mixOfEmptyAndNonEmptyBlocks_NEEE(TestInfo testInfo) {
     // Empty block are allowed only after Cancun
-    if (isPostCancun(chainConfig.fork)) {
+    if (isPostCancun(fork)) {
 
       MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
           builderFromBlockTypeList(
@@ -220,7 +220,7 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.MONO_TRANSACTION_BLOCK___STORING),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
       env.run();
     }
   }
@@ -228,7 +228,7 @@ public class EmptyBlockTests extends TracerTestBase {
   @Test
   void mixOfEmptyAndNonEmptyBlocks_ENNE(TestInfo testInfo) {
     // Empty block are allowed only after Cancun
-    if (isPostCancun(chainConfig.fork)) {
+    if (isPostCancun(fork)) {
 
       MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
           builderFromBlockTypeList(
@@ -239,7 +239,7 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.EMPTY_BLOCK),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.build();
+        final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
       env.run();
     }
   }
@@ -247,7 +247,7 @@ public class EmptyBlockTests extends TracerTestBase {
   @Test
   void mixOfEmptyAndNonEmptyBlocks_EEEE(TestInfo testInfo) {
     // Empty block are allowed only after Cancun
-    if (isPostCancun(chainConfig.fork)) {
+    if (isPostCancun(fork)) {
 
       MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
           builderFromBlockTypeList(
@@ -258,7 +258,7 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.EMPTY_BLOCK),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.build();
+        final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
       env.run();
     }
   }
@@ -266,7 +266,7 @@ public class EmptyBlockTests extends TracerTestBase {
   @Test
   void mixOfEmptyAndNonEmptyBlocks_EEEN(TestInfo testInfo) {
     // Empty block are allowed only after Cancun
-    if (isPostCancun(chainConfig.fork)) {
+    if (isPostCancun(fork)) {
 
       MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
           builderFromBlockTypeList(
@@ -277,7 +277,7 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.MONO_TRANSACTION_BLOCK___STORING),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.build();
+        final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
       env.run();
     }
   }
@@ -285,12 +285,12 @@ public class EmptyBlockTests extends TracerTestBase {
   @Test
   void mixOfEmptyAndNonEmptyBlocks_E(TestInfo testInfo) {
     // Empty blocks are allowed only after Cancun
-    if (isPostCancun(chainConfig.fork)) {
+    if (isPostCancun(fork)) {
 
       MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
           builderFromBlockTypeList(List.of(BlockType.EMPTY_BLOCK), testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
       env.run();
       checkArgument(
           env.getHub().txStack().transactions().isEmpty(),
@@ -303,7 +303,8 @@ public class EmptyBlockTests extends TracerTestBase {
 
     final MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
         MultiBlockExecutionEnvironment.builder(chainConfig, testInfo)
-            .accounts(List.of(senderAccount, storingNumber, logging, receivingAccount));
+            .accounts(List.of(senderAccount, storingNumber, logging, receivingAccount))
+                .runWithBesuNode(true);
 
     for (BlockType blockType : blockTypes) {
       switch (blockType) {

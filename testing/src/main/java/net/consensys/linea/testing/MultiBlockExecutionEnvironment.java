@@ -57,7 +57,7 @@ public class MultiBlockExecutionEnvironment {
 
   @Builder.Default private final long startingBlockNumber = DEFAULT_BLOCK_NUMBER;
   @Builder.Default private final boolean systemContractDeployedPriorToConflation = true;
-
+  @Builder.Default private final Boolean runWithBesuNode = false;
   /**
    * A transaction validator of each transaction; by default, it asserts that the transaction was
    * successfully processed.
@@ -123,6 +123,7 @@ public class MultiBlockExecutionEnvironment {
   }
 
   public void run() {
+<<<<<<< HEAD
       if (System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
           List<Transaction> transactionsIncludingNullTransactionsForEmptyBlocks = new ArrayList<>();
           for (BlockSnapshot block : blocks) {
@@ -134,6 +135,17 @@ public class MultiBlockExecutionEnvironment {
                       transactionsIncludingNullTransactionsForEmptyBlocks.add(txSnapshot.toTransaction());
                   }
               }
+=======
+    if (runWithBesuNode || System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
+      List<Transaction> transactionsIncludingNullTransactionsForEmptyBlocks = new ArrayList<>();
+      for (BlockSnapshot block : blocks) {
+        if (block.txs().isEmpty()) {
+          // Add a null transaction to represent an empty block
+          transactionsIncludingNullTransactionsForEmptyBlocks.add(null);
+        } else {
+          for (TransactionSnapshot txSnapshot : block.txs()) {
+            transactionsIncludingNullTransactionsForEmptyBlocks.add(txSnapshot.toTransaction());
+>>>>>>> c2c824704 (feat: add runWithBesu field to MultiBlockExecutionEnvironement)
           }
           BesuExecutionTools besuExecTools =
                   new BesuExecutionTools(

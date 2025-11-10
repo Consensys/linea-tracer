@@ -19,8 +19,6 @@ import static net.consensys.linea.reporting.TracerTestBase.chainConfig;
 import static net.consensys.linea.reporting.TracerTestBase.fork;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
-import static net.consensys.linea.zktracer.Fork.CANCUN;
-import static net.consensys.linea.zktracer.Fork.PRAGUE;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
 import static net.consensys.linea.zktracer.types.PublicInputs.getDefaultBlobBaseFees;
 

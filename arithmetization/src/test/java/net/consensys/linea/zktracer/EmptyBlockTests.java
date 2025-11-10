@@ -239,7 +239,7 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.EMPTY_BLOCK),
               testInfo);
 
-        final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
       env.run();
     }
   }
@@ -258,7 +258,7 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.EMPTY_BLOCK),
               testInfo);
 
-        final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
       env.run();
     }
   }
@@ -277,7 +277,7 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.MONO_TRANSACTION_BLOCK___STORING),
               testInfo);
 
-        final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
       env.run();
     }
   }
@@ -304,7 +304,7 @@ public class EmptyBlockTests extends TracerTestBase {
     final MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
         MultiBlockExecutionEnvironment.builder(chainConfig, testInfo)
             .accounts(List.of(senderAccount, storingNumber, logging, receivingAccount))
-                .runWithBesuNode(true);
+            .runWithBesuNode(true);
 
     for (BlockType blockType : blockTypes) {
       switch (blockType) {

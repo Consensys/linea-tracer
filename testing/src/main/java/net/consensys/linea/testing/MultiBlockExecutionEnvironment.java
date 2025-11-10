@@ -58,6 +58,7 @@ public class MultiBlockExecutionEnvironment {
   @Builder.Default private final long startingBlockNumber = DEFAULT_BLOCK_NUMBER;
   @Builder.Default private final boolean systemContractDeployedPriorToConflation = true;
   @Builder.Default private final Boolean runWithBesuNode = false;
+
   /**
    * A transaction validator of each transaction; by default, it asserts that the transaction was
    * successfully processed.

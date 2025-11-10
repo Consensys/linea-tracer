@@ -16,9 +16,7 @@
 package net.consensys.linea.testing;
 
 import static net.consensys.linea.reporting.TracerTestBase.chainConfig;
-import static net.consensys.linea.reporting.TracerTestBase.fork;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
-import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
 import static net.consensys.linea.zktracer.types.PublicInputs.getDefaultBlobBaseFees;
 
@@ -58,7 +56,6 @@ public class MultiBlockExecutionEnvironment {
   @Builder.Default private final long startingBlockNumber = DEFAULT_BLOCK_NUMBER;
   @Builder.Default private final boolean systemContractDeployedPriorToConflation = true;
   @Builder.Default private final Boolean runWithBesuNode = false;
-
   /**
    * A transaction validator of each transaction; by default, it asserts that the transaction was
    * successfully processed.
@@ -179,7 +176,7 @@ public class MultiBlockExecutionEnvironment {
       BesuExecutionTools besuExecTools =
           new BesuExecutionTools(
               Optional.of(testInfo),
-              MAINNET_TESTCONFIG(fork), // TODO: make configurable ?
+              chainConfig,
               ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS,
               accounts,
               transactionsIncludingNullTransactionsForEmptyBlocks,

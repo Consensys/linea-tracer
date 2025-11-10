@@ -16,9 +16,11 @@
 package net.consensys.linea.testing;
 
 import static net.consensys.linea.reporting.TracerTestBase.chainConfig;
+import static net.consensys.linea.reporting.TracerTestBase.fork;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.Fork.CANCUN;
+import static net.consensys.linea.zktracer.Fork.PRAGUE;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
 import static net.consensys.linea.zktracer.types.PublicInputs.getDefaultBlobBaseFees;
 
@@ -174,6 +176,33 @@ public class MultiBlockExecutionEnvironment {
                   .build()
                   .replay(testsChain, testInfo, conflationSnapshot);
       }
+<<<<<<< HEAD
+=======
+      BesuExecutionTools besuExecTools =
+          new BesuExecutionTools(
+              Optional.of(testInfo),
+              MAINNET_TESTCONFIG(fork), // TODO: make configurable ?
+              ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS,
+              accounts,
+              transactionsIncludingNullTransactionsForEmptyBlocks,
+              true,
+              null);
+      besuExecTools.executeTest();
+      return;
+    }
+    final ConflationSnapshot conflationSnapshot = buildConflationSnapshot();
+    final Map<Long, Hash> historicalBlockhashes = conflationSnapshot.historicalBlockHashes();
+    // Remove the last block number as it's not part of the historical blockhashes
+    historicalBlockhashes.remove(conflationSnapshot.lastBlockNumber());
+    tracer = new ZkTracer(chainConfig, historicalBlockhashes);
+    ReplayExecutionEnvironment.builder()
+        .zkTracer(tracer)
+        .useCoinbaseAddressFromBlockHeader(true)
+        .transactionProcessingResultValidator(transactionProcessingResultValidator)
+        .systemContractDeployedPriorToConflation(systemContractDeployedPriorToConflation)
+        .build()
+        .replay(testsChain, testInfo, conflationSnapshot);
+>>>>>>> 68a7a6f97 (feat: configurable fork)
   }
 
   public Hub getHub() {

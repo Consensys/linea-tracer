@@ -16,12 +16,15 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
+import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 import static net.consensys.linea.zktracer.Trace.Ecdata.TOTAL_SIZE_ECPAIRING_DATA_MIN;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.ModuleName.GAS;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NB_ROWS_ADD;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.NB_ROWS_BLAKEMODEPX_BLAKE;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.NB_ROWS_BLAKEMODEXP_MODEXP;
 import static net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData.NB_ROWS_BLOCK_DATA;
 import static net.consensys.linea.zktracer.module.blockhash.BlockhashOperation.NB_ROWS_BLOCKHASH;
@@ -42,6 +45,7 @@ import static net.consensys.linea.zktracer.module.hub.section.SstoreSection.NB_R
 import static net.consensys.linea.zktracer.module.hub.section.StackOnlySection.NB_ROWS_HUB_SIMPLE_STACK_OP;
 import static net.consensys.linea.zktracer.module.hub.section.StackRamSection.NB_ROWS_HUB_STACKRAM;
 import static net.consensys.linea.zktracer.module.hub.section.call.CallSection.NB_ROWS_HUB_CALL;
+import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.BlakeSubsection.NB_ROWS_HUB_PRC_BLAKE;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.EllipticCurvePrecompileSubsection.NB_ROWS_HUB_PRC_ELLIPTIC_CURVE;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.IdentitySubsection.NB_ROWS_HUB_PRC_IDENTITY;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ModexpSubsection.NB_ROWS_HUB_PRC_MODEXP;
@@ -65,7 +69,6 @@ import static net.consensys.linea.zktracer.module.hub.section.transients.TStoreS
 import static net.consensys.linea.zktracer.module.hub.section.txInitializationSection.TxInitializationSection.NB_ROWS_HUB_INIT;
 import static net.consensys.linea.zktracer.module.logdata.LogData.lineCountForLogData;
 import static net.consensys.linea.zktracer.module.loginfo.LogInfo.lineCountForLogInfo;
-import static net.consensys.linea.zktracer.module.mod.ModOperation.NB_ROWS_MOD;
 import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunMSizeMxpCall.NB_ROWS_MXP_MSIZE;
 import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpdateMxpCall.NB_ROWS_MXP_UPDT_B;
 import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpdateWordPricingMxpCall.NB_ROWS_MXP_UPDT_W;
@@ -76,8 +79,8 @@ import static net.consensys.linea.zktracer.module.stp.StpOperation.NB_ROWS_STP;
 import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysfNoopTransaction.NB_ROWS_TXN_DATA_SYSF_NOOP;
 import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysiEip2935Transaction.NB_ROWS_TXN_DATA_SYSI_EIP2935;
 import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.SysiEip4788Transaction.NB_ROWS_TXN_DATA_SYSI_EIP4788;
-import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.UserTransaction.NB_ROWS_TXN_DATA_USER_1559_SEMANTIC;
-import static net.consensys.linea.zktracer.module.txndata.cancun.transactions.UserTransaction.NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC;
+import static net.consensys.linea.zktracer.module.txndata.osaka.OsakaUserTransaction.NB_ROWS_TXN_DATA_OSAKA_USER_1559_SEMANTIC;
+import static net.consensys.linea.zktracer.module.txndata.osaka.OsakaUserTransaction.NB_ROWS_TXN_DATA_OSAKA_USER_NO_1559_SEMANTIC;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static net.consensys.linea.zktracer.types.TransactionProcessingMetadata.computeRequiresEvmExecution;
@@ -134,7 +137,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Slf4j
 public class ZkCounter implements LineCountingTracer {
 
-  public static final Fork FORK_TO_USE_FOR_ZK_COUNTER = PRAGUE;
+  public static final Fork FORK_TO_USE_FOR_ZK_COUNTER = OSAKA;
 
   private final OpCodes opCodes = OpCodes.load(FORK_TO_USE_FOR_ZK_COUNTER);
   private static final Trace trace = getTraceFromFork(FORK_TO_USE_FOR_ZK_COUNTER);
@@ -208,14 +211,9 @@ public class ZkCounter implements LineCountingTracer {
   // related to Shakira:
   private final Keccak keccak;
   private final Sha256Blocks sha256Blocks = new Sha256Blocks();
-  private final IncrementAndDetectModule ripemdBlocks =
-      new IncrementAndDetectModule(PRECOMPILE_RIPEMD_BLOCKS);
+  private final CountingOnlyModule ripemdBlocks = new CountingOnlyModule(PRECOMPILE_RIPEMD_BLOCKS);
 
   // Related to Bls
-  // remove me when Linea supports Cancun & Prague precompiles
-  private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL) {};
-  private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
-
   final IncrementingModule pointEvaluationEffectiveCall =
       new IncrementingModule(PRECOMPILE_BLS_POINT_EVALUATION_EFFECTIVE_CALLS);
   final IncrementingModule pointEvaluationFailureCall =
@@ -310,8 +308,6 @@ public class ZkCounter implements LineCountingTracer {
         modexpEffectiveCall,
         modexpLargeCall,
         blakeEffectiveCall,
-        bls,
-        pointEval,
         pointEvaluationEffectiveCall,
         pointEvaluationFailureCall,
         blsG1AddEffectiveCall,
@@ -373,7 +369,10 @@ public class ZkCounter implements LineCountingTracer {
   }
 
   @Override
-  public void traceStartConflation(long numBlocksInConflation) {}
+  public void traceStartConflation(long numBlocksInConflation) {
+    blockHash.updateTally(
+        (int) ((BLOCKHASH_MAX_HISTORY + numBlocksInConflation) * NB_ROWS_BLOCKHASH));
+  }
 
   @Override
   public void traceEndConflation(WorldView state) {}
@@ -416,8 +415,8 @@ public class ZkCounter implements LineCountingTracer {
         }
         txnData.updateTally(
             transactionHasEip1559GasSemantics(tx)
-                ? NB_ROWS_TXN_DATA_USER_1559_SEMANTIC
-                : NB_ROWS_TXN_DATA_USER_NO_1559_SEMANTIC);
+                ? NB_ROWS_TXN_DATA_OSAKA_USER_1559_SEMANTIC
+                : NB_ROWS_TXN_DATA_OSAKA_USER_NO_1559_SEMANTIC);
         // deploymentTransaction:
         if (tx.isContractCreation()) {
           rlpAddr.updateTally(NB_ROWS_RLPADDR_CREATE);
@@ -478,27 +477,27 @@ public class ZkCounter implements LineCountingTracer {
       }
       case ADD -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        add.tracePreOpcode(frame, opcode.mnemonic());
+        add.callAdd(frame, opcode.mnemonic());
       }
       case MOD -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        mod.tracePreOpcode(frame, opcode.mnemonic());
+        mod.callMod(frame, opcode.mnemonic());
       }
       case SHF -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        shf.tracePreOpcode(frame, opcode.mnemonic());
+        shf.callShf(frame, opcode.mnemonic());
       }
       case BIN -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        bin.tracePreOpcode(frame, opcode.mnemonic());
+        bin.callBin(frame, opcode.mnemonic());
       }
       case WCP -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        // if we count WCP:  wcp.tracePreOpcode(frame, opcode.mnemonic());
+        // if we count WCP:  wcp.callWco(frame, opcode.mnemonic());
       }
       case EXT -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        ext.tracePreOpcode(frame, opcode.mnemonic());
+        ext.callExt(frame, opcode.mnemonic());
       }
       case MACHINE_STATE -> {
         if (opcode.mnemonic() == MSIZE) {
@@ -513,11 +512,11 @@ public class ZkCounter implements LineCountingTracer {
           case OpCode.EXP -> {
             hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP + 1);
             exp.call(new ExplogExpCall(frame));
-            mul.tracePreOpcode(frame, opcode.mnemonic());
+            mul.callMul(frame, opcode.mnemonic());
           }
           case OpCode.MUL -> {
             hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-            mul.tracePreOpcode(frame, opcode.mnemonic());
+            mul.callMul(frame, opcode.mnemonic());
           }
         }
       }
@@ -691,7 +690,6 @@ public class ZkCounter implements LineCountingTracer {
     final boolean prcSuccess = frame.getState() == COMPLETED_SUCCESS;
     final Bytes returnData = output == null ? Bytes.EMPTY : output;
 
-    // MMU
     switch (precompile) {
       case PRC_ECRECOVER, PRC_ECADD, PRC_ECMUL -> {
         // trigger EcData to count the underlying EC operations
@@ -705,28 +703,25 @@ public class ZkCounter implements LineCountingTracer {
       case PRC_SHA2_256 -> {
         hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
         oob.updateTally(oobLineCountForPrc(precompile));
-        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        mod.updateTally(modLinesComingFromOobCall(precompile));
         if (prcSuccess && callDataSize != 0) {
           shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) + NB_ROWS_SHAKIRA_RESULT);
           sha256Blocks.updateTally(callData.size());
         }
       }
       case PRC_RIPEMD_160 -> {
-        ripemdBlocks.detectEvent();
-        // Reenable me when RIPEMD is supported by the prover
-        // hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
-        // oob.updateTally(oobLineCountforPrc(precompile));
-        // mod.updateTally(NB_ROWS_MOD); // coming from OOB call
-        // if (prcSuccess && callDataSize != 0) {
-        //   shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) +
-        // NB_ROWS_SHAKIRA_RESULT);
-        //   ripemdBlocks.updateTally(callDataSize);
-        // }
+        hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
+        oob.updateTally(oobLineCountForPrc(precompile));
+        mod.updateTally(modLinesComingFromOobCall(precompile));
+        if (prcSuccess && callDataSize != 0) {
+          shakiradata.updateTally(fromDataSizeToLimbNbRows(callDataSize) + NB_ROWS_SHAKIRA_RESULT);
+          ripemdBlocks.updateTally(callDataSize);
+        }
       }
       case PRC_IDENTITY -> {
         hub.updateTally(NB_ROWS_HUB_PRC_IDENTITY);
         oob.updateTally(oobLineCountForPrc(precompile));
-        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        mod.updateTally(modLinesComingFromOobCall(precompile));
       }
       case PRC_MODEXP -> {
         hub.updateTally(NB_ROWS_HUB_PRC_MODEXP);
@@ -744,7 +739,7 @@ public class ZkCounter implements LineCountingTracer {
           exp.call(modexpLogCallToExp);
         }
         oob.updateTally(oobLineCountForPrc(precompile));
-        mod.updateTally(2 * NB_ROWS_MOD); // 2 coming from OOB pricing call
+        mod.updateTally(modLinesComingFromOobCall(precompile));
       }
       case PRC_ECPAIRING -> {
         // trigger EcData to count the underlying EC operations
@@ -754,9 +749,15 @@ public class ZkCounter implements LineCountingTracer {
         }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
         oob.updateTally(oobLineCountForPrc(precompile));
-        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
+        mod.updateTally(modLinesComingFromOobCall(precompile));
       }
-      case PRC_BLAKE2F -> blakeEffectiveCall.detectEvent();
+      case PRC_BLAKE2F -> {
+        blakeEffectiveCall.updateTally(true);
+        hub.updateTally(NB_ROWS_HUB_PRC_BLAKE);
+        oob.updateTally(oobLineCountForPrc(PRC_BLAKE2F));
+        blakemodexp.updateTally(NB_ROWS_BLAKEMODEPX_BLAKE);
+        // TODO: still unchecked module for now: blakeRounds.updateTally();
+      }
       case PRC_BLS_G1_ADD,
           PRC_BLS_G1_MSM,
           PRC_BLS_G2_ADD,
@@ -765,17 +766,12 @@ public class ZkCounter implements LineCountingTracer {
           PRC_BLS_MAP_FP_TO_G1,
           PRC_BLS_MAP_FP2_TO_G2,
           PRC_POINT_EVALUATION -> {
-        if (precompile == PRC_POINT_EVALUATION) {
-          pointEval.detectEvent();
-        } else {
-          bls.detectEvent();
-        }
-        if (callDataSize != 0) {
+        if (validCallDataSize(precompile, callDataSize)) {
           blsdata.callBls(0, precompile, frame.getInputData(), returnData, prcSuccess);
         }
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
         oob.updateTally(oobLineCountForPrc(precompile));
-        // TODO: check if we have some MOD coming from OOB call
+        mod.updateTally(modLinesComingFromOobCall(precompile));
       }
       default -> throw new IllegalStateException("Unsupported precompile: " + precompile);
     }
@@ -784,14 +780,14 @@ public class ZkCounter implements LineCountingTracer {
   /** When called, erase all tracing related to the bundle of all transactions since the last. */
   @Override
   public void popTransactionBundle() {
-    for (Module m : moduleToCount) {
+    for (Module m : checkedModules()) {
       m.popTransactionBundle();
     }
   }
 
   @Override
   public void commitTransactionBundle() {
-    for (Module m : moduleToCount) {
+    for (Module m : checkedModules()) {
       m.commitTransactionBundle();
     }
   }
@@ -800,8 +796,11 @@ public class ZkCounter implements LineCountingTracer {
   public Map<String, Integer> getModulesLineCount() {
     final HashMap<String, Integer> modulesLineCount = HashMap.newHashMap(moduleToCount.size());
 
-    for (Module m : moduleToCount) {
+    for (Module m : checkedModules()) {
       modulesLineCount.put(m.moduleKey().toString(), m.lineCount() + m.spillage(trace));
+    }
+    for (Module m : uncheckedModules()) {
+      modulesLineCount.put(m.moduleKey().toString(), 0);
     }
     return modulesLineCount;
   }

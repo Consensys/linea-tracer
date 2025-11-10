@@ -58,37 +58,6 @@ jobs:
   # ==================================================================
   # Unit Tests
   # ==================================================================
-  unit-tests-london:
-    if: github.event.pull_request.draft == false && github.base_ref != 'main'
-    needs: [ build ]
-    uses: ./.github/workflows/reusable-unit-tests.yml
-    with:
-      zkevm_fork: LONDON
-      tests-with-ssh: ${{ inputs.tests-with-ssh || false }}
-
-  unit-tests-paris:
-    if: github.event.pull_request.draft == false && github.base_ref != 'main'
-    needs: [ build ]
-    uses: ./.github/workflows/reusable-unit-tests.yml
-    with:
-      zkevm_fork: PARIS
-      tests-with-ssh: ${{ inputs.tests-with-ssh || false}}
-
-  unit-tests-shanghai:
-    if: github.event.pull_request.draft == false && github.base_ref != 'main'
-    needs: [ build ]
-    uses: ./.github/workflows/reusable-unit-tests.yml
-    with:
-      zkevm_fork: SHANGHAI
-      tests-with-ssh: ${{ inputs.tests-with-ssh || false}}
-
-  unit-tests-cancun:
-    needs: [ build ]
-    uses: ./.github/workflows/reusable-unit-tests.yml
-    with:
-      zkevm_fork: CANCUN
-      tests-with-ssh: ${{ inputs.tests-with-ssh || false}}
-
   unit-tests-prague:
     needs: [ build ]
     uses: ./.github/workflows/reusable-unit-tests.yml
@@ -118,9 +87,8 @@ jobs:
         run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:fastReplayTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
-          REPLAY_TESTS_PARALLELISM: 4
+          JUNIT_TESTS_PARALLELISM: 4
           GOCORSET_FLAGS: -b1024 -v --ansi-escapes=false --report --air
-          ZKEVM_FORK: LONDON
 
       - name: Upload test report
         if: ${{ always() }}

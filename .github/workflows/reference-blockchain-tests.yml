@@ -29,47 +29,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  blockchain-reference-tests-london:
-    uses: ./.github/workflows/reusable-blockchain-tests.yml
-    secrets: inherit
-    with:
-      zkevm_fork: LONDON
-      test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
-      failed_module: ${{ inputs.failed_module || '' }}
-      failed_constraint: ${{ inputs.failed_constraint || '' }}
-      commit: ${{ inputs.commit || '' }}
-
-
-  blockchain-reference-tests-paris:
-    uses: ./.github/workflows/reusable-blockchain-tests.yml
-    secrets: inherit
-    with:
-      zkevm_fork: PARIS
-      test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
-      failed_module: ${{ inputs.failed_module || '' }}
-      failed_constraint: ${{ inputs.failed_constraint || '' }}
-      commit: ${{ inputs.commit || '' }}
-
-  blockchain-reference-tests-shanghai:
-    uses: ./.github/workflows/reusable-blockchain-tests.yml
-    secrets: inherit
-    with:
-      zkevm_fork: SHANGHAI
-      test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
-      failed_module: ${{ inputs.failed_module || '' }}
-      failed_constraint: ${{ inputs.failed_constraint || '' }}
-      commit: ${{ inputs.commit || '' }}
-
-  blockchain-reference-tests-cancun:
-    uses: ./.github/workflows/reusable-blockchain-tests.yml
-    secrets: inherit
-    with:
-      zkevm_fork: CANCUN
-      test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
-      failed_module: ${{ inputs.failed_module || '' }}
-      failed_constraint: ${{ inputs.failed_constraint || '' }}
-      commit: ${{ inputs.commit || '' }}
-
+  # For Prague, we run blockchain tests coming from the execution spec tests
   blockchain-reference-tests-prague:
     uses: ./.github/workflows/reusable-blockchain-tests.yml
     secrets: inherit

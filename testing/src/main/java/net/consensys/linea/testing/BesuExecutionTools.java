@@ -16,6 +16,7 @@ package net.consensys.linea.testing;
 
 import static java.lang.Long.parseLong;
 import static net.consensys.linea.testing.ShomeiNode.MerkelProofResponse;
+import static net.consensys.linea.zktracer.Fork.OSAKA;
 import static net.consensys.linea.zktracer.Fork.isPostParis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hyperledger.besu.tests.acceptance.dsl.WaitUtils.waitFor;
@@ -27,6 +28,7 @@ import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -96,7 +98,7 @@ public class BesuExecutionTools {
     this.testName = tmpTestName.substring(0, Math.min(tmpTestName.length(), 200));
     int besuPort = findFreePort();
     int shomeiPort = findFreePort();
-    this.httpClient = new OkHttpClient();
+    this.httpClient = new OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build();
     this.oneTxPerBlock = oneTxPerBlock;
     // Generate file per fork in testing/src/main/resources folder
     String genesisFileName =
@@ -367,6 +369,7 @@ public class BesuExecutionTools {
     var shanghaiTime = genesisConfigBuilder.getShanghaiTime();
     var cancunTime = genesisConfigBuilder.getCancunTime();
     var pragueTime = genesisConfigBuilder.getPragueTime();
+    var osakaTime = genesisConfigBuilder.getOsakaTime();
 
     // No fork switch specified in the genesis file, stay in London
     if (TTD == null && shanghaiTime == null && cancunTime == null && pragueTime == null) {
@@ -380,6 +383,9 @@ public class BesuExecutionTools {
       if (shanghaiTime != null && (nextBlockTimestamp >= parseLong(shanghaiTime))) {
         if (cancunTime != null && (nextBlockTimestamp >= parseLong(cancunTime))) {
           if (pragueTime != null && (nextBlockTimestamp >= parseLong(pragueTime))) {
+            if (osakaTime != null && (nextBlockTimestamp >= parseLong(osakaTime))) {
+              return OSAKA;
+            }
             return Fork.PRAGUE;
           }
           return Fork.CANCUN;
@@ -420,7 +426,8 @@ public class BesuExecutionTools {
     ObjectMapper mapper = new ObjectMapper();
     EngineAPIService engineApiService = new EngineAPIService(besuNode, ethTransactions, mapper);
     BigInteger latestTimestamp = besuNode.execute(ethTransactions.block()).getTimestamp();
-    long blockBuildingTimeMs = parseLong(genesisConfigBuilder.getCliqueBlockPeriodSeconds()) * 1000;
+    long blockBuildingTimeMs =
+        parseLong(genesisConfigBuilder.getCliqueBlockPeriodSeconds()) * 10000;
     engineApiService.buildNewBlock(nextFork, latestTimestamp.longValue() + 1L, blockBuildingTimeMs);
   }
 
@@ -464,7 +471,7 @@ public class BesuExecutionTools {
     TraceFile traceFile = lineaGenerateConflatedTracesToFileV2(startBlockNumber, endBlockNumber);
     Path traceFilePath = Path.of(traceFile.conflatedTracesFileName());
     waitFor(
-        10,
+        60,
         () -> {
           assertThat(traceFilePath.toFile().exists())
               .withFailMessage("Trace file %s does not exist", traceFilePath)

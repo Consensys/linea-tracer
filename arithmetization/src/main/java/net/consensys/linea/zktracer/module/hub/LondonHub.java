@@ -20,6 +20,8 @@ import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
+import java.util.Map;
+
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 import net.consensys.linea.zktracer.container.module.Module;
@@ -41,17 +43,17 @@ import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.LondonInstructionDecoder;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
-import net.consensys.linea.zktracer.module.txndata.TxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.london.LondonTxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class LondonHub extends Hub {
-  public LondonHub(ChainConfig chain) {
-    super(chain);
+  public LondonHub(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
+    super(chain, historicalBlockHashes);
   }
 
   @Override
@@ -67,7 +69,7 @@ public class LondonHub extends Hub {
   }
 
   @Override
-  protected TxnData<? extends TxnDataOperation> setTxnData() {
+  protected TxnData setTxnData() {
     return new LondonTxnData(this, wcp(), euc());
   }
 

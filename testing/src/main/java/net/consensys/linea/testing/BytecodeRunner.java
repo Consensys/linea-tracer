@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ChainConfig;
@@ -45,10 +46,10 @@ import org.junit.jupiter.api.TestInfo;
  */
 @Accessors(fluent = true)
 public final class BytecodeRunner {
-  // TODO: refacto default value
-  public static final long DEFAULT_GAS_LIMIT = 61_000_000L;
+  public static final long DEFAULT_GAS_LIMIT =
+      EIP_7825_TRANSACTION_GAS_LIMIT_CAP; // = 0x1000000 max tx gas limit since EIP-7825 (OSAKA)
   private final Bytes byteCode;
-  ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2;
+  @Getter ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2;
 
   /**
    * @param byteCode the byte code to test
@@ -140,6 +141,12 @@ public final class BytecodeRunner {
         Wei.fromEth(1), DEFAULT_GAS_LIMIT, List.of(), payload, accessList, chainConfig, testInfo);
   }
 
+  public void runWithImposedSenderRecipientAddressCollision(
+      Bytes payload, List<AccessListEntry> accessList, ChainConfig chainConfig, TestInfo testInfo) {
+    this.runWithImposedSenderRecipientAddressCollision(
+        Wei.fromEth(1), DEFAULT_GAS_LIMIT, List.of(), payload, accessList, chainConfig, testInfo);
+  }
+
   public void run(
       Wei senderBalance,
       Long gasLimit,
@@ -160,7 +167,50 @@ public final class BytecodeRunner {
       List<AccessListEntry> accessList,
       ChainConfig chainConfig,
       TestInfo testInfo) {
+    buildToyExecutionEnvironmentV2(
+        senderBalance,
+        gasLimit,
+        additionalAccounts,
+        payload,
+        accessList,
+        chainConfig,
+        testInfo,
+        false);
+    toyExecutionEnvironmentV2.run();
+  }
+
+  public void runWithImposedSenderRecipientAddressCollision(
+      Wei senderBalance,
+      Long gasLimit,
+      List<ToyAccount> additionalAccounts,
+      Bytes payload,
+      List<AccessListEntry> accessList,
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
+    buildToyExecutionEnvironmentV2(
+        senderBalance,
+        gasLimit,
+        additionalAccounts,
+        payload,
+        accessList,
+        chainConfig,
+        testInfo,
+        true);
+    toyExecutionEnvironmentV2.run();
+  }
+
+  private void buildToyExecutionEnvironmentV2(
+      Wei senderBalance,
+      Long gasLimit,
+      List<ToyAccount> additionalAccounts,
+      Bytes payload,
+      List<AccessListEntry> accessList,
+      ChainConfig chainConfig,
+      TestInfo testInfo,
+      boolean imposeSenderRecipientCollision) {
     checkArgument(byteCode != null, "byteCode cannot be empty");
+    final long transactionValue = 272; // 256 + 16, easier for debugging
+    final long gasPrice = 8;
 
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -172,21 +222,27 @@ public final class BytecodeRunner {
     final Long selectedGasLimit = Optional.of(gasLimit).orElse(DEFAULT_GAS_LIMIT);
 
     final ToyAccount receiverAccount =
-        ToyAccount.builder()
-            .balance(Wei.fromEth(1))
-            .nonce(6)
-            .address(Address.fromHexString("0x1111111111111111111111111111111111111111"))
-            .code(byteCode)
-            .build();
+        imposeSenderRecipientCollision
+            ? ToyAccount.builder()
+                .balance(senderBalance.subtract(transactionValue + gasPrice * selectedGasLimit))
+                .nonce(5 + 1)
+                .address(senderAddress)
+                .build()
+            : ToyAccount.builder()
+                .balance(Wei.fromEth(1))
+                .nonce(6)
+                .address(Address.fromHexString("0x1111111111111111111111111111111111111111"))
+                .code(byteCode)
+                .build();
 
     final ToyTransaction.ToyTransactionBuilder txBuilder =
         ToyTransaction.builder()
             .sender(senderAccount)
             .to(receiverAccount)
-            .value(Wei.of(272)) // 256 + 16, easier for debugging
+            .value(Wei.of(transactionValue)) // 256 + 16, easier for debugging
             .keyPair(keyPair)
             .gasLimit(selectedGasLimit)
-            .gasPrice(Wei.of(8));
+            .gasPrice(Wei.of(gasPrice));
     if (!payload.isEmpty()) {
       txBuilder.payload(payload);
     }
@@ -198,7 +254,9 @@ public final class BytecodeRunner {
 
     final List<ToyAccount> accounts = new ArrayList<>();
     accounts.add(senderAccount);
-    accounts.add(receiverAccount);
+    if (!imposeSenderRecipientCollision) {
+      accounts.add(receiverAccount);
+    }
     accounts.addAll(additionalAccounts);
 
     toyExecutionEnvironmentV2 =
@@ -209,7 +267,6 @@ public final class BytecodeRunner {
             .zkTracerValidator(zkTracerValidator)
             .transaction(tx)
             .build();
-    toyExecutionEnvironmentV2.run();
   }
 
   public void runInitCode(ChainConfig chainConfig, TestInfo testInfo) {

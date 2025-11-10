@@ -27,8 +27,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
-import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
-import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
@@ -100,12 +99,10 @@ import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.PowerRt;
-import net.consensys.linea.zktracer.module.tables.bin.BinRt;
 import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
-import net.consensys.linea.zktracer.module.txndata.TxnDataOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -120,7 +117,9 @@ import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.AccountState;
@@ -201,13 +200,14 @@ public abstract class Hub implements Module {
     return trace.hub().spillage();
   }
 
-  /** List of all modules of the ZK-evm */
+  // List of all modules of the ZK-evm:
+
   // stateless modules
   private final Wcp wcp = new Wcp();
 
   private final Add add = new Add();
   private final Bin bin = new Bin();
-  private final Blockhash blockhash = new Blockhash(this, wcp);
+  private final Blockhash blockhash;
   private final Euc euc = new Euc(wcp);
   private final Ext ext = new Ext();
   private final Gas gas = new Gas();
@@ -223,7 +223,7 @@ public abstract class Hub implements Module {
   private final Rom rom = new Rom(romLex);
   private final RlpTxn rlpTxn;
   private final Mmio mmio;
-  @Getter final TxnData<? extends TxnDataOperation> txnData = setTxnData();
+  @Getter final TxnData txnData = setTxnData();
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -273,10 +273,6 @@ public abstract class Hub implements Module {
   private final BlakeRounds blakeRounds = new BlakeRounds();
 
   // Related to Bls
-  // TODO: remove me when Linea supports Cancun & Prague precompiles
-  private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL) {};
-  private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
-
   final IncrementingModule pointEvaluationEffectiveCall =
       new IncrementingModule(PRECOMPILE_BLS_POINT_EVALUATION_EFFECTIVE_CALLS);
   final IncrementingModule pointEvaluationFailureCall =
@@ -338,9 +334,7 @@ public abstract class Hub implements Module {
         blsG1MembershipCalls,
         blsG2MembershipCalls,
         l1BlockSize,
-        l2L1Logs,
-        pointEval,
-        bls);
+        l2L1Logs);
   }
 
   /*
@@ -434,15 +428,14 @@ public abstract class Hub implements Module {
     return Stream.concat(realModule().stream(), getTracelessModules().stream()).toList();
   }
 
-  public Hub(final ChainConfig chain) {
+  public Hub(final ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
     fork = chain.fork;
     gasCalculator = getGasCalculatorFromFork(fork);
     opCodes = OpCodes.load(fork);
     gasProjector = new GasProjector(fork, gasCalculator);
-    checkState(chain.id.signum() >= 0, "Hub constructor: chain id must be nonnegative");
-    Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
-    final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
-    //
+    checkState(chain.id.signum() >= 0, "Hub constructor: chain id must be non-negative");
+    final Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
+    final Bytes32 l2l1Topic = chain.bridgeConfiguration.topic();
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
       log.info("WARN: Using default testing L2L1 contract address");
     }
@@ -458,9 +451,10 @@ public abstract class Hub implements Module {
     blockdata = setBlockData(this, wcp, euc, chain);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
+    blockhash = new Blockhash(this, wcp, historicalBlockHashes);
 
     refTableModules =
-        Stream.of(new BinRt(), setBlsRt(), setInstructionDecoder(), setPower())
+        Stream.of(setBlsRt(), setInstructionDecoder(), setPower())
             .filter(Objects::nonNull)
             .toList();
 
@@ -1009,13 +1003,6 @@ public abstract class Hub implements Module {
 
     this.handleStack(frame);
 
-    // Trigger basic operations modules
-    if (Exceptions.none(pch.exceptions())) {
-      for (Module m : modules) {
-        m.tracePreOpcode(frame, opCode());
-      }
-    }
-
     if (currentFrame().stack().isOk()) {
       // Tracer for the HUB
       this.traceOpcode(frame);
@@ -1037,31 +1024,33 @@ public abstract class Hub implements Module {
   }
 
   void traceOpcode(MessageFrame frame) {
-    switch (this.opCodeData().instructionFamily()) {
-      case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, PUSH_POP, DUP, SWAP -> new StackOnlySection(this);
+    final OpCodeData op = opCodeData();
+    switch (op.instructionFamily()) {
+      case ADD, BIN, MOD, SHF, WCP, EXT, BATCH, PUSH_POP, DUP, SWAP -> new StackOnlySection(
+          this, op);
       case MACHINE_STATE -> {
-        switch (this.opCode()) {
-          case OpCode.MSIZE -> new MsizeSection(this);
-          default -> new StackOnlySection(this);
+        switch (op.mnemonic()) {
+          case MSIZE -> new MsizeSection(this);
+          default -> new StackOnlySection(this, op);
         }
       }
       case MUL -> {
-        switch (this.opCode()) {
-          case OpCode.EXP -> new ExpSection(this);
-          case OpCode.MUL -> new StackOnlySection(this);
+        switch (op.mnemonic()) {
+          case EXP -> new ExpSection(this);
+          case MUL -> new StackOnlySection(this, op);
           default -> throw new IllegalStateException(
               String.format("opcode %s not part of the MUL instruction family", this.opCode()));
         }
       }
       case HALT -> {
-        switch (this.opCode()) {
+        switch (op.mnemonic()) {
           case RETURN -> new ReturnSection(this, frame);
           case REVERT -> new RevertSection(this, frame);
           case STOP -> new StopSection(this);
           case SELFDESTRUCT -> setSelfdestructSection(this, frame);
         }
         final boolean returnFromDeployment =
-            (this.opCode() == RETURN && this.currentFrame().isDeployment());
+            (op.mnemonic() == RETURN && this.currentFrame().isDeployment());
 
         callStack
             .parentCallFrame()
@@ -1075,11 +1064,11 @@ public abstract class Hub implements Module {
       case LOG -> new LogSection(this);
       case ACCOUNT -> new AccountSection(this);
       case COPY -> {
-        switch (this.opCode()) {
-          case OpCode.CALLDATACOPY -> new CallDataCopySection(this);
-          case OpCode.RETURNDATACOPY -> new ReturnDataCopySection(this);
-          case OpCode.CODECOPY -> new CodeCopySection(this);
-          case OpCode.EXTCODECOPY -> new ExtCodeCopySection(this, frame);
+        switch (op.mnemonic()) {
+          case CALLDATACOPY -> new CallDataCopySection(this);
+          case RETURNDATACOPY -> new ReturnDataCopySection(this);
+          case CODECOPY -> new CodeCopySection(this);
+          case EXTCODECOPY -> new ExtCodeCopySection(this, frame);
           default -> throw new RuntimeException(
               "Invalid instruction: " + this.opCode().toString() + " not in the COPY family");
         }
@@ -1087,14 +1076,14 @@ public abstract class Hub implements Module {
       case MCOPY -> setMcopySection(this);
       case TRANSACTION -> new TransactionSection(this);
       case STACK_RAM -> {
-        switch (this.opCode()) {
+        switch (op.mnemonic()) {
           case CALLDATALOAD -> new CallDataLoadSection(this);
           case MLOAD, MSTORE, MSTORE8 -> new StackRamSection(this);
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
       }
       case STORAGE -> {
-        switch (this.opCode()) {
+        switch (op.mnemonic()) {
           case SSTORE -> new SstoreSection(this, frame.getWorldUpdater());
           case SLOAD -> new SloadSection(this, frame.getWorldUpdater());
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
@@ -1166,7 +1155,7 @@ public abstract class Hub implements Module {
 
   protected abstract BlsRt setBlsRt();
 
-  protected abstract TxnData<? extends TxnDataOperation> setTxnData();
+  protected abstract TxnData setTxnData();
 
   protected abstract Mxp setMxp();
 

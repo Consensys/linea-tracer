@@ -478,19 +478,19 @@ public class ZkCounter implements LineCountingTracer {
       }
       case ADD -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        add.tracePreOpcode(frame, opcode.mnemonic());
+        add.callAdd(frame, opcode.mnemonic());
       }
       case MOD -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        mod.tracePreOpcode(frame, opcode.mnemonic());
+        mod.callMod(frame, opcode.mnemonic());
       }
       case SHF -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        shf.tracePreOpcode(frame, opcode.mnemonic());
+        shf.callShf(frame, opcode.mnemonic());
       }
       case BIN -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        bin.tracePreOpcode(frame, opcode.mnemonic());
+        bin.callBin(frame, opcode.mnemonic());
       }
       case WCP -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
@@ -498,7 +498,7 @@ public class ZkCounter implements LineCountingTracer {
       }
       case EXT -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        ext.tracePreOpcode(frame, opcode.mnemonic());
+        ext.callExt(frame, opcode.mnemonic());
       }
       case MACHINE_STATE -> {
         if (opcode.mnemonic() == MSIZE) {
@@ -513,11 +513,11 @@ public class ZkCounter implements LineCountingTracer {
           case OpCode.EXP -> {
             hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP + 1);
             exp.call(new ExplogExpCall(frame));
-            mul.tracePreOpcode(frame, opcode.mnemonic());
+            mul.callMul(frame, opcode.mnemonic());
           }
           case OpCode.MUL -> {
             hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-            mul.tracePreOpcode(frame, opcode.mnemonic());
+            mul.callMul(frame, opcode.mnemonic());
           }
         }
       }

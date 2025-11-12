@@ -1009,13 +1009,6 @@ public abstract class Hub implements Module {
 
     this.handleStack(frame);
 
-    // Trigger basic operations modules
-    if (Exceptions.none(pch.exceptions())) {
-      for (Module m : modules) {
-        m.tracePreOpcode(frame, opCode());
-      }
-    }
-
     if (currentFrame().stack().isOk()) {
       // Tracer for the HUB
       this.traceOpcode(frame);
@@ -1037,31 +1030,33 @@ public abstract class Hub implements Module {
   }
 
   void traceOpcode(MessageFrame frame) {
+    final OpCodeData op = opCodeData();
     switch (this.opCodeData().instructionFamily()) {
-      case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, PUSH_POP, DUP, SWAP -> new StackOnlySection(this);
+      case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, PUSH_POP, DUP, SWAP -> new StackOnlySection(
+          this, op);
       case MACHINE_STATE -> {
-        switch (this.opCode()) {
+        switch (op.mnemonic()) {
           case OpCode.MSIZE -> new MsizeSection(this);
-          default -> new StackOnlySection(this);
+          default -> new StackOnlySection(this, op);
         }
       }
       case MUL -> {
-        switch (this.opCode()) {
+        switch (op.mnemonic()) {
           case OpCode.EXP -> new ExpSection(this);
-          case OpCode.MUL -> new StackOnlySection(this);
+          case OpCode.MUL -> new StackOnlySection(this, op);
           default -> throw new IllegalStateException(
               String.format("opcode %s not part of the MUL instruction family", this.opCode()));
         }
       }
       case HALT -> {
-        switch (this.opCode()) {
+        switch (op.mnemonic()) {
           case RETURN -> new ReturnSection(this, frame);
           case REVERT -> new RevertSection(this, frame);
           case STOP -> new StopSection(this);
           case SELFDESTRUCT -> setSelfdestructSection(this, frame);
         }
         final boolean returnFromDeployment =
-            (this.opCode() == RETURN && this.currentFrame().isDeployment());
+            (op.mnemonic() == RETURN && this.currentFrame().isDeployment());
 
         callStack
             .parentCallFrame()
@@ -1075,7 +1070,7 @@ public abstract class Hub implements Module {
       case LOG -> new LogSection(this);
       case ACCOUNT -> new AccountSection(this);
       case COPY -> {
-        switch (this.opCode()) {
+        switch (op.mnemonic()) {
           case OpCode.CALLDATACOPY -> new CallDataCopySection(this);
           case OpCode.RETURNDATACOPY -> new ReturnDataCopySection(this);
           case OpCode.CODECOPY -> new CodeCopySection(this);
@@ -1087,14 +1082,14 @@ public abstract class Hub implements Module {
       case MCOPY -> setMcopySection(this);
       case TRANSACTION -> new TransactionSection(this);
       case STACK_RAM -> {
-        switch (this.opCode()) {
+        switch (op.mnemonic()) {
           case CALLDATALOAD -> new CallDataLoadSection(this);
           case MLOAD, MSTORE, MSTORE8 -> new StackRamSection(this);
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
       }
       case STORAGE -> {
-        switch (this.opCode()) {
+        switch (op.mnemonic()) {
           case SSTORE -> new SstoreSection(this, frame.getWorldUpdater());
           case SLOAD -> new SloadSection(this, frame.getWorldUpdater());
           default -> throw new IllegalStateException("invalid operation in family STORAGE");

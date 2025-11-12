@@ -47,7 +47,7 @@ import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexp;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockhash.Blockhash;
 import net.consensys.linea.zktracer.module.ecdata.EcData;
@@ -342,9 +342,8 @@ public abstract class Hub implements Module {
    * those module are traced (and could be count)
    */
   private final ShakiraData shakiraData;
-  private final BlakeModexpData blakeModexpData =
-      new BlakeModexpData(
-          wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
+  private final BlakeModexp blakeModexp =
+      new BlakeModexp(wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
   public final EcData ecData =
       new EcData(
           wcp,
@@ -375,7 +374,7 @@ public abstract class Hub implements Module {
         this,
         add,
         bin,
-        blakeModexpData,
+        blakeModexp,
         blockdata,
         blockhash,
         blsData,
@@ -463,7 +462,7 @@ public abstract class Hub implements Module {
                 Stream.of(
                     add,
                     bin,
-                    blakeModexpData,
+                    blakeModexp,
                     blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
                     blsData,
                     ecData,

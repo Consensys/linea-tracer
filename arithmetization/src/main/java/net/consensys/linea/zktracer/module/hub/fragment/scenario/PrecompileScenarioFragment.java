@@ -32,7 +32,7 @@ import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompil
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpExtractOobCall.NB_ROWS_OOB_MODEXP_EXTRACT;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpLeadOobCall.NB_ROWS_OOB_MODEXP_LEAD;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpPricingOobCall.NB_ROWS_OOB_MODEXP_PRICING;
-import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsOobCall.NB_ROWS_OOB_MODEXP_XBS;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.xbsOobCall.LondonModexpXbsOobCall.NB_ROWS_OOB_MODEXP_XBS;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.*;
 import static net.consensys.linea.zktracer.module.mod.ModOperation.NB_ROWS_MOD;

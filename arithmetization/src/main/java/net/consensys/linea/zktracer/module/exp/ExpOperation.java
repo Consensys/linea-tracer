@@ -20,7 +20,7 @@ import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.Trace.EXP_INST_EXPLOG;
 import static net.consensys.linea.zktracer.Trace.EXP_INST_MODEXPLOG;
-import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
+import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.BASE_MIN_OFFSET;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
@@ -34,7 +34,7 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
-import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 

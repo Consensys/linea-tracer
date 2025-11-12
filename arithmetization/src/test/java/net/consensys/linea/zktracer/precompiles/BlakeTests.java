@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.BLAKE2f_HASH_OUTPUT_SIZE;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.BLAKE2f_HASH_OUTPUT_SIZE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import net.consensys.linea.reporting.TracerTestBase;

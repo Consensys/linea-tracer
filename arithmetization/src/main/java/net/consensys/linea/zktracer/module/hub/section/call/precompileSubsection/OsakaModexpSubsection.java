@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys Inc.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,16 +12,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
-package net.consensys.linea.zktracer.module.blake2fmodexpdata;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.BLAKE2f_HASH_INPUT_OFFSET;
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.BLAKE2f_HASH_INPUT_SIZE;
-
-import org.apache.tuweni.bytes.Bytes;
-
-public record BlakeComponents(Bytes callData, Bytes r, Bytes f, Bytes result) {
-  public Bytes getHashInput() {
-    return callData.slice(BLAKE2f_HASH_INPUT_OFFSET, BLAKE2f_HASH_INPUT_SIZE);
+public class OsakaModexpSubsection extends PrecompileSubsection {
+  public OsakaModexpSubsection(Hub hub, CallSection callSection) {
+    super(hub, callSection);
   }
 }

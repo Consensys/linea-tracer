@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.blake2fmodexpdata;
 
+import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.ModuleName.BLAKE_MODEXP_DATA;
 
 import java.util.List;
@@ -28,21 +29,23 @@ import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.ModuleName;
-import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.LondonModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.OsakaModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class BlakeModexpData implements OperationListModule<BlakeModexpDataOperation> {
+public class BlakeModexp implements OperationListModule<BlakeModexpOperation> {
   private final Wcp wcp;
   private final IncrementAndDetectModule modexpEffectiveCall;
   private final IncrementingModule modexpLargeCall;
   private final IncrementingModule blakeEffectiveCall;
   private final BlakeRounds blakeRounds;
 
-  private final ModuleOperationStackedList<BlakeModexpDataOperation> operations =
+  private final ModuleOperationStackedList<BlakeModexpOperation> operations =
       new ModuleOperationStackedList<>();
 
   private long previousID = 0;
@@ -53,14 +56,27 @@ public class BlakeModexpData implements OperationListModule<BlakeModexpDataOpera
   }
 
   public void callModexp(final ModexpMetadata modexpMetaData, final int operationID) {
-    operations.add(new BlakeModexpDataOperation(modexpMetaData, operationID));
+    checkState(
+        modexpMetaData instanceof LondonModexpMetadata
+            || modexpMetaData instanceof OsakaModexpMetadata,
+        "Unsupported ModexpMetadata type for BlakeModexpData module");
+
+    if (modexpMetaData instanceof LondonModexpMetadata) {
+      operations.add(
+          new LondonBlakeModexpOperation((LondonModexpMetadata) modexpMetaData, operationID));
+    }
+    if (modexpMetaData instanceof OsakaModexpMetadata) {
+      operations.add(
+          new OsakaBlakeModexpOperation((OsakaModexpMetadata) modexpMetaData, operationID));
+    }
+
     modexpEffectiveCall.updateTally(1);
     modexpLargeCall.updateTally(modexpMetaData.largeModexp());
     callWcpForIdCheck(operationID);
   }
 
   public void callBlake(final BlakeComponents blakeComponents, final int operationID) {
-    operations.add(new BlakeModexpDataOperation(blakeComponents, operationID));
+    operations.add(new LondonBlakeModexpOperation(blakeComponents, operationID));
     blakeEffectiveCall.updateTally(1);
     blakeRounds.addPrecompileLimit(blakeComponents.r());
     callWcpForIdCheck(operationID);
@@ -84,7 +100,7 @@ public class BlakeModexpData implements OperationListModule<BlakeModexpDataOpera
   @Override
   public void commit(Trace trace) {
     int stamp = 0;
-    for (BlakeModexpDataOperation o : operations.getAll()) {
+    for (BlakeModexpOperation o : operations.getAll()) {
       o.trace(trace.blake2fmodexpdata(), ++stamp);
     }
   }

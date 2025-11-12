@@ -14,13 +14,13 @@
  */
 package net.consensys.linea.zktracer.precompiles;
 
+import static net.consensys.linea.zktracer.Fork.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.MODEXP_COMPONENT_BYTE_SIZE;
-import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
-import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BBS_MIN_OFFSET;
-import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
-import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.MBS_MIN_OFFSET;
+import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.BASE_MIN_OFFSET;
+import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.BBS_MIN_OFFSET;
+import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.EBS_MIN_OFFSET;
+import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.MBS_MIN_OFFSET;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,6 +30,8 @@ import java.util.List;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.*;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.OsakaBlakeModexpOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -78,6 +80,12 @@ public class ModexpTests extends TracerTestBase {
 
   @Test
   void basicNonTrivialModexpTest(TestInfo testInfo) {
+
+    final int modexpComponentByteSize =
+        forkPredatesOsaka(chainConfig.fork)
+            ? LondonBlakeModexpOperation.modexpComponentByteSize()
+            : OsakaBlakeModexpOperation.modexpComponentByteSize();
+
     final int base = 2;
     final int exp = 5;
     final int mod = 7;
@@ -101,7 +109,7 @@ public class ModexpTests extends TracerTestBase {
             .push(mod)
             .push(BASE_MIN_OFFSET + 2)
             .op(OpCode.MSTORE8)
-            .push(MODEXP_COMPONENT_BYTE_SIZE) // retLength
+            .push(modexpComponentByteSize) // retLength
             .push(0) // retOffset
             .push(BASE_MIN_OFFSET + 3) // argLength
             .push(0) // argOffset

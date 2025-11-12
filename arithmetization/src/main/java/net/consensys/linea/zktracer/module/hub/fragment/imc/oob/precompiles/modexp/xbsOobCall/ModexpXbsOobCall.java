@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.xbsOobCall;
 
 import static net.consensys.linea.zktracer.Trace.OOB_INST_MODEXP_XBS;
 import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_MODEXP_XBS;
@@ -28,7 +28,8 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.oob.OobExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -39,7 +40,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class ModexpXbsOobCall extends OobCall {
+public abstract class ModexpXbsOobCall extends OobCall {
 
   public static final short NB_ROWS_OOB_MODEXP_XBS = CT_MAX_MODEXP_XBS + 1;
 
@@ -49,7 +50,7 @@ public class ModexpXbsOobCall extends OobCall {
 
   // Outputs
   Bytes maxXbsYbs;
-  boolean xbsNonZero;
+  boolean xbsNormalizedNonZero;
 
   public ModexpXbsOobCall(ModexpMetadata modexpMetaData, ModexpXbsCase modexpXbsCase) {
     super();
@@ -57,13 +58,19 @@ public class ModexpXbsOobCall extends OobCall {
     this.modexpXbsCase = modexpXbsCase;
   }
 
+  protected abstract ModexpMetadata getForkAppropriateModexpMetadata();
+
+  public abstract int modexpComponentByteSize();
+
   @Override
   public void setInputData(MessageFrame frame, Hub hub) {}
 
   @Override
   public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
     // row i
-    exoCalls.add(callToLT(wcp, xbs(), Bytes.ofUnsignedInt(513)));
+    final OobExoCall xbsVsModexpComponentByteSize =
+        callToLT(wcp, xbs(), Bytes.ofUnsignedInt(modexpComponentByteSize() + 1));
+    exoCalls.add(xbsVsModexpComponentByteSize);
 
     // row i + 1
     final OobExoCall compareXbsYbsCall = callToLT(wcp, xbs().lo(), ybsLo());
@@ -74,7 +81,7 @@ public class ModexpXbsOobCall extends OobCall {
     // row i + 2
     final OobExoCall xbsNonZerCall = callToIsZero(wcp, xbs().lo());
     exoCalls.add(xbsNonZerCall);
-    setXbsNonZero(computeMax() ? !bytesToBoolean(xbsNonZerCall.result()) : false);
+    setXbsNormalizedNonZero(computeMax() ? !bytesToBoolean(xbsNonZerCall.result()) : false);
   }
 
   @Override
@@ -82,22 +89,22 @@ public class ModexpXbsOobCall extends OobCall {
     return CT_MAX_MODEXP_XBS;
   }
 
-  private EWord xbs() {
-    return switch (modexpXbsCase) {
-      case OOB_INST_MODEXP_BBS -> modexpMetadata.bbs();
-      case OOB_INST_MODEXP_EBS -> modexpMetadata.ebs();
-      case OOB_INST_MODEXP_MBS -> modexpMetadata.mbs();
-    };
+  protected EWord xbs() {
+    return modexpMetadata.xbs(modexpXbsCase);
   }
 
-  private Bytes ybsLo() {
+  protected abstract boolean xbsIsWithinBounds();
+
+  protected abstract boolean xbsIsOutOfBounds();
+
+  public Bytes ybsLo() {
     return switch (modexpXbsCase) {
       case OOB_INST_MODEXP_BBS, OOB_INST_MODEXP_EBS -> Bytes.EMPTY;
-      case OOB_INST_MODEXP_MBS -> modexpMetadata.bbs().lo();
+      case OOB_INST_MODEXP_MBS -> getForkAppropriateModexpMetadata().normalizedBbs();
     };
   }
 
-  private boolean computeMax() {
+  protected boolean computeMax() {
     return switch (modexpXbsCase) {
       case OOB_INST_MODEXP_BBS, OOB_INST_MODEXP_EBS -> false;
       case OOB_INST_MODEXP_MBS -> true;
@@ -113,8 +120,10 @@ public class ModexpXbsOobCall extends OobCall {
         .data2(xbs().lo())
         .data3(ybsLo())
         .data4(booleanToBytes(computeMax()))
+        .data5(booleanToBytes(xbsIsWithinBounds()))
+        .data6(booleanToBytes(xbsIsOutOfBounds()))
         .data7(maxXbsYbs)
-        .data8(booleanToBytes(xbsNonZero));
+        .data8(booleanToBytes(xbsNormalizedNonZero));
   }
 
   @Override
@@ -126,7 +135,9 @@ public class ModexpXbsOobCall extends OobCall {
         .pMiscOobData2(xbs().lo())
         .pMiscOobData3(ybsLo())
         .pMiscOobData4(booleanToBytes(computeMax()))
+        .pMiscOobData5(booleanToBytes(xbsIsWithinBounds()))
+        .pMiscOobData6(booleanToBytes(xbsIsOutOfBounds()))
         .pMiscOobData7(maxXbsYbs)
-        .pMiscOobData8(booleanToBytes(xbsNonZero));
+        .pMiscOobData8(booleanToBytes(xbsNormalizedNonZero));
   }
 }

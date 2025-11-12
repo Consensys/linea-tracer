@@ -15,8 +15,7 @@
 
 package net.consensys.linea.zktracer.module.limits.precompileLimits;
 
-import static net.consensys.linea.zktracer.module.ModuleName.*;
-import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.*;
+import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;

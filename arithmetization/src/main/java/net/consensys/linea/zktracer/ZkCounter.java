@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
-import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 import static net.consensys.linea.zktracer.Trace.Ecdata.TOTAL_SIZE_ECPAIRING_DATA_MIN;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
@@ -24,8 +23,7 @@ import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.ModuleName.GAS;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NB_ROWS_ADD;
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.NB_ROWS_BLAKEMODEPX_BLAKE;
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.NB_ROWS_BLAKEMODEXP_MODEXP;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.*;
 import static net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData.NB_ROWS_BLOCK_DATA;
 import static net.consensys.linea.zktracer.module.blockhash.BlockhashOperation.NB_ROWS_BLOCKHASH;
 import static net.consensys.linea.zktracer.module.gas.GasOperation.NB_ROWS_GAS;
@@ -48,7 +46,7 @@ import static net.consensys.linea.zktracer.module.hub.section.call.CallSection.N
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.BlakeSubsection.NB_ROWS_HUB_PRC_BLAKE;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.EllipticCurvePrecompileSubsection.NB_ROWS_HUB_PRC_ELLIPTIC_CURVE;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.IdentitySubsection.NB_ROWS_HUB_PRC_IDENTITY;
-import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ModexpSubsection.NB_ROWS_HUB_PRC_MODEXP;
+import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.LondonModexpSubsection.NB_ROWS_HUB_PRC_MODEXP;
 import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ShaTwoOrRipemdSubSection.NB_ROWS_HUB_PRC_SHARIP;
 import static net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection.NB_ROWS_HUB_CALL_DATA_COPY;
 import static net.consensys.linea.zktracer.module.hub.section.copy.CodeCopySection.NB_ROWS_HUB_CODE_COPY;
@@ -108,7 +106,9 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
-import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.LondonModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.OsakaModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L1BlockSize;
@@ -726,12 +726,12 @@ public class ZkCounter implements LineCountingTracer {
       case PRC_MODEXP -> {
         hub.updateTally(NB_ROWS_HUB_PRC_MODEXP);
         final MemoryRange memoryRange = new MemoryRange(0, 0, callData.size(), callData);
-        final ModexpMetadata modexpMetadata = new ModexpMetadata(memoryRange);
-        if (modexpMetadata.unprovableModexp()) {
+        final ModexpMetadata modexpMetadata = new OsakaModexpMetadata(memoryRange);
+        if (modexpMetadata instanceof LondonModexpMetadata && modexpMetadata.unprovableModexp()) {
           modexpEffectiveCall.detectEvent();
           return;
         }
-        blakemodexp.updateTally(NB_ROWS_BLAKEMODEXP_MODEXP);
+        blakemodexp.updateTally(modexpMetadata.getNumberOfRowsForModexp());
         modexpEffectiveCall.updateTally(prcSuccess);
         modexpLargeCall.updateTally(modexpMetadata.largeModexp());
         if (modexpMetadata.loadRawLeadingWord()) {
@@ -755,7 +755,7 @@ public class ZkCounter implements LineCountingTracer {
         blakeEffectiveCall.updateTally(true);
         hub.updateTally(NB_ROWS_HUB_PRC_BLAKE);
         oob.updateTally(oobLineCountForPrc(PRC_BLAKE2F));
-        blakemodexp.updateTally(NB_ROWS_BLAKEMODEPX_BLAKE);
+        blakemodexp.updateTally(numberOfRowsBlake());
         // TODO: still unchecked module for now: blakeRounds.updateTally();
       }
       case PRC_BLS_G1_ADD,

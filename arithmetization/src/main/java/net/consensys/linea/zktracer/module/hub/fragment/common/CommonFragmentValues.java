@@ -124,7 +124,7 @@ public class CommonFragmentValues {
 
     if (contextMayChange) {
       // Trigger the gas module in case contextMayChange is true
-      hub.gas().call(new GasParameters(), hub, this);
+      hub.gas().call(hub, this);
     }
 
     if (none(exceptions)) {

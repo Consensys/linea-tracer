@@ -19,6 +19,11 @@ on:
         required: false
         type: string
         default: 'true'
+      tests-with-ssh:
+        description: Run tests with ability to ssh into environment
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   # ==================================================================
@@ -77,27 +82,6 @@ jobs:
   # ==================================================================
   # Unit Tests
   # ==================================================================
-  unit-tests-london:
-    needs: [ build ]
-    uses: ./.github/workflows/reusable-unit-tests.yml
-    with:
-      zkevm_fork: LONDON
-      tests-with-ssh: false
-
-  unit-tests-paris:
-    needs: [ build ]
-    uses: ./.github/workflows/reusable-unit-tests.yml
-    with:
-      zkevm_fork: PARIS
-      tests-with-ssh: false
-
-  unit-tests-shanghai:
-    needs: [ build ]
-    uses: ./.github/workflows/reusable-unit-tests.yml
-    with:
-      zkevm_fork: SHANGHAI
-      tests-with-ssh: false
-
   unit-tests-cancun:
     needs: [ build ]
     uses: ./.github/workflows/reusable-unit-tests.yml
@@ -124,7 +108,7 @@ jobs:
   # ==================================================================
   # Publish release post tests
   # ==================================================================
-  publish-conditional-to-units-and-replay-tests:
+  publish-default:
     needs: [ build, unit-tests-prague, replay-tests ]
     if: ${{ github.event_name != 'pull_request' && ( github.event_name == 'release' || inputs.wait-for-tests-bef-publish == 'true') }}
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med

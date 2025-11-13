@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall.extractBbsForModexp;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall.extractEbsForModexp;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall.extractMbsForModexp;
@@ -30,75 +31,68 @@ import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompil
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase.OOB_INST_MODEXP_MBS;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_RAM;
 
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpCallDataSizeOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpExtractOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpLeadOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpPricingOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.*;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.xbsOobCall.LondonModexpXbsOobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.LondonModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 
-public class LondonModexpSubsection extends PrecompileSubsection {
+public class LondonModexpSubsection extends ModexpSubsection {
 
-  public static final short NB_ROWS_HUB_PRC_MODEXP =
-      13; // 13 = 1 + 12 (scenario row + up to 12 miscellaneous fragments)
-
-  public final LondonModexpMetadata modexpMetaData;
   private ModexpPricingOobCall sixthOobCall;
   private ImcFragment seventhImcFragment;
   public boolean transactionWillBePopped = false;
 
-  public LondonModexpSubsection(final Hub hub, final CallSection callSection) {
-    super(hub, callSection);
+  public LondonModexpSubsection(
+      final Hub hub, final CallSection callSection, LondonModexpMetadata modexpMetadata) {
+    super(hub, callSection, modexpMetadata);
 
-    modexpMetaData = new LondonModexpMetadata(getCallDataRange());
-
-    if (modexpMetaData.unprovableModexp()) {
+    if (modexpMetadata.unprovableModexp()) {
       hub.modexpEffectiveCall().detectEvent();
       hub.defers().unscheduleForContextReEntry(this, hub.currentFrame());
       transactionWillBePopped = true;
       return;
     }
-    firstImcFragment.callOob(new ModexpCallDataSizeOobCall(modexpMetaData));
+    firstImcFragment.callOob(new ModexpCallDataSizeOobCall(modexpMetadata));
 
     final ImcFragment secondImcFragment = ImcFragment.empty(hub);
     fragments().add(secondImcFragment);
-    if (modexpMetaData.extractBbs()) {
-      final MmuCall mmuCall = extractBbsForModexp(hub, this, modexpMetaData);
+    if (modexpMetadata.extractBbs()) {
+      final MmuCall mmuCall = extractBbsForModexp(hub, this, modexpMetadata);
       secondImcFragment.callMmu(mmuCall);
     }
-    secondImcFragment.callOob(new LondonModexpXbsOobCall(modexpMetaData, OOB_INST_MODEXP_BBS));
+    secondImcFragment.callOob(getForkAppropriateModexpXbsOobCall(OOB_INST_MODEXP_BBS));
 
     final ImcFragment thirdImcFragment = ImcFragment.empty(hub);
     fragments().add(thirdImcFragment);
-    if (modexpMetaData.extractEbs()) {
-      final MmuCall mmuCall = extractEbsForModexp(hub, this, modexpMetaData);
+    if (modexpMetadata.extractEbs()) {
+      final MmuCall mmuCall = extractEbsForModexp(hub, this, modexpMetadata);
       thirdImcFragment.callMmu(mmuCall);
     }
-    thirdImcFragment.callOob(new LondonModexpXbsOobCall(modexpMetaData, OOB_INST_MODEXP_EBS));
+    thirdImcFragment.callOob(getForkAppropriateModexpXbsOobCall(OOB_INST_MODEXP_EBS));
 
     final ImcFragment fourthImcFragment = ImcFragment.empty(hub);
     fragments().add(fourthImcFragment);
-    if (modexpMetaData.extractMbs()) {
-      final MmuCall mmuCall = extractMbsForModexp(hub, this, modexpMetaData);
+    if (modexpMetadata.extractMbs()) {
+      final MmuCall mmuCall = extractMbsForModexp(hub, this, modexpMetadata);
       fourthImcFragment.callMmu(mmuCall);
     }
-    fourthImcFragment.callOob(new LondonModexpXbsOobCall(modexpMetaData, OOB_INST_MODEXP_MBS));
+    fourthImcFragment.callOob(getForkAppropriateModexpXbsOobCall(OOB_INST_MODEXP_MBS));
 
     final ImcFragment fifthImcFragment = ImcFragment.empty(hub);
     fragments().add(fifthImcFragment);
-    fifthImcFragment.callOob(new ModexpLeadOobCall(modexpMetaData));
-    if (modexpMetaData.loadRawLeadingWord()) {
-      final MmuCall mmuCall = forModexpLoadLead(hub, this, modexpMetaData);
+    fifthImcFragment.callOob(new ModexpLeadOobCall(modexpMetadata));
+    if (modexpMetadata.loadRawLeadingWord()) {
+      final MmuCall mmuCall = forModexpLoadLead(hub, this, modexpMetadata);
       fifthImcFragment.callMmu(mmuCall);
-      final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modexpMetaData);
+      final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modexpMetadata);
       fifthImcFragment.callExp(modexpLogCallToExp);
     }
 
@@ -107,13 +101,18 @@ public class LondonModexpSubsection extends PrecompileSubsection {
     final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
     sixthOobCall =
         (ModexpPricingOobCall)
-            sixthImcFragment.callOob(new ModexpPricingOobCall(modexpMetaData, calleeGas));
+            sixthImcFragment.callOob(new ModexpPricingOobCall(modexpMetadata, calleeGas));
 
     // We need to trigger the OOB before CALL's execution
     if (sixthOobCall.isRamSuccess()) {
       seventhImcFragment = ImcFragment.empty(hub);
-      seventhImcFragment.callOob(new ModexpExtractOobCall(modexpMetaData));
+      seventhImcFragment.callOob(new ModexpExtractOobCall(modexpMetadata));
     }
+  }
+
+  @Override
+  public LondonModexpMetadata getForkAppropriateModexpMetadata() {
+    return (LondonModexpMetadata) modexpMetadata;
   }
 
   @Override
@@ -130,49 +129,53 @@ public class LondonModexpSubsection extends PrecompileSubsection {
 
     final Bytes returnData = extractReturnData();
 
-    modexpMetaData.rawResult(returnData);
-    hub.blakeModexp().callModexp(modexpMetaData, exoModuleOperationId());
+    modexpMetadata.rawResult(returnData);
+    hub.blakeModexp()
+        .callModexp(
+            new LondonBlakeModexpOperation(
+                getForkAppropriateModexpMetadata(), exoModuleOperationId()));
 
     fragments().add(seventhImcFragment);
-    if (modexpMetaData.extractModulus()) {
-      final MmuCall mmuCall = forModexpExtractBase(hub, this, modexpMetaData);
+    if (modexpMetadata.extractModulus()) {
+      final MmuCall mmuCall = forModexpExtractBase(hub, this, modexpMetadata);
       seventhImcFragment.callMmu(mmuCall);
     }
 
     final ImcFragment eighthImcFragment = ImcFragment.empty(hub);
     fragments().add(eighthImcFragment);
-    if (modexpMetaData.extractModulus()) {
-      final MmuCall mmuCall = forModexpExtractExponent(hub, this, modexpMetaData);
+    if (modexpMetadata.extractModulus()) {
+      final MmuCall mmuCall = forModexpExtractExponent(hub, this, modexpMetadata);
       eighthImcFragment.callMmu(mmuCall);
     }
 
     final ImcFragment ninthImcFragment = ImcFragment.empty(hub);
     fragments().add(ninthImcFragment);
-    if (modexpMetaData.extractModulus()) {
-      final MmuCall mmuCall = forModexpExtractModulus(hub, this, modexpMetaData);
+    if (modexpMetadata.extractModulus()) {
+      final MmuCall mmuCall = forModexpExtractModulus(hub, this, modexpMetadata);
       ninthImcFragment.callMmu(mmuCall);
     }
 
     final ImcFragment tenthImcFragment = ImcFragment.empty(hub);
     fragments().add(tenthImcFragment);
-    if (modexpMetaData.extractModulus()) {
-      final MmuCall mmuCall = forModexpFullResultCopy(hub, this, modexpMetaData);
+    if (modexpMetadata.extractModulus()) {
+      final MmuCall mmuCall = forModexpFullResultCopy(hub, this, modexpMetadata);
       tenthImcFragment.callMmu(mmuCall);
     }
 
     final ImcFragment eleventhImcFragment = ImcFragment.empty(hub);
     fragments().add(eleventhImcFragment);
-    if (modexpMetaData.mbsNonZero() && !getReturnAtRange().isEmpty()) {
-      final MmuCall mmuCall = forModexpPartialResultCopy(hub, this, modexpMetaData);
+    if (modexpMetadata.mbsNonZero() && !getReturnAtRange().isEmpty()) {
+      final MmuCall mmuCall = forModexpPartialResultCopy(hub, this, modexpMetadata);
       eleventhImcFragment.callMmu(mmuCall);
     }
   }
 
-  // 13 = 1 + 12 (scenario row + up to 12 miscellaneous fragments)
   @Override
-  protected short maxNumberOfLines() {
-    return NB_ROWS_HUB_PRC_MODEXP;
-    // Note: we don't have the successBit available at the moment
-    // and can't provide the "real" value (8 in case of failure.)
+  public LondonModexpXbsOobCall getForkAppropriateModexpXbsOobCall(ModexpXbsCase modexpXbsCase) {
+
+    checkState(
+        modexpMetadata instanceof LondonModexpMetadata,
+        "modexpMetadata must be LondonModexpMetadata");
+    return new LondonModexpXbsOobCall((LondonModexpMetadata) modexpMetadata, modexpXbsCase);
   }
 }

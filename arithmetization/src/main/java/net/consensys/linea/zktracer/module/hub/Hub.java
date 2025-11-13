@@ -342,8 +342,18 @@ public abstract class Hub implements Module {
    * those module are traced (and could be count)
    */
   private final ShakiraData shakiraData;
+
+  @Getter
   private final BlakeModexp blakeModexp =
-      new BlakeModexp(wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
+      setBlakeModexp(wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
+
+  public abstract BlakeModexp setBlakeModexp(
+      Wcp wcp,
+      IncrementAndDetectModule modexpEffectiveCall,
+      IncrementingModule modexpLargeCall,
+      IncrementingModule blakeEffectiveCall,
+      BlakeRounds blakeRounds);
+
   public final EcData ecData =
       new EcData(
           wcp,

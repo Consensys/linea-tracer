@@ -36,7 +36,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class OsakaModexpXbsOobCall extends ModexpXbsOobCall {
+public class OsakaModexpXbsOobCall extends LondonModexpXbsOobCall {
 
   public OsakaModexpXbsOobCall(OsakaModexpMetadata modexpMetaData, ModexpXbsCase modexpXbsCase) {
     super(modexpMetaData, modexpXbsCase);

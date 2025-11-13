@@ -48,6 +48,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.StpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.XCallOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.LondonModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.OsakaModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.*;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
@@ -374,9 +376,11 @@ public class CallSection extends TraceSection
       case PRC_IDENTITY -> new IdentitySubsection(hub, this);
       case PRC_MODEXP -> {
         if (forkPredatesOsaka(hub.fork)) {
-          yield new LondonModexpSubsection(hub, this);
+          yield new LondonModexpSubsection(
+              hub, this, new LondonModexpMetadata(this.getCallDataRange()));
         } else {
-          yield new OsakaModexpSubsection(hub, this);
+          yield new OsakaModexpSubsection(
+              hub, this, new OsakaModexpMetadata(this.getCallDataRange()));
         }
       }
       case PRC_BLAKE2F -> new BlakeSubsection(hub, this);
@@ -402,17 +406,17 @@ public class CallSection extends TraceSection
               + hub.txStack().currentAbsNumber()
               + "\n\tbase byte size = "
               + ((LondonModexpSubsection) precompileSubsection)
-                  .modexpMetaData
+                  .modexpMetadata
                   .bbs()
                   .toDecimalString()
               + "\n\texp byte size = "
               + ((LondonModexpSubsection) precompileSubsection)
-                  .modexpMetaData
+                  .modexpMetadata
                   .ebs()
                   .toDecimalString()
               + "\n\tmod byte size = "
               + ((LondonModexpSubsection) precompileSubsection)
-                  .modexpMetaData
+                  .modexpMetadata
                   .mbs()
                   .toDecimalString()
               + "\nTransaction must be popped!");

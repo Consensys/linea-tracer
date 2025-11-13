@@ -29,16 +29,13 @@ import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.ModuleName;
-import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.LondonModexpMetadata;
-import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata;
-import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.OsakaModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class BlakeModexp implements OperationListModule<BlakeModexpOperation> {
+public abstract class BlakeModexp implements OperationListModule<BlakeModexpOperation> {
   private final Wcp wcp;
   private final IncrementAndDetectModule modexpEffectiveCall;
   private final IncrementingModule modexpLargeCall;
@@ -55,34 +52,26 @@ public class BlakeModexp implements OperationListModule<BlakeModexpOperation> {
     return BLAKE_MODEXP_DATA;
   }
 
-  public void callModexp(final ModexpMetadata modexpMetaData, final int operationID) {
-    checkState(
-        modexpMetaData instanceof LondonModexpMetadata
-            || modexpMetaData instanceof OsakaModexpMetadata,
-        "Unsupported ModexpMetadata type for BlakeModexpData module");
+  public void callModexp(BlakeModexpOperation modexpOperation) {
 
-    if (modexpMetaData instanceof LondonModexpMetadata) {
-      operations.add(
-          new LondonBlakeModexpOperation((LondonModexpMetadata) modexpMetaData, operationID));
-    }
-    if (modexpMetaData instanceof OsakaModexpMetadata) {
-      operations.add(
-          new OsakaBlakeModexpOperation((OsakaModexpMetadata) modexpMetaData, operationID));
-    }
+    checkState(modexpOperation.isModexpOperation(), "Operation must be a MODEXP operation");
+    operations.add(modexpOperation);
 
     modexpEffectiveCall.updateTally(1);
-    modexpLargeCall.updateTally(modexpMetaData.largeModexp());
-    callWcpForIdCheck(operationID);
+    modexpLargeCall.updateTally(modexpOperation.modexpMetaData.get().largeModexp());
+    callWcpForIdCheck(modexpOperation.id());
   }
 
-  public void callBlake(final BlakeComponents blakeComponents, final int operationID) {
-    operations.add(new LondonBlakeModexpOperation(blakeComponents, operationID));
+  public void callBlake(BlakeModexpOperation blakeOperation) {
+    checkState(blakeOperation.isBlakeOperation(), "Operation must be a BLAKE2f operation");
+    operations.add(blakeOperation);
+
     blakeEffectiveCall.updateTally(1);
-    blakeRounds.addPrecompileLimit(blakeComponents.r());
-    callWcpForIdCheck(operationID);
+    blakeRounds.addPrecompileLimit(blakeOperation.blake2fComponents.get().r());
+    callWcpForIdCheck(blakeOperation.id());
   }
 
-  private void callWcpForIdCheck(final int operationID) {
+  private void callWcpForIdCheck(final long operationID) {
     wcp.callLT(previousID, operationID);
     previousID = operationID;
   }

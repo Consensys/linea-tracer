@@ -19,7 +19,7 @@ import static net.consensys.linea.zktracer.TraceOsaka.Blake2fmodexpdata.*;
 
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.OsakaModexpMetadata;
 
-public class OsakaBlakeModexpOperation extends BlakeModexpOperation {
+public class OsakaBlakeModexpOperation extends LondonBlakeModexpOperation {
 
   public OsakaBlakeModexpOperation(OsakaModexpMetadata modexpMetaData, int id) {
     super(modexpMetaData, id);

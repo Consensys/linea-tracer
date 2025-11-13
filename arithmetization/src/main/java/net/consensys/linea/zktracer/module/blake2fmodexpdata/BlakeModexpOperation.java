@@ -187,4 +187,14 @@ public abstract class BlakeModexpOperation extends ModuleOperation {
   private Bytes computeBlake2fResult() {
     return Hash.blake2bf(blake2fComponents.get().callData());
   }
+
+  public boolean isModexpOperation() {
+    return modexpMetaData.isPresent();
+  }
+  ;
+
+  public boolean isBlakeOperation() {
+    return blake2fComponents.isPresent();
+  }
+  ;
 }

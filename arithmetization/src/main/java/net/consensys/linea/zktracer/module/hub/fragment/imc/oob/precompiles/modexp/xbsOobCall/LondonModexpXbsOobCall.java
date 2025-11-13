@@ -67,9 +67,9 @@ public class LondonModexpXbsOobCall extends ModexpXbsOobCall {
     setMaxXbsYbs(computeMax() ? (comp ? ybsLo() : xbs().lo()) : Bytes.EMPTY);
 
     // row i + 2
-    final OobExoCall xbsNonZerCall = callToIsZero(wcp, xbs().lo());
-    exoCalls.add(xbsNonZerCall);
-    setXbsNormalizedNonZero(computeMax() ? !bytesToBoolean(xbsNonZerCall.result()) : false);
+    final OobExoCall xbsNonZeroCall = callToIsZero(wcp, xbs().lo());
+    exoCalls.add(xbsNonZeroCall);
+    setXbsNormalizedNonZero(computeMax() ? !bytesToBoolean(xbsNonZeroCall.result()) : false);
   }
 
   @Override

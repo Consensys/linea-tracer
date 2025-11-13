@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.rlptxrcpt;
 
+import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
+import static net.consensys.linea.zktracer.Fork.isPostOsaka;
 import static net.consensys.linea.zktracer.Trace.LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.Trace.RLP_PREFIX_INT_LONG;
@@ -31,11 +33,11 @@ import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.function.Function;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
@@ -52,6 +54,7 @@ import org.hyperledger.besu.evm.log.LogsBloomFilter;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class RlpTxnRcpt implements OperationListModule<RlpTxrcptOperation> {
+  private final Fork fork;
   private static final Bytes BYTES_RLP_INT_SHORT = Bytes.minimalBytes(RLP_PREFIX_INT_SHORT);
   private static final Bytes BYTES_RLP_LIST_SHORT = Bytes.minimalBytes(RLP_PREFIX_LIST_SHORT);
 
@@ -70,6 +73,7 @@ public class RlpTxnRcpt implements OperationListModule<RlpTxrcptOperation> {
   public void traceEndTx(TransactionProcessingMetadata txMetaData) {
     final RlpTxrcptOperation operation =
         new RlpTxrcptOperation(
+            fork,
             txMetaData.getBesuTransaction().getType(),
             txMetaData.statusCode(),
             txMetaData.getAccumulatedGasUsedInBlock(),
@@ -80,7 +84,7 @@ public class RlpTxnRcpt implements OperationListModule<RlpTxrcptOperation> {
   public void traceOperation(
       final RlpTxrcptOperation chunk, int absTxNum, int absLogNumMax, Trace.Rlptxrcpt trace) {
     RlpTxrcptColumns traceValue = new RlpTxrcptColumns();
-    traceValue.txrcptSize = txRcptSize(chunk);
+    traceValue.txrcptSize = txRcptSize(chunk, fork);
     traceValue.absTxNum = absTxNum;
     traceValue.absLogNumMax = absLogNumMax;
 
@@ -94,7 +98,9 @@ public class RlpTxnRcpt implements OperationListModule<RlpTxrcptOperation> {
     phase3(traceValue, chunk.gasUsed(), trace);
 
     // PHASE 4: Bloom Filter Rb.
-    phase4(traceValue, chunk.logs(), trace);
+    if (forkPredatesOsaka(fork)) {
+      phase4(traceValue, chunk.logs(), trace);
+    }
 
     // Phase 5: log series Rl.
     phase5(traceValue, chunk.logs(), trace);
@@ -685,11 +691,14 @@ public class RlpTxnRcpt implements OperationListModule<RlpTxrcptOperation> {
         .nStep(traceValue.nStep)
         .phaseId(traceValue.getPhaseId());
 
-    List<Function<Boolean, Trace.Rlptxrcpt>> phaseColumns =
-        List.of(trace::phase1, trace::phase2, trace::phase3, trace::phase4, trace::phase5);
-
-    for (int i = 0; i < phaseColumns.size(); i++) {
-      phaseColumns.get(i).apply(i + 1 == traceValue.phase);
+    final int tracePhase = traceValue.phase;
+    switch (tracePhase) {
+      case 1 -> trace.phase1(true);
+      case 2 -> trace.phase2(true);
+      case 3 -> trace.phase3(true);
+      case 4 -> trace.phase4(true); // Not in Osaka
+      case 5 -> trace.phase5(true);
+      default -> throw new IllegalArgumentException("Invalid phase: " + tracePhase);
     }
 
     trace
@@ -698,7 +707,7 @@ public class RlpTxnRcpt implements OperationListModule<RlpTxrcptOperation> {
         .power(bigIntegerToBytes(traceValue.power))
         .txrcptSize(traceValue.txrcptSize);
 
-    trace.validateRow();
+    trace.fillAndValidateRow();
 
     // Increments Index.
     if (traceValue.limbConstructed) {
@@ -713,16 +722,16 @@ public class RlpTxnRcpt implements OperationListModule<RlpTxrcptOperation> {
    *     transaction execution
    * @return the size of the RLP of a transaction receipt WITHOUT its RLP prefix
    */
-  private int txRcptSize(RlpTxrcptOperation chunk) {
+  private int txRcptSize(RlpTxrcptOperation chunk, Fork fork) {
 
     // The encoded status code is always of size 1.
     int size = 1;
 
-    // As the cumulative gas is Gtransaction=21000, its size is >1.
+    // As the cumulative gas is at least >= G transaction = 21000, its byte size is >1.
     size += outerRlpSize(Bytes.minimalBytes(chunk.gasUsed()).size());
 
-    // RLP(Rb) is always 259 (256+3) long.
-    size += 259;
+    // RLP(Rb) is always 259 (256+3) long, but disappear in Osaka
+    size += isPostOsaka(fork) ? 0 : 259;
 
     // Add the size of the RLP(Log).
     int nbLog = chunk.logs().size();

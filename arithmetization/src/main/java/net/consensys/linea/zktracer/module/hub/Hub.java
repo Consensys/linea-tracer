@@ -224,9 +224,9 @@ public abstract class Hub implements Module {
   private final RlpTxn rlpTxn;
   private final Mmio mmio;
   @Getter final TxnData txnData = setTxnData();
-  private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
-  private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
-  private final LogData logData = new LogData(rlpTxnRcpt);
+  private final RlpTxnRcpt rlpTxnRcpt;
+  private final LogInfo logInfo;
+  private final LogData logData;
   private final RlpAddr rlpAddr;
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
@@ -446,6 +446,9 @@ public abstract class Hub implements Module {
             blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     trm = new Trm(fork);
+    rlpTxnRcpt = new RlpTxnRcpt(fork);
+    logInfo = new LogInfo(rlpTxnRcpt);
+    logData = new LogData(rlpTxnRcpt);
     rlpTxn = setRlpTxn(this);
     rlpAddr = new RlpAddr(this, trm, keccak);
     blockdata = setBlockData(this, wcp, euc, chain);

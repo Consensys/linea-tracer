@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.rlptxrcpt;
 
+import static net.consensys.linea.zktracer.Fork.isPostOsaka;
 import static net.consensys.linea.zktracer.types.Utils.fromDataSizeToLimbNbRows;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.evm.log.Log;
@@ -30,6 +32,7 @@ import org.hyperledger.besu.evm.log.Log;
 @Accessors(fluent = true)
 @Getter
 public final class RlpTxrcptOperation extends ModuleOperation {
+  private final Fork fork;
   private final TransactionType txType;
   private final Boolean status;
   private final long gasUsed;
@@ -37,14 +40,15 @@ public final class RlpTxrcptOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return lineCountForRlpTxnRcpt(this.logs);
+    return lineCountForRlpTxnRcpt(logs, fork);
   }
 
-  public static int lineCountForRlpTxnRcpt(List<Log> logs) {
-    // Phase 0 is always 1+8=9 row long, Phase 1, 1 row long, Phase 2 8 row long,
-    // Phase 3 65 = 1 +
-    // 64 row long
-    int rowSize = 83;
+  public static int lineCountForRlpTxnRcpt(List<Log> logs, Fork fork) {
+    // Phase 1 is always 1+8=9 row long,
+    // Phase 2, 1 row long,
+    // Phase 3 8 row long,
+    // Phase 4 65 = 1 + 64 row long, but disappear in Osaka fork
+    int rowSize = 18 + (isPostOsaka(fork) ? 0 : 65);
 
     // add the number of rows for Phase 4 : Log entry
     if (logs.isEmpty()) {

@@ -440,7 +440,7 @@ public class ZkCounter implements LineCountingTracer {
       Set<Address> selfDestructs,
       long timeNs) {
     l1BlockSize.traceEndTx(tx, logs);
-    rlpTxnRcpt.updateTally(lineCountForRlpTxnRcpt(logs));
+    rlpTxnRcpt.updateTally(lineCountForRlpTxnRcpt(logs, FORK_TO_USE_FOR_ZK_COUNTER));
     logData.updateTally(lineCountForLogData(logs));
     logInfo.updateTally(lineCountForLogInfo(logs));
   }

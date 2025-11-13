@@ -18,10 +18,8 @@ package net.consensys.linea.testing;
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.reporting.TracerTestBase.chainConfig;
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
-import static net.consensys.linea.zktracer.Fork.LONDON;
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Fork.*;
 import static net.consensys.linea.zktracer.Trace.LINEA_BASE_FEE;
-import static net.consensys.linea.zktracer.module.ModuleName.*;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -122,7 +120,7 @@ public class ToyExecutionEnvironmentV2 {
           zkTracerValidator,
           testInfo);
 
-      if (isPostCancun(tracer.getHub().fork)) {
+      if (isPostOsaka(tracer.getHub().fork)) {
         // This is to check that the light counter is really counting more than the full tracer
         final ZkTracer tracer = this.tracer;
 

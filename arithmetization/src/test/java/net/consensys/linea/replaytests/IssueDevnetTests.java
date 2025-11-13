@@ -15,8 +15,7 @@
 package net.consensys.linea.replaytests;
 
 import static net.consensys.linea.replaytests.ReplayTestTools.replay;
-import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
-import static net.consensys.linea.zktracer.Fork.PRAGUE;
+import static net.consensys.linea.zktracer.ChainConfig.*;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
@@ -25,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@Tag("weekly")
 @Tag("replay")
 @ExtendWith(UnitTestWatcher.class)
 public class IssueDevnetTests extends TracerTestBase {
@@ -33,6 +31,6 @@ public class IssueDevnetTests extends TracerTestBase {
   // 3901959-3902032
   @Test
   void issueDevnet(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(PRAGUE), "20680062.sepolia.prague.json", testInfo);
+    replay(SEPOLIA_PRAGUE_TESTCONFIG, "20680062.sepolia.prague.json", testInfo);
   }
 }

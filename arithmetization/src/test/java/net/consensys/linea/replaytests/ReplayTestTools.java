@@ -87,6 +87,7 @@ public class ReplayTestTools {
         .filename(filename)
         .zkTracer(new ZkTracer(chain))
         .txResultChecking(resultChecking)
+        .useCoinbaseAddressFromBlockHeader(true)
         .build()
         .replay(chain, testInfo, new BufferedReader(new InputStreamReader(stream)));
   }

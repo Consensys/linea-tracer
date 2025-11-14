@@ -29,16 +29,6 @@ public class LondonBlakeModexpOperation extends BlakeModexpOperation {
     super(blakeComponents, id);
   }
 
-  @Override
-  public boolean isModexpOperation() {
-    return false;
-  }
-
-  @Override
-  public boolean isBlakeOperation() {
-    return false;
-  }
-
   public static short modexpComponentByteSize() {
     return LLARGE * (INDEX_MAX_MODEXP + 1);
   }

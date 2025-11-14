@@ -38,6 +38,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.*;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.pricingOobCall.LondonModexpPricingOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.pricingOobCall.ModexpPricingOobCall;
@@ -112,18 +113,18 @@ public class LondonModexpSubsection extends PrecompileSubsection {
 
     final ImcFragment sixthImcFragment = ImcFragment.empty(hub);
     fragments().add(sixthImcFragment);
+    // Note: we must compute the callee gas here as the eponymous PrecompileSubsection field gets
+    // computed
+    // at traceContextEnter() which happens after the constructor invocation.
+    final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
     sixthOobCall =
-        (ModexpPricingOobCall) sixthImcFragment.callOob(getForkAppropriateModexpPricingOobCall());
-
+        (ModexpPricingOobCall)
+            sixthImcFragment.callOob(getForkAppropriateModexpPricingOobCall(calleeGas));
     // We need to trigger the OOB before CALL's execution
     if (sixthOobCall.isRamSuccess()) {
       seventhImcFragment = ImcFragment.empty(hub);
       seventhImcFragment.callOob(new ModexpExtractOobCall(modexpMetadata));
     }
-  }
-
-  public LondonModexpMetadata getForkAppropriateModexpMetadata() {
-    return (LondonModexpMetadata) modexpMetadata;
   }
 
   @Override
@@ -178,11 +179,15 @@ public class LondonModexpSubsection extends PrecompileSubsection {
     }
   }
 
+  public LondonModexpMetadata getForkAppropriateModexpMetadata() {
+    return (LondonModexpMetadata) modexpMetadata;
+  }
+
   public LondonModexpXbsOobCall getForkAppropriateModexpXbsOobCall(ModexpXbsCase modexpXbsCase) {
     return new LondonModexpXbsOobCall((LondonModexpMetadata) modexpMetadata, modexpXbsCase);
   }
 
-  public LondonModexpPricingOobCall getForkAppropriateModexpPricingOobCall() {
+  public LondonModexpPricingOobCall getForkAppropriateModexpPricingOobCall(long calleeGas) {
     return new LondonModexpPricingOobCall(modexpMetadata, calleeGas);
   }
 

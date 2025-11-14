@@ -20,6 +20,7 @@ import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperatio
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.pricingOobCall.OsakaModexpPricingOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.xbsOobCall.OsakaModexpXbsOobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.OsakaModexpMetadata;
@@ -43,6 +44,12 @@ public class OsakaModexpSubsection extends LondonModexpSubsection {
     return new OsakaModexpXbsOobCall((OsakaModexpMetadata) modexpMetadata, modexpXbsCase);
   }
 
+  @Override
+  public OsakaModexpPricingOobCall getForkAppropriateModexpPricingOobCall(long calleeGas) {
+    return new OsakaModexpPricingOobCall(modexpMetadata, calleeGas);
+  }
+
+  @Override
   protected BlakeModexpOperation getForkAppropriateBlakeModexpOperation() {
     return new LondonBlakeModexpOperation(
         getForkAppropriateModexpMetadata(), exoModuleOperationId());

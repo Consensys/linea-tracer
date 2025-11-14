@@ -191,10 +191,8 @@ public abstract class BlakeModexpOperation extends ModuleOperation {
   public boolean isModexpOperation() {
     return modexpMetaData.isPresent();
   }
-  ;
 
   public boolean isBlakeOperation() {
     return blake2fComponents.isPresent();
   }
-  ;
 }

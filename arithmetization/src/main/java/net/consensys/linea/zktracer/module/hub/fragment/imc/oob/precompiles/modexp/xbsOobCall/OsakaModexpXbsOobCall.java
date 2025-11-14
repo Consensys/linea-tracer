@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.mod
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.OsakaBlakeModexpOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase;
@@ -26,7 +25,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 public class OsakaModexpXbsOobCall extends LondonModexpXbsOobCall {
 
   public OsakaModexpXbsOobCall(OsakaModexpMetadata modexpMetaData, ModexpXbsCase modexpXbsCase) {
@@ -43,11 +42,6 @@ public class OsakaModexpXbsOobCall extends LondonModexpXbsOobCall {
 
   @Override
   public void setInputData(MessageFrame frame, Hub hub) {}
-
-  @Override
-  public Trace.Oob trace(Trace.Oob trace) {
-    return null;
-  }
 
   @Override
   protected boolean xbsIsWithinBounds() {

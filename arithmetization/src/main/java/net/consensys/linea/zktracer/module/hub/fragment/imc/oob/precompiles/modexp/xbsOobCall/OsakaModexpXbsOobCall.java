@@ -14,23 +14,14 @@
  */
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.xbsOobCall;
 
-import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
-import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.OsakaBlakeModexpOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase;
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.OsakaModexpMetadata;
-import net.consensys.linea.zktracer.module.mod.Mod;
-import net.consensys.linea.zktracer.module.oob.OobExoCall;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
@@ -70,23 +61,23 @@ public class OsakaModexpXbsOobCall extends LondonModexpXbsOobCall {
 
   @Override
   short xbsNormalized() {
-      return (short) getForkAppropriateModexpMetadata().normalize(modexpXbsCase).toInt();
+    return (short) getForkAppropriateModexpMetadata().normalize(modexpXbsCase).toInt();
   }
 
   @Override
-  short ybsNormalized() {
-      return xbsIsWithinBounds() ? (short) ybsLo().toInt() : 0;
+  short ybsReNormalized() {
+    return xbsIsWithinBounds() ? (short) ybsLo().toInt() : 0;
   }
 
   @Override
-    short maxXbsYbs() {
-      return computeMax() && xbsIsWithinBounds()
-          ? (short) Math.max(xbsNormalized(), ybsNormalized())
-          : 0;
-    }
+  short maxXbsYbs() {
+    return computeMax() && xbsIsWithinBounds()
+        ? (short) Math.max(xbsNormalized(), this.ybsReNormalized())
+        : 0;
+  }
 
-    @Override
-    boolean xbsNormalizedIsNonZero() {
-        return xbsIsWithinBounds() && xbsNormalized() != 0;
-    }
+  @Override
+  boolean xbsNormalizedIsNonZero() {
+    return xbsIsWithinBounds() && xbsNormalized() != 0;
+  }
 }

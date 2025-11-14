@@ -69,7 +69,9 @@ public abstract class ModexpXbsOobCall extends OobCall {
     exoCalls.add(xbsVsModexpComponentByteSize);
 
     // row i + 1
-    final OobExoCall compareXbsYbsCall = callToLT(wcp, Bytes.ofUnsignedShort(xbsNormalized()), Bytes.ofUnsignedShort(ybsNormalized()));
+    final OobExoCall compareXbsYbsCall =
+        callToLT(
+            wcp, Bytes.ofUnsignedShort(xbsNormalized()), Bytes.ofUnsignedShort(ybsReNormalized()));
     exoCalls.add(compareXbsYbsCall);
 
     // row i + 2
@@ -87,8 +89,11 @@ public abstract class ModexpXbsOobCall extends OobCall {
   }
 
   abstract short xbsNormalized();
-  abstract short ybsNormalized();
+
+  abstract short ybsReNormalized();
+
   abstract short maxXbsYbs();
+
   abstract boolean xbsNormalizedIsNonZero();
 
   protected abstract boolean xbsIsWithinBounds();

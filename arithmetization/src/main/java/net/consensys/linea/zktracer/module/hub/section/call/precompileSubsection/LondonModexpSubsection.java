@@ -31,6 +31,7 @@ import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompil
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase.OOB_INST_MODEXP_MBS;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_RAM;
 
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
@@ -38,21 +39,34 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.*;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.pricingOobCall.LondonModexpPricingOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.pricingOobCall.ModexpPricingOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.xbsOobCall.LondonModexpXbsOobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.LondonModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 
-public class LondonModexpSubsection extends ModexpSubsection {
+public class LondonModexpSubsection extends PrecompileSubsection {
 
+  // 13 = 1 + 12 (scenario row + up to 12 miscellaneous fragments)
+  public static final short NB_ROWS_HUB_PRC_MODEXP = 13;
+
+  public final ModexpMetadata modexpMetadata;
   private ModexpPricingOobCall sixthOobCall;
   private ImcFragment seventhImcFragment;
   public boolean transactionWillBePopped = false;
 
   public LondonModexpSubsection(
-      final Hub hub, final CallSection callSection, LondonModexpMetadata modexpMetadata) {
-    super(hub, callSection, modexpMetadata);
+      final Hub hub, final CallSection callSection, ModexpMetadata modexpMetadata) {
+    super(hub, callSection);
+
+    checkState(
+        modexpMetadata instanceof LondonModexpMetadata,
+        "modexpMetadata must be LondonModexpMetadata");
+
+    this.modexpMetadata = modexpMetadata;
 
     if (modexpMetadata.unprovableModexp()) {
       hub.modexpEffectiveCall().detectEvent();
@@ -98,10 +112,8 @@ public class LondonModexpSubsection extends ModexpSubsection {
 
     final ImcFragment sixthImcFragment = ImcFragment.empty(hub);
     fragments().add(sixthImcFragment);
-    final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
     sixthOobCall =
-        (ModexpPricingOobCall)
-            sixthImcFragment.callOob(new ModexpPricingOobCall(modexpMetadata, calleeGas));
+        (ModexpPricingOobCall) sixthImcFragment.callOob(getForkAppropriateModexpPricingOobCall());
 
     // We need to trigger the OOB before CALL's execution
     if (sixthOobCall.isRamSuccess()) {
@@ -110,7 +122,6 @@ public class LondonModexpSubsection extends ModexpSubsection {
     }
   }
 
-  @Override
   public LondonModexpMetadata getForkAppropriateModexpMetadata() {
     return (LondonModexpMetadata) modexpMetadata;
   }
@@ -130,10 +141,7 @@ public class LondonModexpSubsection extends ModexpSubsection {
     final Bytes returnData = extractReturnData();
 
     modexpMetadata.rawResult(returnData);
-    hub.blakeModexp()
-        .callModexp(
-            new LondonBlakeModexpOperation(
-                getForkAppropriateModexpMetadata(), exoModuleOperationId()));
+    hub.blakeModexp().callModexp(getForkAppropriateBlakeModexpOperation());
 
     fragments().add(seventhImcFragment);
     if (modexpMetadata.extractModulus()) {
@@ -170,12 +178,23 @@ public class LondonModexpSubsection extends ModexpSubsection {
     }
   }
 
-  @Override
   public LondonModexpXbsOobCall getForkAppropriateModexpXbsOobCall(ModexpXbsCase modexpXbsCase) {
-
-    checkState(
-        modexpMetadata instanceof LondonModexpMetadata,
-        "modexpMetadata must be LondonModexpMetadata");
     return new LondonModexpXbsOobCall((LondonModexpMetadata) modexpMetadata, modexpXbsCase);
+  }
+
+  public LondonModexpPricingOobCall getForkAppropriateModexpPricingOobCall() {
+    return new LondonModexpPricingOobCall(modexpMetadata, calleeGas);
+  }
+
+  protected BlakeModexpOperation getForkAppropriateBlakeModexpOperation() {
+    return new LondonBlakeModexpOperation(
+        getForkAppropriateModexpMetadata(), exoModuleOperationId());
+  }
+
+  // 13 = 1 + 12 (scenario row + up to 12 miscellaneous fragments)
+  protected short maxNumberOfLines() {
+    return NB_ROWS_HUB_PRC_MODEXP;
+    // Note: we don't have the successBit available at the moment
+    // and can't provide the "real" value (8 in case of failure.)
   }
 }

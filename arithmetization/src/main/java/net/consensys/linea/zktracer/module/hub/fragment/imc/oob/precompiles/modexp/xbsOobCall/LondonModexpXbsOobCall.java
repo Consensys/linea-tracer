@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.xbsOobCall;
 
-import static net.consensys.linea.zktracer.types.Conversions.*;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -52,13 +50,13 @@ public class LondonModexpXbsOobCall extends ModexpXbsOobCall {
   }
 
   @Override
-  short ybsNormalized() {
+  short ybsReNormalized() {
     return (short) ybsLo().toInt();
   }
 
   @Override
   short maxXbsYbs() {
-    return computeMax() ? (short) Math.max(xbsNormalized(), ybsNormalized()) : 0;
+    return computeMax() ? (short) Math.max(xbsNormalized(), ybsReNormalized()) : 0;
   }
 
   @Override

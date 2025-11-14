@@ -16,32 +16,35 @@ package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsectio
 
 import static com.google.common.base.Preconditions.checkState;
 
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.xbsOobCall.OsakaModexpXbsOobCall;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.OsakaModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 
 public class OsakaModexpSubsection extends LondonModexpSubsection {
-  public OsakaModexpSubsection(
-      Hub hub, CallSection callSection, OsakaModexpMetadata modexpMetadata) {
+  public OsakaModexpSubsection(Hub hub, CallSection callSection, ModexpMetadata modexpMetadata) {
     super(hub, callSection, modexpMetadata);
+    checkState(
+        modexpMetadata instanceof OsakaModexpMetadata,
+        "modexpMetadata must be LondonModexpMetadata");
   }
 
   @Override
   public OsakaModexpMetadata getForkAppropriateModexpMetadata() {
-    checkState(
-        modexpMetadata instanceof OsakaModexpMetadata,
-        "modexpMetadata must be OsakaModexpMetadata");
     return (OsakaModexpMetadata) modexpMetadata;
   }
 
   @Override
   public OsakaModexpXbsOobCall getForkAppropriateModexpXbsOobCall(ModexpXbsCase modexpXbsCase) {
-
-    checkState(
-        modexpMetadata instanceof OsakaModexpMetadata,
-        "modexpMetadata must be OsakaModexpMetadata");
     return new OsakaModexpXbsOobCall((OsakaModexpMetadata) modexpMetadata, modexpXbsCase);
+  }
+
+  protected BlakeModexpOperation getForkAppropriateBlakeModexpOperation() {
+    return new LondonBlakeModexpOperation(
+        getForkAppropriateModexpMetadata(), exoModuleOperationId());
   }
 }

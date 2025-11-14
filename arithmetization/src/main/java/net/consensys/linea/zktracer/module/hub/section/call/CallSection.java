@@ -23,7 +23,6 @@ import static net.consensys.linea.zktracer.module.hub.fragment.scenario.Precompi
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.types.AddressUtils.*;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
-import static org.hyperledger.besu.datatypes.Address.*;
 
 import java.util.Optional;
 

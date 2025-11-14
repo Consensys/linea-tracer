@@ -137,7 +137,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Slf4j
 public class ZkCounter implements LineCountingTracer {
 
-  public static final Fork FORK_TO_USE_FOR_ZK_COUNTER = OSAKA;
+  public static final Fork FORK_TO_USE_FOR_ZK_COUNTER = PRAGUE;
 
   private final OpCodes opCodes = OpCodes.load(FORK_TO_USE_FOR_ZK_COUNTER);
   private static final Trace trace = getTraceFromFork(FORK_TO_USE_FOR_ZK_COUNTER);
@@ -726,8 +726,11 @@ public class ZkCounter implements LineCountingTracer {
       case PRC_MODEXP -> {
         hub.updateTally(NB_ROWS_HUB_PRC_MODEXP);
         final MemoryRange memoryRange = new MemoryRange(0, 0, callData.size(), callData);
-        final ModexpMetadata modexpMetadata = new OsakaModexpMetadata(memoryRange);
-        if (modexpMetadata instanceof LondonModexpMetadata && modexpMetadata.unprovableModexp()) {
+        final ModexpMetadata modexpMetadata =
+                forkPredatesOsaka(FORK_TO_USE_FOR_ZK_COUNTER)
+                        ? new LondonModexpMetadata(memoryRange)
+                        : new OsakaModexpMetadata(memoryRange);
+        if (modexpMetadata.unprovableModexp()) {
           modexpEffectiveCall.detectEvent();
           return;
         }

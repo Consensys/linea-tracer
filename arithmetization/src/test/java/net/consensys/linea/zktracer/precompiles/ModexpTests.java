@@ -128,7 +128,25 @@ public class ModexpTests extends TracerTestBase {
   }
 
   @Test
-  void testUnpaddedModexp(TestInfo testInfo) {
+  void testSingleUnpaddedModexp(TestInfo testInfo) {
+
+      String hexBase = "407CB5AD";
+      String hexExpn = "40BDB1ED";
+      String hexModl = "48AF8739";
+
+      BytecodeCompiler program =
+              preparingSingleBaseExponentAndModulusForModexp(
+                      hexBase, hexExpn, hexModl);
+
+      final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+      bytecodeRunner.run(chainConfig, testInfo);
+
+      // check precompile limits line count
+      assertTrue(bytecodeRunner.getHub().modexpEffectiveCall().lineCount() > 0);
+  }
+
+    @Test
+    void testUnpaddedModexp(TestInfo testInfo) {
 
     String hexBase = "407CB5AD";
     String hexExpn = "40BDB1ED";
@@ -142,6 +160,34 @@ public class ModexpTests extends TracerTestBase {
 
     // check precompile limits line count
     assertTrue(bytecodeRunner.getHub().modexpEffectiveCall().lineCount() > 0);
+  }
+
+  @Test
+  void testSinglePaddedModexp(TestInfo testInfo) {
+
+    String hexBase = "00407CB5AD";
+    String hexExpn = "40BDB1ED";
+    String hexModl = "000048AF8739";
+
+    BytecodeCompiler program =
+        preparingSingleBaseExponentAndModulusForModexp(
+            hexBase, hexExpn, hexModl);
+
+    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run(chainConfig, testInfo);
+
+    // check precompile limits line count
+    assertTrue(bytecodeRunner.getHub().modexpEffectiveCall().lineCount() > 0);
+  }
+
+  BytecodeCompiler preparingSingleBaseExponentAndModulusForModexp(
+      String hexBase, String hexExpn, String hexModl) {
+
+    BytecodeCompiler program = preparingBaseExponentAndModulusForModexp(hexBase, hexExpn, hexModl);
+
+    appendParametrizedModexpCall(program, 32, 32);
+
+    return program;
   }
 
   @Test
@@ -230,6 +276,17 @@ public class ModexpTests extends TracerTestBase {
     int expnOffset = 64 + bbs + ebs;
     int modlOffset = 64 + bbs + ebs + mbs;
     return BytecodeCompiler.newProgram(chainConfig)
+        // modulus, exponent and base values at correct offsets
+        .push(hexModl)
+        .push(modlOffset)
+        .op(OpCode.MSTORE) // this sets the modulus
+        .push(hexExpn)
+        .push(expnOffset)
+        .op(OpCode.MSTORE) // this sets the exponent
+        .push(hexBase)
+        .push(baseOffset)
+        .op(OpCode.MSTORE) // this sets the base
+        // bbs, ebs, mbs at correct offsets
         .push(byteSize(hexBase))
         .push("00")
         .op(OpCode.MSTORE) // this sets bbs = 4
@@ -240,15 +297,6 @@ public class ModexpTests extends TracerTestBase {
         .push("40")
         .op(OpCode.MSTORE) // this sets mbs = 4
         // to read call data 32 + 32 + 32 + 4 + 4 + 4 = 108 bytes are sufficient
-        .push(hexBase)
-        .push(baseOffset)
-        .op(OpCode.MSTORE) // this sets the base
-        .push(hexExpn)
-        .push(expnOffset)
-        .op(OpCode.MSTORE) // this sets the exponent
-        .push(hexModl)
-        .push(modlOffset)
-        .op(OpCode.MSTORE) // this sets the modulus
     ;
   }
 

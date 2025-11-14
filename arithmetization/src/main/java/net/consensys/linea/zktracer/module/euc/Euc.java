@@ -100,6 +100,8 @@ public class Euc implements OperationSetModule<EucOperation> {
     final Bytes quotient = bigIntegerToBytes(dividendBI.divide(divisorBI));
     final Bytes remainder = bigIntegerToBytes(dividendBI.remainder(divisorBI));
 
-    return new EucOperation(dividend, divisor, quotient, remainder);
+    final EucOperation op = new EucOperation(dividend, divisor, quotient, remainder);
+    operations.add(op);
+    return op;
   }
 }

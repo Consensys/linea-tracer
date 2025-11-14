@@ -21,7 +21,7 @@ import net.consensys.linea.zktracer.types.MemoryRange;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.internal.Words;
 
-public class OsakaModexpMetadata extends LondonModexpMetadata {
+public class OsakaModexpMetadata extends ModexpMetadata {
   public OsakaModexpMetadata(MemoryRange callDataRange) {
     super(callDataRange);
   }

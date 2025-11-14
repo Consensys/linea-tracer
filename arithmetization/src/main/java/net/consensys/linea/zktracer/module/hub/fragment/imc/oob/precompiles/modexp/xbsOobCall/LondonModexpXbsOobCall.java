@@ -15,22 +15,15 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.xbsOobCall;
 
-import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
-import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase;
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.LondonModexpMetadata;
-import net.consensys.linea.zktracer.module.mod.Mod;
-import net.consensys.linea.zktracer.module.oob.OobExoCall;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
@@ -54,22 +47,23 @@ public class LondonModexpXbsOobCall extends ModexpXbsOobCall {
   public void setInputData(MessageFrame frame, Hub hub) {}
 
   @Override
-  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
-    // row i
-    final OobExoCall xbsVsModexpComponentByteSize =
-        callToLT(wcp, xbs(), Bytes.ofUnsignedInt(modexpComponentByteSize() + 1));
-    exoCalls.add(xbsVsModexpComponentByteSize);
+  short xbsNormalized() {
+    return (short) xbs().toInt();
+  }
 
-    // row i + 1
-    final OobExoCall compareXbsYbsCall = callToLT(wcp, xbs().lo(), ybsLo());
-    exoCalls.add(compareXbsYbsCall);
-    final boolean comp = bytesToBoolean(compareXbsYbsCall.result());
-    setMaxXbsYbs(computeMax() ? (comp ? ybsLo() : xbs().lo()) : Bytes.EMPTY);
+  @Override
+  short ybsNormalized() {
+    return (short) ybsLo().toInt();
+  }
 
-    // row i + 2
-    final OobExoCall xbsNonZeroCall = callToIsZero(wcp, xbs().lo());
-    exoCalls.add(xbsNonZeroCall);
-    setXbsNormalizedNonZero(computeMax() ? !bytesToBoolean(xbsNonZeroCall.result()) : false);
+  @Override
+  short maxXbsYbs() {
+    return computeMax() ? (short) Math.max(xbsNormalized(), ybsNormalized()) : 0;
+  }
+
+  @Override
+  boolean xbsNormalizedIsNonZero() {
+    return xbsNormalized() != 0;
   }
 
   @Override

@@ -48,10 +48,6 @@ public abstract class ModexpXbsOobCall extends OobCall {
   @EqualsAndHashCode.Include final ModexpMetadata modexpMetadata;
   @EqualsAndHashCode.Include final ModexpXbsCase modexpXbsCase;
 
-  // Outputs
-  Bytes maxXbsYbs;
-  boolean xbsNormalizedNonZero;
-
   public ModexpXbsOobCall(ModexpMetadata modexpMetaData, ModexpXbsCase modexpXbsCase) {
     super();
     this.modexpMetadata = modexpMetaData;
@@ -73,15 +69,12 @@ public abstract class ModexpXbsOobCall extends OobCall {
     exoCalls.add(xbsVsModexpComponentByteSize);
 
     // row i + 1
-    final OobExoCall compareXbsYbsCall = callToLT(wcp, xbs().lo(), ybsLo());
+    final OobExoCall compareXbsYbsCall = callToLT(wcp, Bytes.ofUnsignedShort(xbsNormalized()), Bytes.ofUnsignedShort(ybsNormalized()));
     exoCalls.add(compareXbsYbsCall);
-    final boolean comp = bytesToBoolean(compareXbsYbsCall.result());
-    setMaxXbsYbs(computeMax() ? (comp ? ybsLo() : xbs().lo()) : Bytes.EMPTY);
 
     // row i + 2
-    final OobExoCall xbsNonZerCall = callToIsZero(wcp, xbs().lo());
-    exoCalls.add(xbsNonZerCall);
-    setXbsNormalizedNonZero(computeMax() ? !bytesToBoolean(xbsNonZerCall.result()) : false);
+    final OobExoCall xbsIszeroCall = callToIsZero(wcp, Bytes.ofUnsignedShort(xbsNormalized()));
+    exoCalls.add(xbsIszeroCall);
   }
 
   @Override
@@ -92,6 +85,11 @@ public abstract class ModexpXbsOobCall extends OobCall {
   protected EWord xbs() {
     return modexpMetadata.xbs(modexpXbsCase);
   }
+
+  abstract short xbsNormalized();
+  abstract short ybsNormalized();
+  abstract short maxXbsYbs();
+  abstract boolean xbsNormalizedIsNonZero();
 
   protected abstract boolean xbsIsWithinBounds();
 
@@ -122,8 +120,8 @@ public abstract class ModexpXbsOobCall extends OobCall {
         .data4(booleanToBytes(computeMax()))
         .data5(booleanToBytes(xbsIsWithinBounds()))
         .data6(booleanToBytes(xbsIsOutOfBounds()))
-        .data7(maxXbsYbs)
-        .data8(booleanToBytes(xbsNormalizedNonZero));
+        .data7(Bytes.ofUnsignedShort(maxXbsYbs()))
+        .data8(booleanToBytes(xbsNormalizedIsNonZero()));
   }
 
   @Override
@@ -137,7 +135,7 @@ public abstract class ModexpXbsOobCall extends OobCall {
         .pMiscOobData4(booleanToBytes(computeMax()))
         .pMiscOobData5(booleanToBytes(xbsIsWithinBounds()))
         .pMiscOobData6(booleanToBytes(xbsIsOutOfBounds()))
-        .pMiscOobData7(maxXbsYbs)
-        .pMiscOobData8(booleanToBytes(xbsNormalizedNonZero));
+        .pMiscOobData7(Bytes.ofUnsignedShort(maxXbsYbs()))
+        .pMiscOobData8(booleanToBytes(xbsNormalizedIsNonZero()));
   }
 }

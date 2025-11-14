@@ -59,33 +59,6 @@ public class OsakaModexpXbsOobCall extends LondonModexpXbsOobCall {
   }
 
   @Override
-  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
-    // row i
-    final OobExoCall xbsVsModexpComponentByteSize =
-        callToLT(wcp, xbs(), Bytes.ofUnsignedInt(modexpComponentByteSize() + 1));
-    exoCalls.add(xbsVsModexpComponentByteSize);
-
-    // row i + 1
-    final Bytes xbsNormalized = getForkAppropriateModexpMetadata().normalize(modexpXbsCase);
-    final Bytes ybsNormalized = xbsIsWithinBounds() ? ybsLo() : Bytes.EMPTY;
-    final OobExoCall xbsNormalizedLtYbsNormalizedCall = callToLT(wcp, xbsNormalized, ybsNormalized);
-    exoCalls.add(xbsNormalizedLtYbsNormalizedCall);
-    final boolean isXbsNormalizedLtYbsNormalized =
-        bytesToBoolean(xbsNormalizedLtYbsNormalizedCall.result());
-    if (computeMax() && xbsIsWithinBounds()) {
-      setMaxXbsYbs(isXbsNormalizedLtYbsNormalized ? ybsNormalized : xbsNormalized);
-    } else {
-      setMaxXbsYbs(Bytes.EMPTY);
-    }
-
-    // row i + 2
-    final OobExoCall xbsNormalizedIszeroCall = callToIsZero(wcp, xbsNormalized);
-    exoCalls.add(xbsNormalizedIszeroCall);
-    setXbsNormalizedNonZero(
-        computeMax() ? !bytesToBoolean(xbsNormalizedIszeroCall.result()) : false);
-  }
-
-  @Override
   protected boolean xbsIsWithinBounds() {
     return getForkAppropriateModexpMetadata().tracedIsWithinBounds(modexpXbsCase);
   }
@@ -94,4 +67,26 @@ public class OsakaModexpXbsOobCall extends LondonModexpXbsOobCall {
   protected boolean xbsIsOutOfBounds() {
     return getForkAppropriateModexpMetadata().tracedIsOutOfBounds(modexpXbsCase);
   }
+
+  @Override
+  short xbsNormalized() {
+      return (short) getForkAppropriateModexpMetadata().normalize(modexpXbsCase).toInt();
+  }
+
+  @Override
+  short ybsNormalized() {
+      return xbsIsWithinBounds() ? (short) ybsLo().toInt() : 0;
+  }
+
+  @Override
+    short maxXbsYbs() {
+      return computeMax() && xbsIsWithinBounds()
+          ? (short) Math.max(xbsNormalized(), ybsNormalized())
+          : 0;
+    }
+
+    @Override
+    boolean xbsNormalizedIsNonZero() {
+        return xbsIsWithinBounds() && xbsNormalized() != 0;
+    }
 }

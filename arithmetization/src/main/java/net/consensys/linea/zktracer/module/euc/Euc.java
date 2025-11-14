@@ -102,7 +102,9 @@ public class Euc implements OperationSetModule<EucOperation> {
     final Bytes quotient = bigIntegerToBytes(dividendBI.divide(divisorBI));
     final Bytes remainder = bigIntegerToBytes(dividendBI.remainder(divisorBI));
 
-    final EucOperation operation = new EucOperation(dividend, divisor, quotient, remainder);
+    final EucOperation operation =
+        new EucOperation(
+            dividend.trimLeadingZeros(), divisor.trimLeadingZeros(), quotient, remainder);
 
     final boolean isNew = operations.add(operation);
     if (isNew) {

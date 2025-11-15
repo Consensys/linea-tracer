@@ -199,8 +199,8 @@ public abstract class BlakeModexpOperation extends ModuleOperation {
   }
 
   public static int legalModexpComponentByteSize(Fork fork) {
-     return forkPredatesOsaka(fork)
-               ? LondonBlakeModexpOperation.modexpComponentByteSize()
-               : OsakaBlakeModexpOperation.modexpComponentByteSize();
+    return forkPredatesOsaka(fork)
+        ? LondonBlakeModexpOperation.modexpComponentByteSize()
+        : OsakaBlakeModexpOperation.modexpComponentByteSize();
   }
 }

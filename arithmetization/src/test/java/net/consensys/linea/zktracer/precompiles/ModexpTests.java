@@ -14,9 +14,9 @@
  */
 package net.consensys.linea.zktracer.precompiles;
 
-import static net.consensys.linea.zktracer.Fork.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.legalModexpComponentByteSize;
 import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.BASE_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.BBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.EBS_MIN_OFFSET;
@@ -30,8 +30,6 @@ import java.util.List;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.*;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.OsakaBlakeModexpOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -81,10 +79,7 @@ public class ModexpTests extends TracerTestBase {
   @Test
   void basicNonTrivialModexpTest(TestInfo testInfo) {
 
-    final int modexpComponentByteSize =
-        forkPredatesOsaka(chainConfig.fork)
-            ? LondonBlakeModexpOperation.modexpComponentByteSize()
-            : OsakaBlakeModexpOperation.modexpComponentByteSize();
+    final int modexpComponentByteSize = legalModexpComponentByteSize(chainConfig.fork);
 
     final int base = 2;
     final int exp = 5;
@@ -130,23 +125,22 @@ public class ModexpTests extends TracerTestBase {
   @Test
   void testSingleUnpaddedModexp(TestInfo testInfo) {
 
-      String hexBase = "407CB5AD";
-      String hexExpn = "40BDB1ED";
-      String hexModl = "48AF8739";
+    String hexBase = "407CB5AD";
+    String hexExpn = "40BDB1ED";
+    String hexModl = "48AF8739";
 
-      BytecodeCompiler program =
-              preparingSingleBaseExponentAndModulusForModexp(
-                      hexBase, hexExpn, hexModl);
+    BytecodeCompiler program =
+        preparingSingleBaseExponentAndModulusForModexp(hexBase, hexExpn, hexModl);
 
-      final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-      bytecodeRunner.run(chainConfig, testInfo);
+    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run(chainConfig, testInfo);
 
-      // check precompile limits line count
-      assertTrue(bytecodeRunner.getHub().modexpEffectiveCall().lineCount() > 0);
+    // check precompile limits line count
+    assertTrue(bytecodeRunner.getHub().modexpEffectiveCall().lineCount() > 0);
   }
 
-    @Test
-    void testUnpaddedModexp(TestInfo testInfo) {
+  @Test
+  void testUnpaddedModexp(TestInfo testInfo) {
 
     String hexBase = "407CB5AD";
     String hexExpn = "40BDB1ED";
@@ -170,8 +164,7 @@ public class ModexpTests extends TracerTestBase {
     String hexModl = "000048AF8739";
 
     BytecodeCompiler program =
-        preparingSingleBaseExponentAndModulusForModexp(
-            hexBase, hexExpn, hexModl);
+        preparingSingleBaseExponentAndModulusForModexp(hexBase, hexExpn, hexModl);
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);
@@ -296,7 +289,7 @@ public class ModexpTests extends TracerTestBase {
         .push(byteSize(hexModl))
         .push("40")
         .op(OpCode.MSTORE) // this sets mbs = 4
-        // to read call data 32 + 32 + 32 + 4 + 4 + 4 = 108 bytes are sufficient
+    // to read call data 32 + 32 + 32 + 4 + 4 + 4 = 108 bytes are sufficient
     ;
   }
 

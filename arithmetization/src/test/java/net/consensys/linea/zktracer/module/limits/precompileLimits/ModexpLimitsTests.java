@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.limits.precompileLimits;
 
+import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.legalModexpComponentByteSize;
 import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -90,7 +92,7 @@ public class ModexpLimitsTests extends TracerTestBase {
             .sender(senderAccount)
             .to(callPRC)
             .keyPair(senderKeyPair)
-            .gasLimit(30000000L)
+            .gasLimit(16777216L)
             .value(Wei.of(10000000))
             .build();
 
@@ -106,12 +108,19 @@ public class ModexpLimitsTests extends TracerTestBase {
     final Map<String, Integer> lineCountMap = toyWorld.getZkCounter().getModulesLineCount();
 
     // check MODEXP limits:
+    final int legalModexpComponentByteSize = legalModexpComponentByteSize(chainConfig.fork);
+    final int numberOfEffectiveModexpCallsForInvalidInputs =
+        forkPredatesOsaka(chainConfig.fork) ? Integer.MAX_VALUE : 0;
     assertEquals(
-        (bbs <= 512 && ebs <= 512 && mbs <= 512) ? 1 : Integer.MAX_VALUE,
+        (bbs <= legalModexpComponentByteSize
+                && ebs <= legalModexpComponentByteSize
+                && mbs <= legalModexpComponentByteSize)
+            ? 1
+            : numberOfEffectiveModexpCallsForInvalidInputs,
         lineCountMap.get(ModuleName.PRECOMPILE_MODEXP_EFFECTIVE_CALLS.toString()));
     final int maxByteWidth = Math.max(Math.max(bbs, ebs), mbs);
     assertEquals(
-        (maxByteWidth > 32 && maxByteWidth <= 512) ? 1 : 0,
+        (maxByteWidth > 32 && maxByteWidth <= legalModexpComponentByteSize) ? 1 : 0,
         lineCountMap.get(ModuleName.PRECOMPILE_LARGE_MODEXP_EFFECTIVE_CALLS.toString()));
   }
 

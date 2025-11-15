@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.blake2fmodexpdata;
 
+import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
 import static net.consensys.linea.zktracer.Trace.Blake2fmodexpdata.*;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.Trace.PHASE_BLAKE_DATA;
@@ -30,6 +31,7 @@ import java.util.Optional;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata;
@@ -194,5 +196,11 @@ public abstract class BlakeModexpOperation extends ModuleOperation {
 
   public boolean isBlakeOperation() {
     return blake2fComponents.isPresent();
+  }
+
+  public static int legalModexpComponentByteSize(Fork fork) {
+     return forkPredatesOsaka(fork)
+               ? LondonBlakeModexpOperation.modexpComponentByteSize()
+               : OsakaBlakeModexpOperation.modexpComponentByteSize();
   }
 }

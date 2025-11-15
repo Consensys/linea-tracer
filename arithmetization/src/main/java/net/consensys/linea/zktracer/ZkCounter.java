@@ -727,9 +727,9 @@ public class ZkCounter implements LineCountingTracer {
         hub.updateTally(NB_ROWS_HUB_PRC_MODEXP);
         final MemoryRange memoryRange = new MemoryRange(0, 0, callData.size(), callData);
         final ModexpMetadata modexpMetadata =
-                forkPredatesOsaka(FORK_TO_USE_FOR_ZK_COUNTER)
-                        ? new LondonModexpMetadata(memoryRange)
-                        : new OsakaModexpMetadata(memoryRange);
+            forkPredatesOsaka(FORK_TO_USE_FOR_ZK_COUNTER)
+                ? new LondonModexpMetadata(memoryRange)
+                : new OsakaModexpMetadata(memoryRange);
         if (modexpMetadata.unprovableModexp()) {
           modexpEffectiveCall.detectEvent();
           return;

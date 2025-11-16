@@ -131,7 +131,7 @@ public class LondonModexpSubsection extends PrecompileSubsection {
 
     // sanity check
     checkArgument(
-        callSuccess == allXbsesAreInBounds() && sixthOobCall.isRamSuccess(),
+        callSuccess == (allXbsesAreInBounds() && sixthOobCall.isRamSuccess()),
         "Inconsistent Modexp success status");
 
     if (!callSuccess) {

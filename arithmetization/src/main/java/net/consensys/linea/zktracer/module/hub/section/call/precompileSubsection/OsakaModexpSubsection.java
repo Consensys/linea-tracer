@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
 import static com.google.common.base.Preconditions.checkState;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase.*;
 
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
@@ -53,5 +54,12 @@ public class OsakaModexpSubsection extends LondonModexpSubsection {
   protected BlakeModexpOperation getForkAppropriateBlakeModexpOperation() {
     return new LondonBlakeModexpOperation(
         getForkAppropriateModexpMetadata(), exoModuleOperationId());
+  }
+
+  @Override
+  protected boolean allXbsesAreInBounds() {
+      return modexpMetadata.tracedIsWithinBounds(MODEXP_XBS_CASE_BBS)
+              && modexpMetadata.tracedIsWithinBounds(MODEXP_XBS_CASE_EBS)
+              && modexpMetadata.tracedIsWithinBounds(MODEXP_XBS_CASE_MBS);
   }
 }

@@ -102,15 +102,15 @@ public abstract class ModexpXbsOobCall extends OobCall {
 
   public Bytes ybsLo() {
     return switch (modexpXbsCase) {
-      case OOB_INST_MODEXP_BBS, OOB_INST_MODEXP_EBS -> Bytes.EMPTY;
-      case OOB_INST_MODEXP_MBS -> getForkAppropriateModexpMetadata().normalizedBbs();
+      case MODEXP_XBS_CASE_BBS, MODEXP_XBS_CASE_EBS -> Bytes.EMPTY;
+      case MODEXP_XBS_CASE_MBS -> getForkAppropriateModexpMetadata().normalizedBbs();
     };
   }
 
   protected boolean computeMax() {
     return switch (modexpXbsCase) {
-      case OOB_INST_MODEXP_BBS, OOB_INST_MODEXP_EBS -> false;
-      case OOB_INST_MODEXP_MBS -> true;
+      case MODEXP_XBS_CASE_BBS, MODEXP_XBS_CASE_EBS -> false;
+      case MODEXP_XBS_CASE_MBS -> true;
     };
   }
 

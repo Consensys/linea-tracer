@@ -58,15 +58,15 @@ public abstract class ModexpMetadata {
   public abstract Bytes normalize(ModexpXbsCase modexpXbsCase);
 
   public Bytes normalizedBbs() {
-    return normalize(OOB_INST_MODEXP_BBS);
+    return normalize(MODEXP_XBS_CASE_BBS);
   }
 
   public Bytes normalizedEbs() {
-    return normalize(OOB_INST_MODEXP_EBS);
+    return normalize(MODEXP_XBS_CASE_EBS);
   }
 
   public Bytes normalizedMbs() {
-    return normalize(OOB_INST_MODEXP_MBS);
+    return normalize(MODEXP_XBS_CASE_MBS);
   }
 
   public ModexpMetadata(MemoryRange callDataRange) {
@@ -131,9 +131,9 @@ public abstract class ModexpMetadata {
 
   public EWord xbs(ModexpXbsCase modexpXbsCase) {
     return switch (modexpXbsCase) {
-      case OOB_INST_MODEXP_BBS -> bbs();
-      case OOB_INST_MODEXP_EBS -> ebs();
-      case OOB_INST_MODEXP_MBS -> mbs();
+      case MODEXP_XBS_CASE_BBS -> bbs();
+      case MODEXP_XBS_CASE_EBS -> ebs();
+      case MODEXP_XBS_CASE_MBS -> mbs();
     };
   }
 

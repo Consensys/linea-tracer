@@ -776,7 +776,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .limb2(metaData.rawLeadingWord().lo());
   }
 
-  public static MmuCall forModexpExtractBase(
+  public static MmuCall extractModexpBase(
       final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
     if (modExpMetadata.extractBase()) {
       return new MmuCall(hub, MMU_INST_MODEXP_DATA)
@@ -798,7 +798,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     }
   }
 
-  public static MmuCall forModexpExtractExponent(
+  public static MmuCall extractModexpExponent(
       final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
     if (modExpMetadata.extractExponent()) {
       return new MmuCall(hub, MMU_INST_MODEXP_DATA)
@@ -820,7 +820,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     }
   }
 
-  public static MmuCall forModexpExtractModulus(
+  public static MmuCall extractModexpModulus(
       final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
     return new MmuCall(hub, MMU_INST_MODEXP_DATA)
         .sourceId(hub.currentFrame().contextNumber()) // called at ContextReEntry

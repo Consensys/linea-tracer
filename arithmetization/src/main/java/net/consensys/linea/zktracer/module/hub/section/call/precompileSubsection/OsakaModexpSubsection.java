@@ -58,8 +58,8 @@ public class OsakaModexpSubsection extends LondonModexpSubsection {
 
   @Override
   protected boolean allXbsesAreInBounds() {
-      return modexpMetadata.tracedIsWithinBounds(MODEXP_XBS_CASE_BBS)
-              && modexpMetadata.tracedIsWithinBounds(MODEXP_XBS_CASE_EBS)
-              && modexpMetadata.tracedIsWithinBounds(MODEXP_XBS_CASE_MBS);
+    return modexpMetadata.tracedIsWithinBounds(MODEXP_XBS_CASE_BBS)
+        && modexpMetadata.tracedIsWithinBounds(MODEXP_XBS_CASE_EBS)
+        && modexpMetadata.tracedIsWithinBounds(MODEXP_XBS_CASE_MBS);
   }
 }

@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp;
 
 public enum ModexpXbsCase {
-    MODEXP_XBS_CASE_BBS,
-    MODEXP_XBS_CASE_EBS,
-    MODEXP_XBS_CASE_MBS;
+  MODEXP_XBS_CASE_BBS,
+  MODEXP_XBS_CASE_EBS,
+  MODEXP_XBS_CASE_MBS;
 }

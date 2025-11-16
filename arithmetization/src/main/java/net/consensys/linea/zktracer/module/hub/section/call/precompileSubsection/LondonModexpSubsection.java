@@ -130,7 +130,9 @@ public class LondonModexpSubsection extends PrecompileSubsection {
     super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity check
-    checkArgument(callSuccess == allXbsesAreInBounds() && sixthOobCall.isRamSuccess(), "Inconsistent Modexp success status");
+    checkArgument(
+        callSuccess == allXbsesAreInBounds() && sixthOobCall.isRamSuccess(),
+        "Inconsistent Modexp success status");
 
     if (!callSuccess) {
       precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_RAM);
@@ -193,6 +195,6 @@ public class LondonModexpSubsection extends PrecompileSubsection {
   }
 
   protected boolean allXbsesAreInBounds() {
-      return true;
+    return true;
   }
 }

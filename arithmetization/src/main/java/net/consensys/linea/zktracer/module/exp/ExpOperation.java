@@ -18,8 +18,7 @@ package net.consensys.linea.zktracer.module.exp;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Math.min;
-import static net.consensys.linea.zktracer.Trace.EXP_INST_EXPLOG;
-import static net.consensys.linea.zktracer.Trace.EXP_INST_MODEXPLOG;
+import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.BASE_MIN_OFFSET;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
@@ -62,8 +61,8 @@ public class ExpOperation extends ModuleOperation {
             "MODEXP call data unexpectedly short");
         final EWord rawLead = modexpMetadata.rawLeadingWord();
         final int cdsCutoff =
-            Math.min(modexpMetadata.callData().size() - BASE_MIN_OFFSET - bbsInt, 32);
-        final int ebsCutoff = Math.min(ebsInt, 32);
+            Math.min(modexpMetadata.callData().size() - BASE_MIN_OFFSET - bbsInt, WORD_SIZE);
+        final int ebsCutoff = Math.min(ebsInt, WORD_SIZE);
         final BigInteger leadLog =
             BigInteger.valueOf(LeadLogTrimLead.fromArgs(rawLead, cdsCutoff, ebsCutoff).leadLog());
         // Fill expCall
@@ -116,16 +115,16 @@ public class ExpOperation extends ModuleOperation {
       final int minCutoff = min(cdsCutoff, ebsCutoff);
 
       BigInteger mask = new BigInteger("FF".repeat(minCutoff), 16);
-      if (minCutoff < 32) {
+      if (minCutoff < WORD_SIZE) {
         // 32 - minCutoff is the shift distance in bytes, but we need bits
-        mask = mask.shiftLeft(8 * (32 - minCutoff));
+        mask = mask.shiftLeft(8 * (WORD_SIZE - minCutoff));
       }
 
       // trim (keep only minCutoff bytes of rawLead)
       final BigInteger trim = rawLead.toUnsignedBigInteger().and(mask);
 
       // lead (keep only minCutoff bytes of rawLead and potentially pad to ebsCutoff with 0's)
-      final BigInteger lead = trim.shiftRight(8 * (32 - ebsCutoff));
+      final BigInteger lead = trim.shiftRight(8 * (WORD_SIZE - ebsCutoff));
 
       // lead_log (same as EYP)
       final int leadLog = lead.signum() == 0 ? 0 : log2(lead, RoundingMode.FLOOR);

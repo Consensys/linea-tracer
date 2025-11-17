@@ -18,11 +18,23 @@ jobs:
     with:
       zkevm_fork: PRAGUE
 
+  weekly-unit-tests-osaka:
+    uses: ./.github/workflows/reusable-weekly-tests.yml
+    secrets: inherit
+    with:
+      zkevm_fork: OSAKA
+
   weekly-prc-call-tests-prague:
     uses: ./.github/workflows/reusable-weekly-prc-tests.yml
     secrets: inherit
     with:
       zkevm_fork: PRAGUE
+
+  weekly-prc-call-tests-osaka:
+    uses: ./.github/workflows/reusable-weekly-prc-tests.yml
+    secrets: inherit
+    with:
+      zkevm_fork: OSAKA
 
   weekly-replay-tests:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
@@ -44,7 +56,7 @@ jobs:
 
       - name: Upload test report
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: weekly-replay-tests-report
           path: arithmetization/build/reports/tests/**/*
@@ -58,4 +70,3 @@ jobs:
           payload: |
             name: "WeeklyReplay"
             status: "${{ job.status }}"
-      

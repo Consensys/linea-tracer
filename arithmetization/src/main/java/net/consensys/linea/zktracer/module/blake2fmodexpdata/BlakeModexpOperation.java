@@ -91,21 +91,21 @@ public abstract class BlakeModexpOperation extends ModuleOperation {
   void trace(Trace.Blake2fmodexpdata trace, final int stamp) {
 
     if (modexpMetaData.isPresent()) {
-      traceBase(trace, stamp);
-      traceExponent(trace, stamp);
-      traceModulus(trace, stamp);
+      traceModexpBase(trace, stamp);
+      traceModexpExponent(trace, stamp);
+      traceModexpModulus(trace, stamp);
       traceModexpResult(trace, stamp);
       return;
     }
 
     if (blake2fComponents.isPresent()) {
-      traceData(trace, stamp);
-      traceParameter(trace, stamp);
+      traceBlakeData(trace, stamp);
+      traceBlakeParameter(trace, stamp);
       traceBlakeResult(trace, stamp);
     }
   }
 
-  private void traceData(Trace.Blake2fmodexpdata trace, int stamp) {
+  private void traceBlakeData(Trace.Blake2fmodexpdata trace, int stamp) {
     final Bytes input = blake2fComponents.get().getHashInput();
     for (int index = 0; index <= INDEX_MAX_BLAKE_DATA; index++) {
       commonTrace(trace, stamp, index, input, INDEX_MAX_BLAKE_DATA);
@@ -113,7 +113,7 @@ public abstract class BlakeModexpOperation extends ModuleOperation {
     }
   }
 
-  private void traceParameter(Trace.Blake2fmodexpdata trace, int stamp) {
+  private void traceBlakeParameter(Trace.Blake2fmodexpdata trace, int stamp) {
     // r
     commonTrace(
         trace, stamp, 0, leftPadTo(blake2fComponents.get().r(), LLARGE), INDEX_MAX_BLAKE_PARAMS);
@@ -137,7 +137,7 @@ public abstract class BlakeModexpOperation extends ModuleOperation {
     }
   }
 
-  private void traceBase(Trace.Blake2fmodexpdata trace, final int stamp) {
+  private void traceModexpBase(Trace.Blake2fmodexpdata trace, final int stamp) {
     final Bytes input =
         leftPadTo(modexpMetaData.get().base(), modexpMetaData.get().getMaxInputSize());
     for (int index = 0; index <= getIndexMaxModexpBase(); index++) {
@@ -146,7 +146,7 @@ public abstract class BlakeModexpOperation extends ModuleOperation {
     }
   }
 
-  private void traceExponent(Trace.Blake2fmodexpdata trace, final int stamp) {
+  private void traceModexpExponent(Trace.Blake2fmodexpdata trace, final int stamp) {
     final Bytes input =
         leftPadTo(modexpMetaData.get().exp(), modexpMetaData.get().getMaxInputSize());
     for (int index = 0; index <= getIndexMaxModexpExponent(); index++) {
@@ -158,7 +158,7 @@ public abstract class BlakeModexpOperation extends ModuleOperation {
     }
   }
 
-  private void traceModulus(Trace.Blake2fmodexpdata trace, final int stamp) {
+  private void traceModexpModulus(Trace.Blake2fmodexpdata trace, final int stamp) {
     final Bytes input =
         leftPadTo(modexpMetaData.get().mod(), modexpMetaData.get().getMaxInputSize());
     for (int index = 0; index <= getIndexMaxModexpModulus(); index++) {

@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase.*;
 
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.OsakaBlakeModexpOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.pricingOobCall.OsakaModexpPricingOobCall;
@@ -52,7 +52,7 @@ public class OsakaModexpSubsection extends LondonModexpSubsection {
 
   @Override
   protected BlakeModexpOperation getForkAppropriateBlakeModexpOperation() {
-    return new LondonBlakeModexpOperation(
+    return new OsakaBlakeModexpOperation(
         getForkAppropriateModexpMetadata(), exoModuleOperationId());
   }
 

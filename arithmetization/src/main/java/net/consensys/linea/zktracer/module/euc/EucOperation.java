@@ -15,14 +15,11 @@
 
 package net.consensys.linea.zktracer.module.euc;
 
-import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
@@ -32,19 +29,16 @@ public class EucOperation extends ModuleOperation {
   @Getter @EqualsAndHashCode.Include private final Bytes divisor;
   @Getter private final Bytes remainder;
   @Getter private final Bytes quotient;
-  private int ctMax;
 
   public EucOperation(
       final Bytes dividend, final Bytes divisor, final Bytes quotient, final Bytes remainder) {
     if (divisor.isZero()) {
       throw new IllegalArgumentException("EUC module doesn't accept 0 for divisor");
     }
-    final Bytes divisorTrim = divisor.trimLeadingZeros();
-    final Bytes quotientTrim = quotient.trimLeadingZeros();
 
-    this.dividend = dividend;
-    this.divisor = divisorTrim;
-    this.quotient = quotientTrim;
+    this.dividend = dividend.trimLeadingZeros();
+    this.divisor = divisor.trimLeadingZeros();
+    this.quotient = quotient.trimLeadingZeros();
     this.remainder = remainder;
   }
 
@@ -55,36 +49,19 @@ public class EucOperation extends ModuleOperation {
   }
 
   void trace(Trace.Euc trace) {
-    final Bytes divisor = leftPadTo(this.divisor, this.ctMax + 1);
-    final Bytes quotient = leftPadTo(this.quotient, this.ctMax + 1);
-    final Bytes remainder = leftPadTo(this.remainder, this.ctMax + 1);
     final Bytes ceil = this.ceiling();
 
-    for (int ct = 0; ct <= ctMax; ct++) {
-      trace
-          .iomf(true)
-          .ct((short) ct)
-          .ctMax((short) ctMax)
-          .done(ct == ctMax)
-          .dividend(dividend)
-          .divisor(divisor.slice(0, ct + 1))
-          .quotient(quotient.slice(0, ct + 1))
-          .remainder(remainder.slice(0, ct + 1))
-          .ceil(ceil)
-          .divisorByte(UnsignedByte.of(divisor.get(ct)))
-          .quotientByte(UnsignedByte.of(quotient.get(ct)))
-          .remainderByte(UnsignedByte.of(remainder.get(ct)))
-          .validateRow();
-    }
+    trace
+        .dividend(dividend)
+        .divisor(divisor)
+        .quotient(quotient)
+        .remainder(remainder)
+        .ceil(ceil)
+        .validateRow();
   }
 
   @Override
   protected int computeLineCount() {
-    ctMax = computeCtMax();
-    return ctMax + 1;
-  }
-
-  private int computeCtMax() {
-    return Math.max(quotient.size(), divisor.size()) - 1;
+    return 1;
   }
 }

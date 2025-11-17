@@ -51,6 +51,14 @@ public final class BytecodeRunner {
   private final Bytes byteCode;
   @Getter ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2;
 
+  public enum AddressCollisionCase {
+    NO_IMPOSED_COLLISION,
+    SENDER_RECIPIENT_COLLISION,
+    SENDER_COINBASE_COLLISION,
+    RECIPIENT_COINBASE_COLLISION,
+    TRIPLE_COLLISION
+  }
+
   /**
    * @param byteCode the byte code to test
    */
@@ -134,10 +142,21 @@ public final class BytecodeRunner {
     this.run(Wei.fromEth(1), MAX_GAS_LIMIT, List.of(), payload, accessList, chainConfig, testInfo);
   }
 
-  public void runWithImposedSenderRecipientAddressCollision(
-      Bytes payload, List<AccessListEntry> accessList, ChainConfig chainConfig, TestInfo testInfo) {
-    this.runWithImposedSenderRecipientAddressCollision(
-        Wei.fromEth(1), MAX_GAS_LIMIT, List.of(), payload, accessList, chainConfig, testInfo);
+  public void runWithAddressCollision(
+      Bytes payload,
+      List<AccessListEntry> accessList,
+      AddressCollisionCase addressCollisionCase,
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
+    this.runWithAddressCollision(
+        Wei.fromEth(1),
+        MAX_GAS_LIMIT,
+        List.of(),
+        payload,
+        accessList,
+        addressCollisionCase,
+        chainConfig,
+        testInfo);
   }
 
   public void run(
@@ -166,18 +185,19 @@ public final class BytecodeRunner {
         additionalAccounts,
         payload,
         accessList,
+        AddressCollisionCase.NO_IMPOSED_COLLISION,
         chainConfig,
-        testInfo,
-        false);
+        testInfo);
     toyExecutionEnvironmentV2.run();
   }
 
-  public void runWithImposedSenderRecipientAddressCollision(
+  public void runWithAddressCollision(
       Wei senderBalance,
       Long gasLimit,
       List<ToyAccount> additionalAccounts,
       Bytes payload,
       List<AccessListEntry> accessList,
+      AddressCollisionCase addressCollisionCase,
       ChainConfig chainConfig,
       TestInfo testInfo) {
     buildToyExecutionEnvironmentV2(
@@ -186,9 +206,9 @@ public final class BytecodeRunner {
         additionalAccounts,
         payload,
         accessList,
+        addressCollisionCase,
         chainConfig,
-        testInfo,
-        true);
+        testInfo);
     toyExecutionEnvironmentV2.run();
   }
 
@@ -198,9 +218,9 @@ public final class BytecodeRunner {
       List<ToyAccount> additionalAccounts,
       Bytes payload,
       List<AccessListEntry> accessList,
+      AddressCollisionCase addressCollisionCase,
       ChainConfig chainConfig,
-      TestInfo testInfo,
-      boolean imposeSenderRecipientCollision) {
+      TestInfo testInfo) {
     checkArgument(byteCode != null, "byteCode cannot be empty");
     final long transactionValue = 272; // 256 + 16, easier for debugging
     final long gasPrice = 8;
@@ -208,25 +228,34 @@ public final class BytecodeRunner {
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
         Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+    final Address recipientAddress =
+        Address.fromHexString("0x1111111111111111111111111111111111111111");
+
+    final int senderNonce = 5;
 
     final ToyAccount senderAccount =
-        ToyAccount.builder().balance(senderBalance).nonce(5).address(senderAddress).build();
+        ToyAccount.builder()
+            .balance(senderBalance)
+            .nonce(senderNonce)
+            .address(senderAddress)
+            .build();
 
     final Long selectedGasLimit = Optional.of(gasLimit).orElse(MAX_GAS_LIMIT);
 
     final ToyAccount receiverAccount =
-        imposeSenderRecipientCollision
-            ? ToyAccount.builder()
-                .balance(senderBalance.subtract(transactionValue + gasPrice * selectedGasLimit))
-                .nonce(5 + 1)
-                .address(senderAddress)
-                .build()
-            : ToyAccount.builder()
-                .balance(Wei.fromEth(1))
-                .nonce(6)
-                .address(Address.fromHexString("0x1111111111111111111111111111111111111111"))
-                .code(byteCode)
-                .build();
+        switch (addressCollisionCase) {
+          case SENDER_RECIPIENT_COLLISION, TRIPLE_COLLISION -> ToyAccount.builder()
+              .balance(senderBalance.subtract(transactionValue + gasPrice * selectedGasLimit))
+              .nonce(senderNonce + 1)
+              .address(senderAddress)
+              .build();
+          default -> ToyAccount.builder()
+              .balance(Wei.fromEth(1))
+              .nonce(23)
+              .address(recipientAddress)
+              .code(byteCode)
+              .build();
+        };
 
     final ToyTransaction.ToyTransactionBuilder txBuilder =
         ToyTransaction.builder()
@@ -247,19 +276,28 @@ public final class BytecodeRunner {
 
     final List<ToyAccount> accounts = new ArrayList<>();
     accounts.add(senderAccount);
-    if (!imposeSenderRecipientCollision) {
+    if (addressCollisionCase == AddressCollisionCase.NO_IMPOSED_COLLISION
+        || addressCollisionCase == AddressCollisionCase.RECIPIENT_COINBASE_COLLISION) {
       accounts.add(receiverAccount);
     }
     accounts.addAll(additionalAccounts);
 
-    toyExecutionEnvironmentV2 =
+    ToyExecutionEnvironmentV2.ToyExecutionEnvironmentV2Builder toyExecutionEnvironmentV2Builder =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
             .transactionProcessingResultValidator(
                 TransactionProcessingResultValidator.EMPTY_VALIDATOR)
             .accounts(accounts)
             .zkTracerValidator(zkTracerValidator)
-            .transaction(tx)
-            .build();
+            .transaction(tx);
+
+    if (addressCollisionCase == AddressCollisionCase.SENDER_COINBASE_COLLISION
+        || addressCollisionCase == AddressCollisionCase.TRIPLE_COLLISION) {
+      toyExecutionEnvironmentV2Builder.coinbase(senderAddress);
+    } else if (addressCollisionCase == AddressCollisionCase.RECIPIENT_COINBASE_COLLISION) {
+      toyExecutionEnvironmentV2Builder.coinbase(recipientAddress);
+    }
+
+    toyExecutionEnvironmentV2 = toyExecutionEnvironmentV2Builder.build();
   }
 
   public void runInitCode(ChainConfig chainConfig, TestInfo testInfo) {

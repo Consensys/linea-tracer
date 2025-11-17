@@ -91,8 +91,8 @@ public class ModexpZero implements MmuInstruction {
 
   private final int getNumberOfMicroInstructionRows() {
 
-      return forkPredatesOsaka(fork)
-              ? NB_MICRO_ROWS_TOT_MODEXP_ZERO
-              : 2 * NB_MICRO_ROWS_TOT_MODEXP_ZERO;
+    return forkPredatesOsaka(fork)
+        ? NB_MICRO_ROWS_TOT_MODEXP_ZERO
+        : 2 * NB_MICRO_ROWS_TOT_MODEXP_ZERO;
   }
 }

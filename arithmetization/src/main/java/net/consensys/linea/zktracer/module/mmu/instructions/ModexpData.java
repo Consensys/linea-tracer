@@ -29,13 +29,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.consensys.linea.zktracer.Fork;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexp;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexp;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.OsakaBlakeModexpOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.euc.EucOperation;
-import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.LondonModexpMetadata;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;
@@ -81,15 +78,15 @@ public class ModexpData implements MmuInstruction {
   }
 
   private final int getForkAppropriateModexpInputSize() {
-      return forkPredatesOsaka(fork)
-              ? LondonBlakeModexpOperation.modexpComponentByteSize()
-              : OsakaBlakeModexpOperation.modexpComponentByteSize();
+    return forkPredatesOsaka(fork)
+        ? LondonBlakeModexpOperation.modexpComponentByteSize()
+        : OsakaBlakeModexpOperation.modexpComponentByteSize();
   }
 
   private final int getForkAppropriateTotalNumberOfMicroRows() {
-      return forkPredatesOsaka(fork)
-              ? NB_MICRO_ROWS_TOT_MODEXP_DATA
-              : 2 * NB_MICRO_ROWS_TOT_MODEXP_DATA;
+    return forkPredatesOsaka(fork)
+        ? NB_MICRO_ROWS_TOT_MODEXP_DATA
+        : 2 * NB_MICRO_ROWS_TOT_MODEXP_DATA;
   }
 
   @Override
@@ -163,7 +160,9 @@ public class ModexpData implements MmuInstruction {
     final EucOperation eucOp = euc.callEUC(longToBytes(numberRightPaddingBytes), Bytes.of(LLARGE));
     initialTotalRightZeroes = eucOp.quotient().toInt();
     initialTotalNonTrivial =
-        getForkAppropriateTotalNumberOfMicroRows() - initialTotalLeftZeroes - initialTotalRightZeroes;
+        getForkAppropriateTotalNumberOfMicroRows()
+            - initialTotalLeftZeroes
+            - initialTotalRightZeroes;
     rightPaddingRemainder = eucOp.remainder().toInt();
     eucCallRecords.add(
         MmuEucCallRecord.builder()

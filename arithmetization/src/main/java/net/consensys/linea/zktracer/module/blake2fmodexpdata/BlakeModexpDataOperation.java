@@ -26,11 +26,11 @@ import static net.consensys.linea.zktracer.Trace.PHASE_MODEXP_BASE;
 import static net.consensys.linea.zktracer.Trace.PHASE_MODEXP_EXPONENT;
 import static net.consensys.linea.zktracer.Trace.PHASE_MODEXP_MODULUS;
 import static net.consensys.linea.zktracer.Trace.PHASE_MODEXP_RESULT;
-import static net.consensys.linea.zktracer.TraceOsaka.Blake2fmodexpdata.INDEX_MAX_MODEXP;
-import static net.consensys.linea.zktracer.TraceOsaka.Blake2fmodexpdata.INDEX_MAX_MODEXP_BASE;
-import static net.consensys.linea.zktracer.TraceOsaka.Blake2fmodexpdata.INDEX_MAX_MODEXP_EXPONENT;
-import static net.consensys.linea.zktracer.TraceOsaka.Blake2fmodexpdata.INDEX_MAX_MODEXP_MODULUS;
-import static net.consensys.linea.zktracer.TraceOsaka.Blake2fmodexpdata.INDEX_MAX_MODEXP_RESULT;
+import static net.consensys.linea.zktracer.TraceLondon.Blake2fmodexpdata.INDEX_MAX_MODEXP;
+import static net.consensys.linea.zktracer.TraceLondon.Blake2fmodexpdata.INDEX_MAX_MODEXP_BASE;
+import static net.consensys.linea.zktracer.TraceLondon.Blake2fmodexpdata.INDEX_MAX_MODEXP_EXPONENT;
+import static net.consensys.linea.zktracer.TraceLondon.Blake2fmodexpdata.INDEX_MAX_MODEXP_MODULUS;
+import static net.consensys.linea.zktracer.TraceLondon.Blake2fmodexpdata.INDEX_MAX_MODEXP_RESULT;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.util.Optional;

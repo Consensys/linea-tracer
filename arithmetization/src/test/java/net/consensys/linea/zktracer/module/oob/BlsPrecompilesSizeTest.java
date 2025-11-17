@@ -132,7 +132,9 @@ public class BlsPrecompilesSizeTest extends TracerTestBase {
       arguments.add(Arguments.of(precompileFlag, 0));
       arguments.add(Arguments.of(precompileFlag, 1));
       arguments.add(Arguments.of(precompileFlag, 256 * unit));
-      for (int numberOfUnits = 1; numberOfUnits <= 128; numberOfUnits++) {
+      // We test call data sizes (130) that go slightly beyond the max discount of the BLS reference
+      // table (128)
+      for (int numberOfUnits = 1; numberOfUnits <= 130; numberOfUnits++) {
         for (int cornerCase = -1; cornerCase <= 1; cornerCase++) {
           arguments.add(Arguments.of(precompileFlag, numberOfUnits * unit + cornerCase));
         }

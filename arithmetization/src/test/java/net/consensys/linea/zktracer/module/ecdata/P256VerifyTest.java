@@ -39,6 +39,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,6 +52,18 @@ public class P256VerifyTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("p256VerifySource")
   void testP256Verify(String inputAsAsString, String expectedAsString, TestInfo testInfo) {
+    testP256VerifyBody(inputAsAsString, expectedAsString, testInfo);
+  }
+
+  @Tag("nightly")
+  @ParameterizedTest
+  @MethodSource("p256VerifySourceNightly")
+  void testP256VerifyNightly(String inputAsAsString, String expectedAsString, TestInfo testInfo) {
+    testP256VerifyBody(inputAsAsString, expectedAsString, testInfo);
+  }
+
+  private void testP256VerifyBody(
+      String inputAsAsString, String expectedAsString, TestInfo testInfo) {
     final Bytes input = Bytes.fromHexString(inputAsAsString);
 
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
@@ -99,7 +112,6 @@ public class P256VerifyTest extends TracerTestBase {
     return arguments.stream().limit(arguments.size() / 40); // Execute 2.5 % of the tests
   }
 
-  // TODO: add this later
   private static Stream<Arguments> p256VerifySourceNightly() throws IOException {
     // Read json
     InputStream inputStream =

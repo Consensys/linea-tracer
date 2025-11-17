@@ -123,10 +123,10 @@ public abstract class ModexpXbsOobCall extends OobCall {
         .data2(xbs().lo())
         .data3(ybsLo())
         .data4(booleanToBytes(computeMax()))
-        .data5(booleanToBytes(xbsIsWithinBounds()))
-        .data6(booleanToBytes(xbsIsOutOfBounds()))
         .data7(Bytes.ofUnsignedShort(maxXbsYbs()))
-        .data8(booleanToBytes(computeMax() && xbsNormalizedIsNonZero()));
+        .data8(booleanToBytes(xbsNormalizedIsNonZero()))
+        .data9(booleanToBytes(xbsIsWithinBounds()))
+        .data10(booleanToBytes(xbsIsOutOfBounds()));
   }
 
   @Override
@@ -138,9 +138,9 @@ public abstract class ModexpXbsOobCall extends OobCall {
         .pMiscOobData2(xbs().lo())
         .pMiscOobData3(ybsLo())
         .pMiscOobData4(booleanToBytes(computeMax()))
-        .pMiscOobData5(booleanToBytes(xbsIsWithinBounds()))
-        .pMiscOobData6(booleanToBytes(xbsIsOutOfBounds()))
         .pMiscOobData7(Bytes.ofUnsignedShort(maxXbsYbs()))
-        .pMiscOobData8(booleanToBytes(computeMax() && xbsNormalizedIsNonZero()));
+        .pMiscOobData8(booleanToBytes(xbsNormalizedIsNonZero()))
+        .pMiscOobData9(booleanToBytes(xbsIsWithinBounds()))
+        .pMiscOobData10(booleanToBytes(xbsIsOutOfBounds()));
   }
 }

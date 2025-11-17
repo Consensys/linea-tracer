@@ -137,7 +137,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Slf4j
 public class ZkCounter implements LineCountingTracer {
 
-  public static final Fork FORK_TO_USE_FOR_ZK_COUNTER = PRAGUE;
+  public static final Fork FORK_TO_USE_FOR_ZK_COUNTER = OSAKA;
 
   private final OpCodes opCodes = OpCodes.load(FORK_TO_USE_FOR_ZK_COUNTER);
   private static final Trace trace = getTraceFromFork(FORK_TO_USE_FOR_ZK_COUNTER);

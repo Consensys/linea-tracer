@@ -131,9 +131,9 @@ public class ModexpLeadOobCall extends OobCall {
     return trace
         .isModexpLead(true)
         .oobInst(OOB_INST_MODEXP_LEAD)
-        .data1(metadata.bbs().trimLeadingZeros())
+        .data1(metadata.normalizedBbs())
         .data2(cds.trimLeadingZeros())
-        .data3(metadata.ebs().trimLeadingZeros())
+        .data3(metadata.normalizedEbs())
         .data4(booleanToBytes(loadLead))
         .data6(Bytes.ofUnsignedInt(cdsCutoff))
         .data7(Bytes.ofUnsignedInt(ebsCutoff))
@@ -145,9 +145,9 @@ public class ModexpLeadOobCall extends OobCall {
     return trace
         .pMiscOobFlag(true)
         .pMiscOobInst(OOB_INST_MODEXP_LEAD)
-        .pMiscOobData1(metadata.bbs().trimLeadingZeros())
+        .pMiscOobData1(metadata.normalizedBbs())
         .pMiscOobData2(cds.trimLeadingZeros())
-        .pMiscOobData3(metadata.ebs().trimLeadingZeros())
+        .pMiscOobData3(metadata.normalizedEbs())
         .pMiscOobData4(booleanToBytes(loadLead))
         .pMiscOobData6(Bytes.ofUnsignedInt(cdsCutoff))
         .pMiscOobData7(Bytes.ofUnsignedInt(ebsCutoff))

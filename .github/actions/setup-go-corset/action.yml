@@ -12,4 +12,4 @@ runs:
 
     - name: Install Go Corset
       shell: bash
-      run: go install github.com/consensys/go-corset/cmd/go-corset@0d25749dc5e7ef6e0a75d551618248d4bad65ac6 # v1.1.27
+      run: go install github.com/consensys/go-corset/cmd/go-corset@a3eafbd3657065e87a9040c753520da93d2ec929 #1330-feat-cherry-pick-defcall-into-v11

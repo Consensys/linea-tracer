@@ -52,8 +52,8 @@ public class OsakaModexpMetadata extends LondonModexpMetadata {
     return tracedIsWithinBounds(modexpXbsCase) ? xbs(modexpXbsCase).toBytes() : Bytes.EMPTY;
   }
 
-    @Override
-    public int getForkAppropriateLeadLogByteMultiplier() {
-        return 16;
-    }
+  @Override
+  public int getForkAppropriateLeadLogByteMultiplier() {
+    return 16;
+  }
 }

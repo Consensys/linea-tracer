@@ -31,12 +31,12 @@ public class LondonModexpMetadata extends ModexpMetadata {
         || ebs().toUnsignedBigInteger().compareTo(getMaxInputSizeBigInteger()) > 0;
   }
 
-    @Override
-    public int getForkAppropriateLeadLogByteMultiplier() {
-        return 8;
-    }
+  @Override
+  public int getForkAppropriateLeadLogByteMultiplier() {
+    return 8;
+  }
 
-    @Override
+  @Override
   public int getMaxInputSize() {
     return 512;
   }

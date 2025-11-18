@@ -33,7 +33,6 @@ import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
 import net.consensys.linea.zktracer.module.ModuleName;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -126,18 +125,16 @@ public class ModexpLimitsTests extends TracerTestBase {
             && ebs <= legalModexpComponentByteSize
             && mbs <= legalModexpComponentByteSize);
     long roughOsakaModexpCost;
-      {
-          final long maxMbsBbs = Math.max(mbs, bbs);
-          final long maxOver8 = Math.ceilDiv(maxMbsBbs, 8);
-          final long multiplier = forkPredatesOsaka(fork) ? 8 : 16;
-          final long leadLog = Math.max(1, multiplier * (ebs - 32));
-          roughOsakaModexpCost = 2 * maxOver8 * maxOver8 * leadLog;
-      }
+    {
+      final long maxMbsBbs = Math.max(mbs, bbs);
+      final long maxOver8 = Math.ceilDiv(maxMbsBbs, 8);
+      final long multiplier = forkPredatesOsaka(fork) ? 8 : 16;
+      final long leadLog = Math.max(1, multiplier * (ebs - 32));
+      roughOsakaModexpCost = 2 * maxOver8 * maxOver8 * leadLog;
+    }
     final boolean sufficientGasForOsaka = gasArgument >= roughOsakaModexpCost;
-      final boolean successExpected =
-              (forkPredatesOsaka(fork))
-              ? validByteSizes
-              : validByteSizes && sufficientGasForOsaka;
+    final boolean successExpected =
+        (forkPredatesOsaka(fork)) ? validByteSizes : validByteSizes && sufficientGasForOsaka;
     final int expectedCount = successExpected ? 1 : numberOfEffectiveModexpCallsForInvalidInputs;
     assertEquals(
         expectedCount,

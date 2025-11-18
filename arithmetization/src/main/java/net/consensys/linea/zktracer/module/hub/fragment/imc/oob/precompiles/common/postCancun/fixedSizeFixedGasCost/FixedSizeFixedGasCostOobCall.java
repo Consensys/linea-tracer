@@ -28,8 +28,8 @@ import net.consensys.linea.zktracer.module.oob.OobExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 
-public abstract class BlsFixedSizeFixedGasCostOobCall extends CommonPrecompileOobCall {
-  protected BlsFixedSizeFixedGasCostOobCall(BigInteger calleeGas, int oobInst) {
+public abstract class FixedSizeFixedGasCostOobCall extends CommonPrecompileOobCall {
+  protected FixedSizeFixedGasCostOobCall(BigInteger calleeGas, int oobInst) {
     super(calleeGas, oobInst);
   }
 

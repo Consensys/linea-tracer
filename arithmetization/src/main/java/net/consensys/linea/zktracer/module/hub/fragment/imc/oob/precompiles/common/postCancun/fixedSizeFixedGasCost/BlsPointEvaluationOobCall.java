@@ -24,7 +24,7 @@ import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
 
-public class BlsPointEvaluationOobCall extends BlsFixedSizeFixedGasCostOobCall {
+public class BlsPointEvaluationOobCall extends FixedSizeFixedGasCostOobCall {
   public BlsPointEvaluationOobCall(BigInteger calleeGas) {
     super(calleeGas, OOB_INST_POINT_EVALUATION);
   }

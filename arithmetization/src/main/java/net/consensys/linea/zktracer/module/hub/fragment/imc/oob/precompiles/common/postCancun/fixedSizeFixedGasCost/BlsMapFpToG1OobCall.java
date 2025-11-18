@@ -24,7 +24,7 @@ import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
 
-public class BlsMapFpToG1OobCall extends BlsFixedSizeFixedGasCostOobCall {
+public class BlsMapFpToG1OobCall extends FixedSizeFixedGasCostOobCall {
   public BlsMapFpToG1OobCall(BigInteger calleeGas) {
     super(calleeGas, OOB_INST_BLS_MAP_FP_TO_G1);
   }

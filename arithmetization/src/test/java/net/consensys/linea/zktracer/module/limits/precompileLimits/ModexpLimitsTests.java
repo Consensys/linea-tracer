@@ -129,8 +129,8 @@ public class ModexpLimitsTests extends TracerTestBase {
       final long maxMbsBbs = Math.max(mbs, bbs);
       final long maxOver8 = Math.ceilDiv(maxMbsBbs, 8);
       final long multiplier = forkPredatesOsaka(fork) ? 8 : 16;
-      final long leadLog = Math.max(1, multiplier * (ebs - 32));
-      roughOsakaModexpCost = 2 * maxOver8 * maxOver8 * leadLog;
+      final long leadLogCost = Math.max(1, multiplier * (ebs - 32));
+      roughOsakaModexpCost = 2 * maxOver8 * maxOver8 * leadLogCost;
     }
     final boolean sufficientGasForOsaka = gasArgument >= roughOsakaModexpCost;
     final boolean successExpected =

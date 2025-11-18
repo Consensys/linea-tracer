@@ -44,7 +44,7 @@ public class ZkCounterTest extends TracerTestBase {
 
   @Test
   void checkedAndUncheckedAreExclusive() {
-    final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration);
+    final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration, fork);
     final List<Module> allModules = counter.getModulesToCount();
     final List<Module> checked = counter.checkedModules();
     final List<Module> unchecked = counter.uncheckedModules();

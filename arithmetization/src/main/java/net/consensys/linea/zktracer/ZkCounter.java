@@ -137,49 +137,43 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Slf4j
 public class ZkCounter implements LineCountingTracer {
 
-  public static final Fork FORK_TO_USE_FOR_ZK_COUNTER = OSAKA;
+  public final Fork fork;
 
-  private final OpCodes opCodes = OpCodes.load(FORK_TO_USE_FOR_ZK_COUNTER);
-  private static final Trace trace = getTraceFromFork(FORK_TO_USE_FOR_ZK_COUNTER);
+  private final OpCodes opCodes;
+  private final Trace trace;
 
   // traced modules
   final Add add = new Add();
   final Bin bin = new Bin();
-  final CountingOnlyModule blakemodexp =
-      new CountingOnlyModule(BLAKE_MODEXP_DATA, trace.blake2fmodexpdata().spillage());
-  final CountingOnlyModule blockData =
-      new CountingOnlyModule(BLOCK_DATA, trace.blockdata().spillage());
-  final CountingOnlyModule blockHash =
-      new CountingOnlyModule(BLOCK_HASH, trace.blockhash().spillage());
+  final CountingOnlyModule blakemodexp;
+  final CountingOnlyModule blockData;
+  final CountingOnlyModule blockHash;
   final BlsData blsdata;
   final EcData ecdata;
   final Euc euc = new Euc();
   final Exp exp = new Exp();
   final Ext ext = new Ext();
-  final CountingOnlyModule gas = new CountingOnlyModule(GAS, trace.gas().spillage());
-  final CountingOnlyModule hub = new CountingOnlyModule(HUB, trace.hub().spillage());
-  final CountingOnlyModule logData = new CountingOnlyModule(LOG_DATA, trace.logdata().spillage());
-  final CountingOnlyModule logInfo = new CountingOnlyModule(LOG_INFO, trace.loginfo().spillage());
-  final CountingOnlyModule mmio = new CountingOnlyModule(MMIO, trace.mmio().spillage());
-  final CountingOnlyModule mmu = new CountingOnlyModule(MMU, trace.mmu().spillage());
+  final CountingOnlyModule gas;
+  final CountingOnlyModule hub;
+  final CountingOnlyModule logData;
+  final CountingOnlyModule logInfo;
+  final CountingOnlyModule mmio;
+  final CountingOnlyModule mmu;
   final Mod mod = new Mod();
   final Mul mul = new Mul();
-  final CountingOnlyModule mxp = new CountingOnlyModule(MXP, trace.mxp().spillage());
-  final CountingOnlyModule oob = new CountingOnlyModule(OOB, trace.oob().spillage());
-  final CountingOnlyModule rlpAddr = new CountingOnlyModule(RLP_ADDR, trace.rlpaddr().spillage());
-  final CountingOnlyModule rlpTxn = new CountingOnlyModule(RLP_TXN, trace.rlptxn().spillage());
-  final CountingOnlyModule rlpTxnRcpt =
-      new CountingOnlyModule(RLP_TXN_RCPT, trace.rlptxrcpt().spillage());
-  final CountingOnlyModule rlpUtils =
-      new CountingOnlyModule(RLP_UTILS, trace.rlputils().spillage());
-  final CountingOnlyModule rom = new CountingOnlyModule(ROM, trace.rom().spillage());
-  final CountingOnlyModule romlex = new CountingOnlyModule(ROM_LEX, trace.romlex().spillage());
-  final CountingOnlyModule shakiradata =
-      new CountingOnlyModule(SHAKIRA_DATA, trace.shakiradata().spillage());
+  final CountingOnlyModule mxp;
+  final CountingOnlyModule oob;
+  final CountingOnlyModule rlpAddr;
+  final CountingOnlyModule rlpTxn;
+  final CountingOnlyModule rlpTxnRcpt;
+  final CountingOnlyModule rlpUtils;
+  final CountingOnlyModule rom;
+  final CountingOnlyModule romlex;
+  final CountingOnlyModule shakiradata;
   final Shf shf = new Shf();
   final IncrementingModule stp = new IncrementingModule(STP);
-  final CountingOnlyModule trm = new CountingOnlyModule(TRM, trace.trm().spillage());
-  final CountingOnlyModule txnData = new CountingOnlyModule(TXN_DATA, trace.txndata().spillage());
+  final CountingOnlyModule trm;
+  final CountingOnlyModule txnData;
   final Wcp wcp = new Wcp();
 
   // precompiles limits:
@@ -326,7 +320,30 @@ public class ZkCounter implements LineCountingTracer {
         l2l1Logs);
   }
 
-  public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration) {
+  public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration, Fork fork) {
+    this.fork = fork;
+    this.opCodes = OpCodes.load(fork);
+    this.trace = getTraceFromFork(fork);
+    this.blakemodexp = new CountingOnlyModule(BLAKE_MODEXP_DATA, trace.blake2fmodexpdata().spillage());
+    this.blockData = new CountingOnlyModule(BLOCK_DATA, trace.blockdata().spillage());
+    this.blockHash = new CountingOnlyModule(BLOCK_HASH, trace.blockhash().spillage());
+    this.gas = new CountingOnlyModule(GAS, trace.gas().spillage());
+    this.hub = new CountingOnlyModule(HUB, trace.hub().spillage());
+    this.logData = new CountingOnlyModule(LOG_DATA, trace.logdata().spillage());
+    this.logInfo = new CountingOnlyModule(LOG_INFO, trace.loginfo().spillage());
+    this.mmio = new CountingOnlyModule(MMIO, trace.mmio().spillage());
+    this.mmu = new CountingOnlyModule(MMU, trace.mmu().spillage());
+    this.mxp = new CountingOnlyModule(MXP, trace.mxp().spillage());
+    this.oob = new CountingOnlyModule(OOB, trace.oob().spillage());
+    this.rlpAddr = new CountingOnlyModule(RLP_ADDR, trace.rlpaddr().spillage());
+    this.rlpTxn = new CountingOnlyModule(RLP_TXN, trace.rlptxn().spillage());
+    this.rlpTxnRcpt = new CountingOnlyModule(RLP_TXN_RCPT, trace.rlptxrcpt().spillage());
+    this.rlpUtils = new CountingOnlyModule(RLP_UTILS, trace.rlputils().spillage());
+    this.rom = new CountingOnlyModule(ROM, trace.rom().spillage());
+    this.romlex = new CountingOnlyModule(ROM_LEX, trace.romlex().spillage());
+    this.shakiradata = new CountingOnlyModule(SHAKIRA_DATA, trace.shakiradata().spillage());
+    this.trm = new CountingOnlyModule(TRM, trace.trm().spillage());
+    this.txnData = new CountingOnlyModule(TXN_DATA, trace.txndata().spillage());
     keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
     ecdata =
         new EcData(
@@ -726,7 +743,7 @@ public class ZkCounter implements LineCountingTracer {
         hub.updateTally(NB_ROWS_HUB_PRC_MODEXP);
         final MemoryRange memoryRange = new MemoryRange(0, 0, callData.size(), callData);
         final ModexpMetadata modexpMetadata =
-            forkPredatesOsaka(FORK_TO_USE_FOR_ZK_COUNTER)
+            forkPredatesOsaka(fork)
                 ? new LondonModexpMetadata(memoryRange)
                 : new OsakaModexpMetadata(memoryRange);
         if (modexpMetadata.unprovableModexp()) {

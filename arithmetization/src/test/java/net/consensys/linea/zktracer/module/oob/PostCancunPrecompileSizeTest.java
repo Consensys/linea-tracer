@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___FP2
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___FP_TO_G1;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___G1_ADD;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___G2_ADD;
+import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G1_MSM;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G2_MSM;
@@ -31,6 +32,7 @@ import static net.consensys.linea.zktracer.module.hub.fragment.scenario.Precompi
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_MAP_FP2_TO_G2;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_MAP_FP_TO_G1;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_PAIRING_CHECK;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_P256_VERIFY;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_POINT_EVALUATION;
 
 import java.util.ArrayList;
@@ -48,7 +50,6 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -56,12 +57,12 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(UnitTestWatcher.class)
-public class BlsPrecompilesSizeTest extends TracerTestBase {
+public class PostCancunPrecompileSizeTest extends TracerTestBase {
 
-  @Tag("nightly")
+  // @Tag("nightly")
   @ParameterizedTest
-  @MethodSource("blsPrecompilesSizeTestSource")
-  void blsPrecompilesSizeTest(
+  @MethodSource("postCancunPrecompileSizeTestSource")
+  void postCancunPrecompileSizeTest(
       PrecompileScenarioFragment.PrecompileFlag precompileFlag, Integer size, TestInfo testInfo) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
@@ -71,7 +72,7 @@ public class BlsPrecompilesSizeTest extends TracerTestBase {
             .balance(Wei.of(0))
             .nonce(1)
             .address(codeOwnerAddress)
-            .code(Bytes.fromHexString("00".repeat(size)))
+            .code(Bytes.fromHexString("11".repeat(size)))
             .build();
 
     // First place the parameters in memory
@@ -97,7 +98,7 @@ public class BlsPrecompilesSizeTest extends TracerTestBase {
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
   }
 
-  private static Stream<Arguments> blsPrecompilesSizeTestSource() {
+  private static Stream<Arguments> postCancunPrecompileSizeTestSource() {
     final Map<PrecompileScenarioFragment.PrecompileFlag, Integer>
         FIXED_SIZE_PRECOMPILE_ADDRESS_TO_SIZE =
             Map.ofEntries(
@@ -105,7 +106,8 @@ public class BlsPrecompilesSizeTest extends TracerTestBase {
                 entry(PRC_BLS_G1_ADD, PRECOMPILE_CALL_DATA_SIZE___G1_ADD),
                 entry(PRC_BLS_G2_ADD, PRECOMPILE_CALL_DATA_SIZE___G2_ADD),
                 entry(PRC_BLS_MAP_FP_TO_G1, PRECOMPILE_CALL_DATA_SIZE___FP_TO_G1),
-                entry(PRC_BLS_MAP_FP2_TO_G2, PRECOMPILE_CALL_DATA_SIZE___FP2_TO_G2));
+                entry(PRC_BLS_MAP_FP2_TO_G2, PRECOMPILE_CALL_DATA_SIZE___FP2_TO_G2),
+                entry(PRC_P256_VERIFY, PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY));
 
     final Map<PrecompileScenarioFragment.PrecompileFlag, Integer>
         VARIABLE_SIZE_PRECOMPILE_ADDRESS_TO_UNIT =

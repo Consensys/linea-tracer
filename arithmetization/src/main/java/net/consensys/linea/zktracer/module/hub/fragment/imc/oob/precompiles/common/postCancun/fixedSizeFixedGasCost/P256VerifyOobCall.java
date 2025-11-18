@@ -23,18 +23,17 @@ import static net.consensys.linea.zktracer.TraceOsaka.Oob.CT_MAX_P256_VERIFY;
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.CommonPrecompileOobCall;
 
-public class P256VerifyOobCall extends BlsFixedSizeFixedGasCostOobCall {
+public class P256VerifyOobCall extends CommonPrecompileOobCall {
   public P256VerifyOobCall(BigInteger calleeGas) {
     super(calleeGas, OOB_INST_P256_VERIFY);
   }
 
-  @Override
   long precompileExpectedCds() {
     return PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY;
   }
 
-  @Override
   long precompileLongCost() {
     return GAS_CONST_P256_VERIFY;
   }

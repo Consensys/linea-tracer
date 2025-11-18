@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
+import static net.consensys.linea.testing.BytecodeRunner.MAX_GAS_LIMIT;
 import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.oob.OobOperation.computeExponentLog;
@@ -214,8 +215,9 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
         .push(gas) // gas
         .op(OpCode.CALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
+    final long forkAppropriateGasLimit = forkPredatesOsaka(fork) ? 61_000_000L : MAX_GAS_LIMIT;
     bytecodeRunner.run(
-        61_000_000L,
+        forkAppropriateGasLimit,
         precompileAddress == MODEXP ? additionalAccounts : List.of(),
         chainConfig,
         testInfo);

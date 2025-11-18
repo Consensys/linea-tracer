@@ -16,8 +16,7 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeSixtyFourthsPrecompiles;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
-import static net.consensys.linea.zktracer.Fork.isPostPrague;
+import static net.consensys.linea.zktracer.Fork.*;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLAKE2F;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_ADD;
@@ -65,6 +64,10 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.LondonModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.OsakaModexpMetadata;
+import net.consensys.linea.zktracer.types.MemoryRange;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -109,12 +112,17 @@ public class SixtyThreeSixtyFourthsPrecompileTests extends TracerTestBase {
   static final int rLeadingByte = 0x09;
   static final int r = rLeadingByte << 8;
 
+
   // MODEXP specific parameters
   static final int bbs = 2;
   static final int ebs = 6;
   static final int mbs = 128;
   static final Bytes modexpInput = generateModexpInput(bbs, mbs, ebs);
-  static final int exponentLog = computeExponentLog(modexpInput, 96 + bbs + ebs + mbs, bbs, ebs);
+  static final int multiplier =
+          (forkPredatesOsaka(fork))
+          ? 8
+                  : 16;
+  static final int exponentLog = computeExponentLog(modexpInput, multiplier, 96 + bbs + ebs + mbs, bbs, ebs);
   static final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
   // codeOwnerAccount owns the bytecode that will be given as input to MODEXP through EXTCODECOPY
   static final ToyAccount codeOwnerAccount =

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
+import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.oob.OobOperation.computeExponentLog;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.generateModexpInput;
@@ -155,7 +156,8 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
       callDataSize = 96 + bbs + ebs + mbs;
 
       final Bytes modexpInput = generateModexpInput(bbs, mbs, ebs);
-      exponentLog = computeExponentLog(modexpInput, callDataSize, bbs, ebs);
+      final int multiplier = (forkPredatesOsaka(fork)) ? 8 : 16;
+      exponentLog = computeExponentLog(modexpInput, multiplier, callDataSize, bbs, ebs);
       // codeOwnerAccount owns the bytecode that will be given as input to MODEXP through
       // EXTCODECOPY
       final ToyAccount codeOwnerAccount =

@@ -15,7 +15,9 @@
 
 package net.consensys.linea.zktracer.module.limits.precompileLimits;
 
+import static net.consensys.linea.testing.BytecodeRunner.MAX_GAS_LIMIT;
 import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
+import static net.consensys.linea.zktracer.module.ModuleName.PRECOMPILE_MODEXP_EFFECTIVE_CALLS;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.legalModexpComponentByteSize;
 import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +33,7 @@ import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
 import net.consensys.linea.zktracer.module.ModuleName;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -55,6 +58,8 @@ public class ModexpLimitsTests extends TracerTestBase {
         Address.extract(Hash.hash(senderKeyPair.getPublicKey().getEncodedBytes()));
     final ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.fromEth(123)).nonce(12).address(senderAddress).build();
+
+    final int gasArgument = 10_000_000;
 
     // receiver account: calls MODEXP
     final ToyAccount callPRC =
@@ -82,17 +87,21 @@ public class ModexpLimitsTests extends TracerTestBase {
                     .push(0) // offset
                     .push(0) // value
                     .push(Address.MODEXP) // address
-                    .push(10000000) // gas
+                    .push(gasArgument) // gas
                     .op(OpCode.CALL)
                     .compile())
             .build();
+
+    // Note: at the point in time when the call takes place memory is
+    // <bbs> <ebs> <mbs>
+    // and nothing beyond
 
     final Transaction tx =
         ToyTransaction.builder()
             .sender(senderAccount)
             .to(callPRC)
             .keyPair(senderKeyPair)
-            .gasLimit(16777216L)
+            .gasLimit(MAX_GAS_LIMIT)
             .value(Wei.of(10000000))
             .build();
 
@@ -108,20 +117,38 @@ public class ModexpLimitsTests extends TracerTestBase {
     final Map<String, Integer> lineCountMap = toyWorld.getZkCounter().getModulesLineCount();
 
     // check MODEXP limits:
-    final int legalModexpComponentByteSize = legalModexpComponentByteSize(chainConfig.fork);
+    final int legalModexpComponentByteSize = legalModexpComponentByteSize(fork);
     final int numberOfEffectiveModexpCallsForInvalidInputs =
-        forkPredatesOsaka(chainConfig.fork) ? Integer.MAX_VALUE : 0;
-    assertEquals(
+        forkPredatesOsaka(fork) ? Integer.MAX_VALUE : 0;
+    final int actualCount = lineCountMap.get(PRECOMPILE_MODEXP_EFFECTIVE_CALLS.toString());
+    final boolean validByteSizes =
         (bbs <= legalModexpComponentByteSize
-                && ebs <= legalModexpComponentByteSize
-                && mbs <= legalModexpComponentByteSize)
-            ? 1
-            : numberOfEffectiveModexpCallsForInvalidInputs,
-        lineCountMap.get(ModuleName.PRECOMPILE_MODEXP_EFFECTIVE_CALLS.toString()));
+            && ebs <= legalModexpComponentByteSize
+            && mbs <= legalModexpComponentByteSize);
+    long roughOsakaModexpCost;
+      {
+          final long maxMbsBbs = Math.max(mbs, bbs);
+          final long maxOver8 = Math.ceilDiv(maxMbsBbs, 8);
+          final long multiplier = forkPredatesOsaka(fork) ? 8 : 16;
+          final long leadLog = Math.max(1, multiplier * (ebs - 32));
+          roughOsakaModexpCost = 2 * maxOver8 * maxOver8 * leadLog;
+      }
+    final boolean sufficientGasForOsaka = gasArgument >= roughOsakaModexpCost;
+      final boolean successExpected =
+              (forkPredatesOsaka(fork))
+              ? validByteSizes
+              : validByteSizes && sufficientGasForOsaka;
+    final int expectedCount = successExpected ? 1 : numberOfEffectiveModexpCallsForInvalidInputs;
+    assertEquals(
+        expectedCount,
+        actualCount,
+        PRECOMPILE_MODEXP_EFFECTIVE_CALLS + " discrepancy, actual = " + actualCount);
+
     final int maxByteWidth = Math.max(Math.max(bbs, ebs), mbs);
     assertEquals(
         (maxByteWidth > 32 && maxByteWidth <= legalModexpComponentByteSize) ? 1 : 0,
-        lineCountMap.get(ModuleName.PRECOMPILE_LARGE_MODEXP_EFFECTIVE_CALLS.toString()));
+        lineCountMap.get(ModuleName.PRECOMPILE_LARGE_MODEXP_EFFECTIVE_CALLS.toString()),
+        ModuleName.PRECOMPILE_LARGE_MODEXP_EFFECTIVE_CALLS + " discrepancy");
   }
 
   private static Stream<Arguments> modexpInput() {
@@ -133,6 +160,10 @@ public class ModexpLimitsTests extends TracerTestBase {
         }
       }
     }
+
+    // arguments.clear();
+    // arguments.add(Arguments.of(256, 318, 513));
+
     return arguments.stream();
   }
 

@@ -324,7 +324,8 @@ public class ZkCounter implements LineCountingTracer {
     this.fork = fork;
     this.opCodes = OpCodes.load(fork);
     this.trace = getTraceFromFork(fork);
-    this.blakemodexp = new CountingOnlyModule(BLAKE_MODEXP_DATA, trace.blake2fmodexpdata().spillage());
+    this.blakemodexp =
+        new CountingOnlyModule(BLAKE_MODEXP_DATA, trace.blake2fmodexpdata().spillage());
     this.blockData = new CountingOnlyModule(BLOCK_DATA, trace.blockdata().spillage());
     this.blockHash = new CountingOnlyModule(BLOCK_HASH, trace.blockhash().spillage());
     this.gas = new CountingOnlyModule(GAS, trace.gas().spillage());

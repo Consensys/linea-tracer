@@ -7,9 +7,9 @@ runs:
     - name: Install Go
       uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
       with:
-        go-version: '1.23.5'
+        go-version: '1.24.6'
         cache-dependency-path: "**/*.sum"
 
     - name: Install Go Corset
       shell: bash
-      run: go install github.com/consensys/go-corset/cmd/go-corset@a3eafbd3657065e87a9040c753520da93d2ec929 #1330-feat-cherry-pick-defcall-into-v11
+      run: go install github.com/consensys/go-corset/cmd/go-corset@fb1aebd7f532e8940bc18feeedf3600d4bb5006f # v1.1.28

@@ -74,4 +74,9 @@ public class OsakaModexpXbsOobCall extends LondonModexpXbsOobCall {
   boolean xbsNormalizedIsNonZero() {
     return xbsIsWithinBounds() && xbsNormalized() != 0;
   }
+
+  @Override
+  boolean xbsNormalizedIsNonZeroTracedValue() {
+    return xbsNormalizedIsNonZero();
+  }
 }

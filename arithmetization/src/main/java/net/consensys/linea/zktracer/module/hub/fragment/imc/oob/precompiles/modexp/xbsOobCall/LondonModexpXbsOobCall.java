@@ -65,6 +65,11 @@ public class LondonModexpXbsOobCall extends ModexpXbsOobCall {
   }
 
   @Override
+  boolean xbsNormalizedIsNonZeroTracedValue() {
+    return computeMax() && xbsNormalizedIsNonZero();
+  }
+
+  @Override
   protected boolean xbsIsWithinBounds() {
     return false;
   }

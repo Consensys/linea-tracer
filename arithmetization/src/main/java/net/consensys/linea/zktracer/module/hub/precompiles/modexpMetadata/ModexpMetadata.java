@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata;
 
+import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.Util.rightPaddedSlice;
@@ -27,6 +28,7 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemoryRange;
@@ -223,4 +225,6 @@ public abstract class ModexpMetadata {
   public boolean tracedIsOutOfBounds(ModexpXbsCase modexpXbsCase) {
     return false;
   }
+
+  abstract public int getForkAppropriateLeadLogByteMultiplier();
 }

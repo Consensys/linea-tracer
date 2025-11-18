@@ -58,10 +58,14 @@ public class OobOperation extends ModuleOperation {
   public static int computeExponentLog(ModexpMetadata metadata, int cds) {
     final int bbs = metadata.bbsInt();
     final int ebs = metadata.ebsInt();
-    return computeExponentLog(metadata.callData(), cds, bbs, ebs);
+    return computeExponentLog(metadata, cds, bbs, ebs);
   }
 
-  public static int computeExponentLog(Bytes callData, int cds, int bbs, int ebs) {
+    public static int computeExponentLog(ModexpMetadata modexpMetadata, int cds, int bbs, int ebs) {
+      return computeExponentLog(modexpMetadata.callData(), modexpMetadata.getForkAppropriateLeadLogByteMultiplier(), cds, bbs, ebs);
+    }
+
+    public static int computeExponentLog(Bytes callData, int multiplier, int cds, int bbs, int ebs) {
     // pad callData to 96 + bbs + ebs
     final Bytes paddedCallData =
         cds < BASE_MIN_OFFSET + bbs + ebs
@@ -78,9 +82,9 @@ public class OobOperation extends ModuleOperation {
     } else if (ebs <= EBS_MIN_OFFSET && leadingBytesOfExponent.signum() != 0) {
       return log2(leadingBytesOfExponent, RoundingMode.FLOOR);
     } else if (ebs > EBS_MIN_OFFSET && leadingBytesOfExponent.signum() != 0) {
-      return 8 * (ebs - EBS_MIN_OFFSET) + log2(leadingBytesOfExponent, RoundingMode.FLOOR);
+      return multiplier * (ebs - EBS_MIN_OFFSET) + log2(leadingBytesOfExponent, RoundingMode.FLOOR);
     } else {
-      return 8 * (ebs - EBS_MIN_OFFSET);
+      return multiplier * (ebs - EBS_MIN_OFFSET);
     }
   }
 

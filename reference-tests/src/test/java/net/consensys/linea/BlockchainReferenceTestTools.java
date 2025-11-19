@@ -66,7 +66,7 @@ import org.junit.jupiter.api.Assumptions;
 @Slf4j
 public class BlockchainReferenceTestTools {
   // Keep the forkName and the zkevm_fork in github worklow in PascalCase
-  private static final Fork fork = getForkOrDefault(PRAGUE);
+  private static final Fork fork = getForkOrDefault(OSAKA);
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
       ReferenceTestProtocolSchedules.create();
   private static final List<String> NETWORKS_TO_RUN = List.of(toPascalCase(fork));
@@ -91,12 +91,9 @@ public class BlockchainReferenceTestTools {
      */
 
     if (isPostPrague(fork)) {
-
-      // TODO: should be re-enabled for Prague v2.0
-      PARAMS.ignore("/prague/eip2537_bls_12_381_precompiles/");
       PARAMS.ignore("/prague/eip7702_set_code_tx/");
 
-      // ignore for v1.0 Prague release : type 3 and 4 transactions
+      // ignore for v5.0 Osaka v1 release : type 3 and 4 transactions
       PARAMS.ignore("/cancun/eip4844_blobs/");
       PARAMS.ignore("/Cancun/stEIP4844_blobtransactions");
       PARAMS.ignore("/prague/eip6110_deposits/");
@@ -167,13 +164,11 @@ public class BlockchainReferenceTestTools {
       // Arithmetization restriction: recipient address is a precompile
       PARAMS.ignore(
           "osaka/eip7883_modexp_gas_increase/test_modexp_thresholds.py::test_modexp_used_in_transaction_entry_points");
-    }
-    /*
-     * Tests ignored below regroup tests from different forks. They are labelled from the ethereum/execution-spec-tests from Prague and on
-     */
+      /*
+       * Tests ignored below regroup tests from different forks. They are labelled from the ethereum/execution-spec-tests from Prague and on
+       */
 
-    // ignore tests that are failing in Besu too
-    if (isPostPrague(fork)) {
+      // ignore tests that are failing in Besu too
       // From ethereum/execution-spec-tests repo
       PARAMS.ignore(
           "RevertInCreateInInitCreate2Paris\\[fork_Prague-blockchain_test_from_state_test-\\]");
@@ -185,10 +180,8 @@ public class BlockchainReferenceTestTools {
           "create2collisionStorageParis\\[fork_Prague-blockchain_test_from_state_test-d2\\]");
       PARAMS.ignore(
           "dynamicAccountOverwriteEmpty_Paris\\[fork_Prague-blockchain_test_from_state_test-\\]");
-    }
 
-    // Arithmetization restriction: recipient address is a precompile.
-    if (isPostPrague(fork)) {
+      // Arithmetization restriction: recipient address is a precompile.
       // From the ethereum/execution-spec-tests repo
       PARAMS.ignore("modexpRandomInput\\[fork_Prague-blockchain_test_from_state_test-d0-g0\\]");
       PARAMS.ignore("modexpRandomInput\\[fork_Prague-blockchain_test_from_state_test-d0-g1\\]");
@@ -200,17 +193,13 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignore("randomStatetest644\\[fork_Prague-blockchain_test_from_state_test-\\]");
       PARAMS.ignore("randomStatetest645\\[fork_Prague-blockchain_test_from_state_test--v0\\]");
       PARAMS.ignore("randomStatetest645\\[fork_Prague-blockchain_test_from_state_test--v1\\]");
-    }
 
-    // Consumes a huge amount of memory.
-    if (isPostPrague(fork)) {
+      // Consumes a huge amount of memory.
       // From the ethereum/execution-spec-tests repo
       PARAMS.ignore(
           "stStaticCall/static_Return50000_2Filler.json::static_Return50000_2\\[fork_Prague-blockchain_test_from_state_test-\\]");
-    }
 
-    // Balance is more than 128 bits
-    if (isPostPrague(fork)) {
+      // Balance is more than 128 bits
       // From the ethereum/execution-spec-tests repo
       PARAMS.ignore(
           "stMemoryStressTest/CALLCODE_BoundsFiller.json::CALLCODE_Bounds\\[fork_Prague-blockchain_test_from_state_test--g0\\]");
@@ -374,10 +363,8 @@ public class BlockchainReferenceTestTools {
           "stStaticCall/static_Call50000_ecrecFiller.json::static_Call50000_ecrec\\[fork_Prague-blockchain_test_from_state_test-d0\\]");
       PARAMS.ignore(
           "stStaticCall/static_Call50000_ecrecFiller.json::static_Call50000_ecrec\\[fork_Prague-blockchain_test_from_state_test-d1\\]");
-    }
 
-    // Deployment transaction to an account with nonce / code
-    if (isPostPrague(fork)) {
+      // Deployment transaction to an account with nonce / code
       // From the ethereum/execution-spec-tests repo
       PARAMS.ignore(
           "TransactionCollisionToEmptyButCode\\[fork_Prague-blockchain_test_from_state_test--g0-v0\\]");

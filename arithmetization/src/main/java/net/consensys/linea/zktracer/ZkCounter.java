@@ -775,6 +775,14 @@ public class ZkCounter implements LineCountingTracer {
         oob.updateTally(oobLineCountForPrc(precompile));
         mod.updateTally(modLinesComingFromOobCall(precompile));
       }
+      case PRC_P256_VERIFY -> {
+        // TODO: is this correct?
+        if (callDataSize == PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY) {
+          ecdata.callEcData(0, precompile, frame.getInputData(), returnData);
+        }
+        hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
+        oob.updateTally(oobLineCountForPrc(precompile));
+      }
       default -> throw new IllegalStateException("Unsupported precompile: " + precompile);
     }
   }

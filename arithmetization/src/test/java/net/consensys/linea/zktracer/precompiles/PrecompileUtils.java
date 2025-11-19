@@ -213,7 +213,7 @@ public class PrecompileUtils extends TracerTestBase {
     return Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bem);
   }
 
-  static void writeInMemoryByteCodeOfCodeOwener(
+  static void writeInMemoryByteCodeOfCodeOwner(
       Address codeOwnerAddress, int targetOffset, BytecodeCompiler program) {
     // Copy to targetOffset the code of codeOwnerAccount
     program
@@ -229,7 +229,7 @@ public class PrecompileUtils extends TracerTestBase {
   // which one to keep.
   public static Bytes writeInMemoryByteCodeOfCodeOwner(Address codeOwnerAddress, int targetOffset) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
-    writeInMemoryByteCodeOfCodeOwener(codeOwnerAddress, targetOffset, program);
+    writeInMemoryByteCodeOfCodeOwner(codeOwnerAddress, targetOffset, program);
     return program.compile();
   }
 

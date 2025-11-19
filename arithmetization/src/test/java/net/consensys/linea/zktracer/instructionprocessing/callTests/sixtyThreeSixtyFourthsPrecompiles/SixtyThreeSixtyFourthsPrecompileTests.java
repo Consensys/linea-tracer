@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -68,8 +69,8 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.precompile.KZGPointEvalPrecompiledContract;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -105,13 +106,8 @@ import org.junit.jupiter.params.provider.MethodSource;
  * call made to the precompile, as pushCallArguments call data size cds ≡ 0 would make POINT_EVAL /
  * BLS calls fail and consume 63/64-ths of the frame's gas IF A
  */
+@ExtendWith(UnitTestWatcher.class)
 public class SixtyThreeSixtyFourthsPrecompileTests extends TracerTestBase {
-
-  @BeforeAll
-  static void setup() {
-    // Initialize KZG native library before running tests
-    KZGPointEvalPrecompiledContract.init();
-  }
 
   /*
   Cases to cover:
@@ -198,6 +194,8 @@ public class SixtyThreeSixtyFourthsPrecompileTests extends TracerTestBase {
                   Collectors.toMap(
                       precompileFlag -> precompileFlag,
                       precompileFlag -> {
+                        if (precompileFlag == PRC_POINT_EVALUATION)
+                          KZGPointEvalPrecompiledContract.init();
                         final long gasCostTargetPrecompileDoesExist =
                             BytecodeRunner.of(preCallProgram(precompileFlag, false, true, 0))
                                 .runOnlyForGasCost(
@@ -405,14 +403,14 @@ public class SixtyThreeSixtyFourthsPrecompileTests extends TracerTestBase {
                 : Bytes.EMPTY)
         // Filling memory for actual call happening in the test
         .immediate(
-            precompileFlag == PRC_MODEXP
-                ? writeInMemoryByteCodeOfCodeOwner(modexpInputAsByteCodeOwnerAddress, 0)
-                : Bytes.EMPTY)
-        .immediate(precompileFlag == PRC_BLAKE2F ? prepareBlake2F(rLeadingByte, 2) : Bytes.EMPTY)
-        .immediate(
-            precompileFlag == PRC_POINT_EVALUATION
-                ? writeInMemoryByteCodeOfCodeOwner(pointEvaluationInputAsByteCodeOwnerAddress, 0)
-                : Bytes.EMPTY)
+            switch (precompileFlag) {
+              case PRC_MODEXP -> writeInMemoryByteCodeOfCodeOwner(
+                  modexpInputAsByteCodeOwnerAddress, 0);
+              case PRC_BLAKE2F -> prepareBlake2F(rLeadingByte, 2);
+              case PRC_POINT_EVALUATION -> writeInMemoryByteCodeOfCodeOwner(
+                  pointEvaluationInputAsByteCodeOwnerAddress, 0);
+              default -> Bytes.EMPTY;
+            })
         // TODO: we should be able to re-use the input of the first call if we do not overwrite it
         .immediate(pushCallArguments(INFINITE_GAS, precompileFlag, cds, transfersValue))
         .compile();

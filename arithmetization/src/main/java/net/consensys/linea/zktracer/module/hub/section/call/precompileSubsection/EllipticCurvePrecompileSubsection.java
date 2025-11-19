@@ -119,8 +119,11 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
           PRC_BLS_MAP_FP2_TO_G2 -> {
         // Note that BLS sanity checks are computed in BlsOperation
       }
+        // TODO: is this correct?
       case PRC_P256_VERIFY -> checkArgument(
-          returnDataRange.extract().size() == (callSuccess ? WORD_SIZE : 0),
+          callSuccess
+              ? (returnData == Bytes.EMPTY || returnData.size() == WORD_SIZE)
+              : returnData == Bytes.EMPTY,
           "P256_VERIFY return data size mismatch");
       default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
     }

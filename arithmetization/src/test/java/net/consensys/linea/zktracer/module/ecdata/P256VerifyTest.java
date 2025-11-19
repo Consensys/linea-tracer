@@ -21,8 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -105,11 +108,8 @@ public class P256VerifyTest extends TracerTestBase {
 
   private static Stream<Arguments> p256VerifySource() throws IOException {
     List<Arguments> arguments = new ArrayList<>(p256VerifySourceNightly().toList());
-    // 0 one type of error
-    // 1 other type of error
-    return Stream.of(arguments.get(0));
-    // Collections.shuffle(arguments, new Random(LocalDate.now().toEpochDay()));
-    // return arguments.stream().limit(arguments.size() / 20); // Execute 5 % of the tests
+    Collections.shuffle(arguments, new Random(LocalDate.now().toEpochDay()));
+    return arguments.stream().limit(arguments.size() / 20); // Execute 5 % of the tests
   }
 
   private static Stream<Arguments> p256VerifySourceNightly() throws IOException {

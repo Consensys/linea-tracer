@@ -84,10 +84,10 @@ public class WcpOperation extends ModuleOperation {
 
   void trace(Trace.Wcp trace, int stamp) {
     // Calculate result
-    final boolean resLo = calculateResult(wcpInst, arg1, arg2);
+    final boolean res = calculateResult(wcpInst, arg1, arg2);
     final UnsignedByte inst = UnsignedByte.of(wcpInst);
     //
-    trace.inst(inst).arg1(arg1).arg2(arg2).res(resLo).validateRow();
+    trace.inst(inst).arg1(arg1).arg2(arg2).res(res).validateRow();
   }
 
   @Override

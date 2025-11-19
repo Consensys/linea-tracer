@@ -23,8 +23,8 @@ import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.generateM
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getExpectedReturnAtCapacity;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getPrecompileCost;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareBlake2F;
-import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareModexp;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareSha256Ripemd160Id;
+import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.writeInMemoryByteCodeOfCodeOwener;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
@@ -170,7 +170,7 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
               .build();
       additionalAccounts = List.of(codeOwnerAccount);
 
-      prepareModexp(program, modexpInput, callDataOffset, codeOwnerAddress);
+      writeInMemoryByteCodeOfCodeOwener(codeOwnerAddress, callDataOffset, program);
     }
 
     // Set returnAtCapacity equal to the expected return size of the precompile call

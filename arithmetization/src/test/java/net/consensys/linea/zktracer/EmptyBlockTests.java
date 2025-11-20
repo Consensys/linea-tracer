@@ -38,8 +38,9 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class EmptyBlockTests extends TracerTestBase {
 
@@ -147,10 +148,16 @@ public class EmptyBlockTests extends TracerTestBase {
    *   <li><b>N</b> stands for <b>N</b>onempty block
    * </ul>
    *
+   * @param runWithBesu we either run the empty block tests with a MultiBlockExecutionEnvironment or
+   *     with a Besu node. Runnning them with a Besu node verifies the behavior of a conflation
+   *     trace generated through RPC containing empty blocks. It can't however operate check on the
+   *     tracer per say, like retrieve the hub. In the case where we run with a Besu node, we don't
+   *     perform check on the hub values.
    * @param testInfo
    */
-  @Test
-  void mixOfEmptyAndNonEmptyBlocks_EENENE(TestInfo testInfo) {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void mixOfEmptyAndNonEmptyBlocks_EENENE(boolean runWithBesu, TestInfo testInfo) {
     // Empty block are allowed only after Cancun
     if (isPostCancun(fork)) {
 
@@ -165,30 +172,33 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.EMPTY_BLOCK),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(runWithBesu).build();
       env.run();
 
-      final State hub = env.getHub().state();
-      short nbOfLog = 0;
-      for (State.HubTransactionState state : hub.getState().getAll()) {
-        for (TraceSection section : state.traceSections().trace()) {
-          if (section instanceof LogSection) {
-            nbOfLog += 1;
+      if (!runWithBesu) {
+        final State hub = env.getHub().state();
+        short nbOfLog = 0;
+        for (State.HubTransactionState state : hub.getState().getAll()) {
+          for (TraceSection section : state.traceSections().trace()) {
+            if (section instanceof LogSection) {
+              nbOfLog += 1;
+            }
           }
         }
+        /**
+         * The idea is in one block to SSTORE the blockNumber, and few block after to SLOAD, compare
+         * it with the actual block number, and if we have a match, then do a logging we could
+         * check. The idea is to ensue that empty blocks are handled well, ie that the number of the
+         * block number, known by besu and the tracer is updating how we assume it
+         */
+        checkArgument(nbOfLog == 1, "There should be exactly one log section");
       }
-      /**
-       * The idea is in one block to SSTORE the blockNumber, and few block after to SLOAD, compare
-       * it with the actual block number, and if we have a match, then do a logging we could check.
-       * The idea is to ensue that empty blocks are handled well, ie that the number of the block
-       * number, known by besu and the tracer is updating how we assume it
-       */
-      checkArgument(nbOfLog == 1, "There should be exactly one log section");
     }
   }
 
-  @Test
-  void mixOfEmptyAndNonEmptyBlocks_NEEN(TestInfo testInfo) {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void mixOfEmptyAndNonEmptyBlocks_NEEN(boolean runWithBesu, TestInfo testInfo) {
     // Empty block are allowed only after Cancun
     if (isPostCancun(fork)) {
 
@@ -201,13 +211,14 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.MONO_TRANSACTION_BLOCK___READING),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(runWithBesu).build();
       env.run();
     }
   }
 
-  @Test
-  void mixOfEmptyAndNonEmptyBlocks_NEEE(TestInfo testInfo) {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void mixOfEmptyAndNonEmptyBlocks_NEEE(boolean runWithBesu, TestInfo testInfo) {
     // Empty block are allowed only after Cancun
     if (isPostCancun(fork)) {
 
@@ -220,13 +231,14 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.MONO_TRANSACTION_BLOCK___STORING),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(runWithBesu).build();
       env.run();
     }
   }
 
-  @Test
-  void mixOfEmptyAndNonEmptyBlocks_ENNE(TestInfo testInfo) {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void mixOfEmptyAndNonEmptyBlocks_ENNE(boolean runWithBesu, TestInfo testInfo) {
     // Empty block are allowed only after Cancun
     if (isPostCancun(fork)) {
 
@@ -239,13 +251,14 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.EMPTY_BLOCK),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(runWithBesu).build();
       env.run();
     }
   }
 
-  @Test
-  void mixOfEmptyAndNonEmptyBlocks_EEEE(TestInfo testInfo) {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void mixOfEmptyAndNonEmptyBlocks_EEEE(boolean runWithBesu, TestInfo testInfo) {
     // Empty block are allowed only after Cancun
     if (isPostCancun(fork)) {
 
@@ -258,13 +271,14 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.EMPTY_BLOCK),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(runWithBesu).build();
       env.run();
     }
   }
 
-  @Test
-  void mixOfEmptyAndNonEmptyBlocks_EEEN(TestInfo testInfo) {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void mixOfEmptyAndNonEmptyBlocks_EEEN(boolean runWithBesu, TestInfo testInfo) {
     // Empty block are allowed only after Cancun
     if (isPostCancun(fork)) {
 
@@ -277,24 +291,27 @@ public class EmptyBlockTests extends TracerTestBase {
                   BlockType.MONO_TRANSACTION_BLOCK___STORING),
               testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(runWithBesu).build();
       env.run();
     }
   }
 
-  @Test
-  void mixOfEmptyAndNonEmptyBlocks_E(TestInfo testInfo) {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void mixOfEmptyAndNonEmptyBlocks_E(boolean runWithBesu, TestInfo testInfo) {
     // Empty blocks are allowed only after Cancun
     if (isPostCancun(fork)) {
 
       MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
           builderFromBlockTypeList(List.of(BlockType.EMPTY_BLOCK), testInfo);
 
-      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(true).build();
+      final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(runWithBesu).build();
       env.run();
-      checkArgument(
-          env.getHub().txStack().transactions().isEmpty(),
-          "There should be no transaction in the state");
+      if (!runWithBesu) {
+        checkArgument(
+            env.getHub().txStack().transactions().isEmpty(),
+            "There should be no transaction in the state");
+      }
     }
   }
 

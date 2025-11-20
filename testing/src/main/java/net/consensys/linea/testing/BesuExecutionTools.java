@@ -235,34 +235,30 @@ public class BesuExecutionTools {
         // We check that the transactions are included in a block
         waitForTxReceipts(besuNode, ethTransactions, txHashes, txReceiptProcessed, blockNumbers);
         currentFork = nextFork;
+
+        // We trace the conflation
+        checkState(blockNumbers.isEmpty() == allTransactionsAreNull);
+        long firstBlockNumber = blockNumbers.isEmpty() ? 1 : Collections.min(blockNumbers);
+        long finalBlockNumber =
+            blockNumbers.isEmpty() ? transactions.size() : Collections.max(blockNumbers);
+        TraceFile traceFile = traceAndCheckTracer(firstBlockNumber, finalBlockNumber, currentFork);
+        Path traceFilePath = Path.of(traceFile.conflatedTracesFileName());
+
+        // Clean up for next transaction
+        resetTxReceipts(txReceiptProcessed);
+        resetBlockNumbers(blockNumbers);
+        resetTxHashes(txHashes);
+
+        // Execution proof request
+        requestAndStoreExecutionProof(
+            besuNode,
+            ethTransactions,
+            firstBlockNumber,
+            finalBlockNumber,
+            traceFile,
+            traceFilePath,
+            testDataDir);
       }
-
-      // We trace the conflation
-      checkState(blockNumbers.isEmpty() == allTransactionsAreNull);
-      long firstBlockNumber = blockNumbers.isEmpty() ? 1 : Collections.min(blockNumbers);
-      long finalBlockNumber =
-          blockNumbers.isEmpty() ? transactions.size() : Collections.max(blockNumbers);
-      if (oneTxPerBlock && !allTransactionsAreNull) {
-        firstBlockNumber -= numberOfLeadingEmptyBlocks;
-        finalBlockNumber = firstBlockNumber + transactions.size() - 1;
-      }
-      TraceFile traceFile = traceAndCheckTracer(firstBlockNumber, finalBlockNumber, currentFork);
-      Path traceFilePath = Path.of(traceFile.conflatedTracesFileName());
-
-      // Clean up for next transaction
-      resetTxReceipts(txReceiptProcessed);
-      resetBlockNumbers(blockNumbers);
-      resetTxHashes(txHashes);
-
-      // Execution proof request
-      requestAndStoreExecutionProof(
-          besuNode,
-          ethTransactions,
-          firstBlockNumber,
-          finalBlockNumber,
-          traceFile,
-          traceFilePath,
-          testDataDir);
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     } finally {

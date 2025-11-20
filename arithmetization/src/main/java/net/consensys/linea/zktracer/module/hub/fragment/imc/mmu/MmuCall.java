@@ -33,6 +33,7 @@ import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.Optional;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -142,6 +143,18 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
   final MmuCall setBlsData() {
     return this.exoIsBlsData(true).updateExoSum(EXO_SUM_WEIGHT_BLSDATA);
+  }
+
+  final MmuCall setEllipticCurveModule(PrecompileScenarioFragment.PrecompileFlag flag) {
+    Preconditions.checkArgument(
+        flag.isEcdataPrecompile() || flag.isBlsPrecompile(),
+        "Unexpected precompile flag %s for elliptic curve module",
+        flag);
+    if (flag.isEcdataPrecompile()) {
+      return setEcData();
+    } else {
+      return setBlsData();
+    }
   }
 
   public MmuCall(final Hub hub, final int instruction) {
@@ -589,11 +602,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
             // constant
             .successBit(successBit)
             .phase(subsection.flag().dataPhase());
-    if (subsection.flag() == PrecompileScenarioFragment.PrecompileFlag.PRC_P256_VERIFY) {
-      return mmuCall.setEcData();
-    } else {
-      return mmuCall.setBlsData();
-    }
+    return mmuCall.setEllipticCurveModule(subsection.flag());
   }
 
   public static MmuCall fullReturnDataTransferForPostCancunPrecompiles(
@@ -618,11 +627,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
             .phase(subsection.flag().resultPhase())
             .successBit(successBit);
 
-    if (subsection.flag() == PrecompileScenarioFragment.PrecompileFlag.PRC_P256_VERIFY) {
-      return mmuCall.setEcData();
-    } else {
-      return mmuCall.setBlsData();
-    }
+    return mmuCall.setEllipticCurveModule(subsection.flag());
   }
 
   public static MmuCall partialCopyOfReturnDataForPostCancunPrecompiles(
@@ -640,12 +645,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
             .referenceOffset(subsection.returnAtOffset())
             .referenceSize(subsection.returnAtCapacity());
 
-    // TODO: do we need this?
-    if (subsection.flag() == PrecompileScenarioFragment.PrecompileFlag.PRC_P256_VERIFY) {
-      return mmuCall.setEcData();
-    } else {
-      return mmuCall.setBlsData();
-    }
+    return mmuCall.setEllipticCurveModule(subsection.flag());
   }
 
   /**

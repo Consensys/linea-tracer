@@ -319,6 +319,7 @@ public class ZkCounter implements LineCountingTracer {
         blsC2MembershipCalls,
         blsG1MembershipCalls,
         blsG2MembershipCalls,
+        p256VerifyEffectiveCalls,
         l1BlockSize,
         l2l1Logs);
   }

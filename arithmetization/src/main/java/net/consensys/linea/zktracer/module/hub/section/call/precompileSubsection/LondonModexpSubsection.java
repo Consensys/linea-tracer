@@ -31,8 +31,8 @@ import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompil
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase.MODEXP_XBS_CASE_MBS;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_RAM;
 
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpDataOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
@@ -140,7 +140,7 @@ public class LondonModexpSubsection extends PrecompileSubsection {
     }
 
     modexpMetadata.rawResult(extractReturnData());
-    hub.blakeModexp().callModexp(getForkAppropriateBlakeModexpOperation());
+    hub.blakeModexpData().callModexp(getForkAppropriateBlakeModexpOperation());
 
     fragments().add(seventhImcFragment);
     if (modexpMetadata.extractModulus()) {
@@ -189,8 +189,8 @@ public class LondonModexpSubsection extends PrecompileSubsection {
     return new LondonModexpPricingOobCall(modexpMetadata, calleeGas);
   }
 
-  protected BlakeModexpOperation getForkAppropriateBlakeModexpOperation() {
-    return new LondonBlakeModexpOperation(
+  protected BlakeModexpDataOperation getForkAppropriateBlakeModexpOperation() {
+    return new LondonBlakeModexpDataOperation(
         getForkAppropriateModexpMetadata(), exoModuleOperationId());
   }
 

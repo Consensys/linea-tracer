@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Ecdata.*;
 import static net.consensys.linea.zktracer.module.Util.rightPaddedSlice;
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.*;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.*;
 import static net.consensys.linea.zktracer.module.hub.Hub.newIdentifierFromStamp;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_RIPEMD_160;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;

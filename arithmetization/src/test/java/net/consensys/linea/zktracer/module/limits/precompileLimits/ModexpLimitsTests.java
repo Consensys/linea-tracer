@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.limits.precompileLimits;
 import static net.consensys.linea.testing.BytecodeRunner.MAX_GAS_LIMIT;
 import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
 import static net.consensys.linea.zktracer.module.ModuleName.PRECOMPILE_MODEXP_EFFECTIVE_CALLS;
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.legalModexpComponentByteSize;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.legalModexpComponentByteSize;
 import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -157,9 +157,6 @@ public class ModexpLimitsTests extends TracerTestBase {
         }
       }
     }
-
-    // arguments.clear();
-    // arguments.add(Arguments.of(256, 318, 513));
 
     return arguments.stream();
   }

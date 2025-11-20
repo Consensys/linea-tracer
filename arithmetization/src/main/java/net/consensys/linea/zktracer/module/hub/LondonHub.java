@@ -27,7 +27,7 @@ import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 import net.consensys.linea.zktracer.container.module.IncrementAndDetectModule;
 import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexp;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpData;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.LondonBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
@@ -61,13 +61,13 @@ public class LondonHub extends Hub {
   }
 
   @Override
-  public LondonBlakeModexp setBlakeModexp(
+  public LondonBlakeModexpData setBlakeModexp(
       Wcp wcp,
       IncrementAndDetectModule modexpEffectiveCall,
       IncrementingModule modexpLargeCall,
       IncrementingModule blakeEffectiveCall,
       BlakeRounds blakeRounds) {
-    return new LondonBlakeModexp(
+    return new LondonBlakeModexpData(
         wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
   }
 

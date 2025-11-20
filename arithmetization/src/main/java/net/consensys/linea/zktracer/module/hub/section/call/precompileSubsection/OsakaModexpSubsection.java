@@ -17,8 +17,8 @@ package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsectio
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase.*;
 
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.OsakaBlakeModexpOperation;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.OsakaBlakeModexpDataOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.pricingOobCall.OsakaModexpPricingOobCall;
@@ -32,7 +32,7 @@ public class OsakaModexpSubsection extends LondonModexpSubsection {
     super(hub, callSection, modexpMetadata);
     checkState(
         modexpMetadata instanceof OsakaModexpMetadata,
-        "modexpMetadata must be LondonModexpMetadata");
+        "modexpMetadata must be OsakaModexpMetadata");
   }
 
   @Override
@@ -51,8 +51,8 @@ public class OsakaModexpSubsection extends LondonModexpSubsection {
   }
 
   @Override
-  protected BlakeModexpOperation getForkAppropriateBlakeModexpOperation() {
-    return new OsakaBlakeModexpOperation(
+  protected BlakeModexpDataOperation getForkAppropriateBlakeModexpOperation() {
+    return new OsakaBlakeModexpDataOperation(
         getForkAppropriateModexpMetadata(), exoModuleOperationId());
   }
 

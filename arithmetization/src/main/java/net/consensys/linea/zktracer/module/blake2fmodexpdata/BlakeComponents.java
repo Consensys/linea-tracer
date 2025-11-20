@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.module.blake2fmodexpdata;
 
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.BLAKE2f_HASH_INPUT_OFFSET;
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.BLAKE2f_HASH_INPUT_SIZE;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.BLAKE2f_HASH_INPUT_OFFSET;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.BLAKE2f_HASH_INPUT_SIZE;
 
 import org.apache.tuweni.bytes.Bytes;
 

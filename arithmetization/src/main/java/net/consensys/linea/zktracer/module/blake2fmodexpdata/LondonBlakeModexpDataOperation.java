@@ -19,13 +19,13 @@ import static net.consensys.linea.zktracer.TraceLondon.Blake2fmodexpdata.*;
 
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.LondonModexpMetadata;
 
-public class LondonBlakeModexpOperation extends BlakeModexpOperation {
+public class LondonBlakeModexpDataOperation extends BlakeModexpDataOperation {
 
-  public LondonBlakeModexpOperation(LondonModexpMetadata modexpMetaData, int id) {
+  public LondonBlakeModexpDataOperation(LondonModexpMetadata modexpMetaData, int id) {
     super(modexpMetaData, id);
   }
 
-  public LondonBlakeModexpOperation(BlakeComponents blakeComponents, int id) {
+  public LondonBlakeModexpDataOperation(BlakeComponents blakeComponents, int id) {
     super(blakeComponents, id);
   }
 

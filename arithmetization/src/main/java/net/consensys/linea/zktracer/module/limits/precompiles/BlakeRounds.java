@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.limits.precompiles;
 
 import static java.lang.Integer.MAX_VALUE;
 import static net.consensys.linea.zktracer.module.ModuleName.PRECOMPILE_BLAKE_ROUNDS;
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.BLAKE2f_R_SIZE;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.BLAKE2f_R_SIZE;
 
 import java.math.BigInteger;
 

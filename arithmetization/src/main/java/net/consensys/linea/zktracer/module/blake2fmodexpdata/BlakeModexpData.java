@@ -35,14 +35,14 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class BlakeModexp implements OperationListModule<BlakeModexpOperation> {
+public abstract class BlakeModexpData implements OperationListModule<BlakeModexpDataOperation> {
   private final Wcp wcp;
   private final IncrementAndDetectModule modexpEffectiveCall;
   private final IncrementingModule modexpLargeCall;
   private final IncrementingModule blakeEffectiveCall;
   private final BlakeRounds blakeRounds;
 
-  private final ModuleOperationStackedList<BlakeModexpOperation> operations =
+  private final ModuleOperationStackedList<BlakeModexpDataOperation> operations =
       new ModuleOperationStackedList<>();
 
   private long previousID = 0;
@@ -52,7 +52,7 @@ public abstract class BlakeModexp implements OperationListModule<BlakeModexpOper
     return BLAKE_MODEXP_DATA;
   }
 
-  public void callModexp(BlakeModexpOperation modexpOperation) {
+  public void callModexp(BlakeModexpDataOperation modexpOperation) {
 
     checkState(modexpOperation.isModexpOperation(), "Operation must be a MODEXP operation");
     operations.add(modexpOperation);
@@ -62,7 +62,7 @@ public abstract class BlakeModexp implements OperationListModule<BlakeModexpOper
     callWcpForIdCheck(modexpOperation.id());
   }
 
-  public void callBlake(BlakeModexpOperation blakeOperation) {
+  public void callBlake(BlakeModexpDataOperation blakeOperation) {
     checkState(blakeOperation.isBlakeOperation(), "Operation must be a BLAKE2f operation");
     operations.add(blakeOperation);
 
@@ -89,7 +89,7 @@ public abstract class BlakeModexp implements OperationListModule<BlakeModexpOper
   @Override
   public void commit(Trace trace) {
     int stamp = 0;
-    for (BlakeModexpOperation o : operations.getAll()) {
+    for (BlakeModexpDataOperation o : operations.getAll()) {
       o.trace(trace.blake2fmodexpdata(), ++stamp);
     }
   }

@@ -40,7 +40,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.Hash;
 
 @Accessors(fluent = true)
-public abstract class BlakeModexpOperation extends ModuleOperation {
+public abstract class BlakeModexpDataOperation extends ModuleOperation {
   public static final short BLAKE2f_R_SIZE = 4;
   public static final short BLAKE2f_HASH_INPUT_OFFSET = BLAKE2f_R_SIZE;
   public static final short BLAKE2f_HASH_INPUT_SIZE = LLARGE * (INDEX_MAX_BLAKE_DATA + 1);
@@ -71,13 +71,13 @@ public abstract class BlakeModexpOperation extends ModuleOperation {
   public final Optional<ModexpMetadata> modexpMetaData;
   public final Optional<BlakeComponents> blake2fComponents;
 
-  public BlakeModexpOperation(final ModexpMetadata modexpMetaData, final int id) {
+  public BlakeModexpDataOperation(final ModexpMetadata modexpMetaData, final int id) {
     this.id = id;
     this.modexpMetaData = Optional.of(modexpMetaData);
     this.blake2fComponents = Optional.empty();
   }
 
-  public BlakeModexpOperation(final BlakeComponents blakeComponents, final int id) {
+  public BlakeModexpDataOperation(final BlakeComponents blakeComponents, final int id) {
     this.id = id;
     this.modexpMetaData = Optional.empty();
     this.blake2fComponents = Optional.of(blakeComponents);
@@ -198,9 +198,37 @@ public abstract class BlakeModexpOperation extends ModuleOperation {
     return blake2fComponents.isPresent();
   }
 
+  /**
+   * {@link #legalModexpComponentByteSize} is used either
+   *
+   * <ul>
+   *   <li><b>pre-Osaka:</b> to detect (and ultimately reject) <b>large, Linea-unprovable</b> MODEXP
+   *       calls
+   *   <li><b>post-Osaka:</b> to highlight <b>large, EVM-unsupported</b> MODEXP calls
+   * </ul>
+   *
+   * <p>The London to Prague Linea zkEVM (L2P-Linea) had Linea-specific (and EVM extraneous)
+   * restrictions on <b>MODEXP</b>. In essence, L2P-Linea could not prove the full breadth of
+   * EVM-legal inputs of <b>MODEXP</b> precompile calls: it flagged <b>MODEXP</b> calls where any
+   * one of bbs / ebs / mbs was > 512. The underlying transaction was labeled as "unprovable" and
+   * necessarily rejected from block inclusion.
+   *
+   * <p>Up to and including the Prague hard fork, the EVM accepted essentially unbounded
+   * <b>MODEXP</b> calls i.e. there were no limits on the component byte sizes bbs / ebs / mbs
+   * beyond fitting into 32 Byte integers. Osaka, and specifically <a
+   * href="https://eips.ethereum.org/EIPS/eip-7823">EIP-7823</a>, greatly reduced the range of
+   * EVM-acceptable MODEXP arguments: all xbs ≡ bbs / ebs / mbs are required to be ≤ 1024, otherwise
+   * the <b>MODEXP</b> precompile call is necessarily unsuccessful.
+   *
+   * <p>Starting with the Osaka hardfork, Linea proves the full breadth of Osaka-EVM-legal
+   * <b>MODEXP</b> calls.
+   *
+   * @param fork
+   * @return
+   */
   public static int legalModexpComponentByteSize(Fork fork) {
     return forkPredatesOsaka(fork)
-        ? LondonBlakeModexpOperation.modexpComponentByteSize()
-        : OsakaBlakeModexpOperation.modexpComponentByteSize();
+        ? LondonBlakeModexpDataOperation.modexpComponentByteSize()
+        : OsakaBlakeModexpDataOperation.modexpComponentByteSize();
   }
 }

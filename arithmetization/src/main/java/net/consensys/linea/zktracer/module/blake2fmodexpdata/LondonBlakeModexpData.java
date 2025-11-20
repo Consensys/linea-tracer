@@ -23,8 +23,8 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @Getter
 @Accessors(fluent = true)
-public class OsakaBlakeModexp extends LondonBlakeModexp {
-  public OsakaBlakeModexp(
+public class LondonBlakeModexpData extends BlakeModexpData {
+  public LondonBlakeModexpData(
       Wcp wcp,
       IncrementAndDetectModule modexpEffectiveCall,
       IncrementingModule modexpLargeCall,

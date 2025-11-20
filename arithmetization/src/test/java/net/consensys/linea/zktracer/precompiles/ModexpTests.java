@@ -18,7 +18,7 @@ import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpOperation.legalModexpComponentByteSize;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.legalModexpComponentByteSize;
 import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.BASE_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.BBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.EBS_MIN_OFFSET;

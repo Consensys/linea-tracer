@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.mod
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpDataOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase;
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.LondonModexpMetadata;
@@ -38,7 +38,7 @@ public class LondonModexpXbsOobCall extends ModexpXbsOobCall {
   }
 
   public int modexpComponentByteSize() {
-    return LondonBlakeModexpOperation.modexpComponentByteSize();
+    return LondonBlakeModexpDataOperation.modexpComponentByteSize();
   }
 
   @Override

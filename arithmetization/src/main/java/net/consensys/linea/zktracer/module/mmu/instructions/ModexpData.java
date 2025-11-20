@@ -29,8 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.consensys.linea.zktracer.Fork;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpOperation;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.OsakaBlakeModexpOperation;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpDataOperation;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.OsakaBlakeModexpDataOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.euc.EucOperation;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
@@ -79,8 +79,8 @@ public class ModexpData implements MmuInstruction {
 
   private final int getForkAppropriateModexpInputSize() {
     return forkPredatesOsaka(fork)
-        ? LondonBlakeModexpOperation.modexpComponentByteSize()
-        : OsakaBlakeModexpOperation.modexpComponentByteSize();
+        ? LondonBlakeModexpDataOperation.modexpComponentByteSize()
+        : OsakaBlakeModexpDataOperation.modexpComponentByteSize();
   }
 
   private final int getForkAppropriateTotalNumberOfMicroRows() {

@@ -33,13 +33,13 @@ public class OsakaHub extends PragueHub {
   }
 
   @Override
-  public OsakaBlakeModexp setBlakeModexp(
+  public OsakaBlakeModexpData setBlakeModexp(
       Wcp wcp,
       IncrementAndDetectModule modexpEffectiveCall,
       IncrementingModule modexpLargeCall,
       IncrementingModule blakeEffectiveCall,
       BlakeRounds blakeRounds) {
-    return new OsakaBlakeModexp(
+    return new OsakaBlakeModexpData(
         wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
   }
 

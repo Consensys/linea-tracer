@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
@@ -89,7 +90,6 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
     super.resolveAtContextReEntry(hub, callFrame);
 
-    // TODO: this return 0x for BLS_G1_ADD that is supposed (?) to be successful
     final Bytes returnData = extractReturnData();
 
     // sanity checks
@@ -119,12 +119,26 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
           PRC_BLS_MAP_FP2_TO_G2 -> {
         // Note that BLS sanity checks are computed in BlsOperation
       }
-        // TODO: is this correct?
-      case PRC_P256_VERIFY -> checkArgument(
-          callSuccess
-              ? (returnData == Bytes.EMPTY || returnData.size() == WORD_SIZE)
-              : returnData == Bytes.EMPTY,
-          "P256_VERIFY return data size mismatch");
+        // For PRC_P256_VERIFY, the return data is either empty:
+        // - callSuccess = false
+        //    * Insufficient gas (the only scenario where the underlying call fails, callSuccess =
+        // false)
+        // - callSuccess = true
+        //    * Invalid input length (not exactly 160 bytes)
+        //    * Invalid field element encoding (≥ field modulus)
+        //    * Invalid signature component bounds (r or s not in range (0, n))
+        //    * Invalid public key (point at infinity or not on curve)
+        //    * Signature verification failure
+        // or non-empty, of size 32 bytes when none of the failure conditions above hold.
+      case PRC_P256_VERIFY -> {
+        checkArgument(
+            returnData == Bytes.EMPTY || returnData.size() == WORD_SIZE,
+            "P256_VERIFY return data size mismatch");
+        // TODO: get the actual check using the MMU success bit
+        checkArgument(
+            returnData == Bytes.EMPTY || oobCall.getExtractCallData(),
+            "Unless we extract call data, return date must be empty");
+      }
       default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
     }
 
@@ -135,8 +149,9 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
     // NOTE: from here on out
     //    hubSuccess ≡ true
 
-    // ECRECOVER can only be FAILURE_KNOWN_TO_HUB or some form of SUCCESS_XXXX_REVERT
-    // TODO: what about P256_VERIFY?
+    // ECRECOVER and P256_VERIFY can only be FAILURE_KNOWN_TO_HUB or some form of
+    // SUCCESS_XXXX_REVERT
+    // In particular, neither may be PRC_FAILURE_KNOWN_TO_RAM
     if (flag().isAnyOf(PRC_ECADD, PRC_ECMUL, PRC_ECPAIRING) || flag().isBlsPrecompile()) {
       if (oobCall.isHubSuccess() && !callSuccess) {
         precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_RAM);
@@ -144,18 +159,32 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
     }
 
     final MmuCall firstMmuCall;
-    final boolean nonemptyCallData = !getCallDataRange().isEmpty();
+    final boolean triggerCallDataExtraction = oobCall.getExtractCallData();
+
+    // P256_VERIFY call data extraction only happens if hubSuccess = true AND
+    // callDataSize is correct, that is 160 bytes.
+    // Note that hubSuccess is equivalent to having sufficient gas
+    // and does not take into account call data size check.
+    if (flag() == PRC_P256_VERIFY) {
+      final boolean triggerCallDataExtractionP256Verify =
+          callDataSize() == PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY;
+      Preconditions.checkArgument(triggerCallDataExtractionP256Verify == triggerCallDataExtraction);
+    }
 
     // BLS precompiles do not accept empty call data
     // This checks should be redundant with OOB checks
     if (flag().isBlsPrecompile()) {
       Preconditions.checkArgument(
-          nonemptyCallData, "BLS precompile %s called with empty call data", flag());
+          triggerCallDataExtraction, "BLS precompile %s called with empty call data", flag());
     }
 
-    final boolean successBitMmuCall = flag() == PRC_ECRECOVER ? !returnData.isEmpty() : callSuccess;
+    final boolean successBitMmuCall =
+        switch (flag()) {
+          case PRC_ECRECOVER, PRC_P256_VERIFY -> !returnData.isEmpty();
+          default -> callSuccess;
+        };
 
-    if (nonemptyCallData) {
+    if (triggerCallDataExtraction) {
       switch (flag()) {
         case PRC_ECRECOVER -> firstMmuCall =
             MmuCall.callDataExtractionForEcrecover(hub, this, successBitMmuCall);
@@ -210,7 +239,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
           }
         }
         case PRC_ECADD -> {
-          if (nonemptyCallData) {
+          if (triggerCallDataExtraction) {
             secondMmuCall = MmuCall.fullTransferOfReturnDataForEcadd(hub, this, successBitMmuCall);
           }
           if (callerMayReceiveReturnData) {
@@ -218,7 +247,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
           }
         }
         case PRC_ECMUL -> {
-          if (nonemptyCallData) {
+          if (triggerCallDataExtraction) {
             secondMmuCall = MmuCall.fullReturnDataTransferForEcmul(hub, this, successBitMmuCall);
           }
           if (callerMayReceiveReturnData) {

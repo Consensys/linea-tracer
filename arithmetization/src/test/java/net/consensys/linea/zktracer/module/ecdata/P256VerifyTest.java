@@ -114,6 +114,7 @@ public class P256VerifyTest extends TracerTestBase {
 
   private static Stream<Arguments> p256VerifySourceNightly() throws IOException {
     // Read json
+    // Test vector comes from https://eips.ethereum.org/assets/eip-7951/test-vectors.json
     InputStream inputStream =
         P256VerifyTest.class.getResourceAsStream("/p256_verify_test_vectors.json");
     ObjectMapper mapper = new ObjectMapper();

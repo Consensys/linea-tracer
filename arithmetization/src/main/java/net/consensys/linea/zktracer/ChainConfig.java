@@ -42,10 +42,14 @@ public class ChainConfig {
   public static final int DEVNET_CHAIN_ID = 59139;
 
   public static ChainConfig MAINNET_TESTCONFIG(final Fork fork) {
+    return MAINNET_TESTCONFIG(fork,true);
+  }
+
+  public static final ChainConfig MAINNET_TESTCONFIG(final Fork fork, final boolean gasLimitEnabled) {
     return new ChainConfig(
         fork,
         LINEA_CHAIN_ID,
-        true,
+        gasLimitEnabled,
         BigInteger.valueOf(LINEA_GAS_LIMIT_MINIMUM),
         BigInteger.valueOf(LINEA_GAS_LIMIT_MAXIMUM),
         LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT);

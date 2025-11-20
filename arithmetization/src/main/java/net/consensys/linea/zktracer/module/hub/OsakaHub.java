@@ -18,29 +18,14 @@ package net.consensys.linea.zktracer.module.hub;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.container.module.IncrementAndDetectModule;
-import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.*;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.txndata.osaka.OsakaTxnData;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.datatypes.Hash;
 
 public class OsakaHub extends PragueHub {
   public OsakaHub(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
     super(chain, historicalBlockHashes);
-  }
-
-  @Override
-  public OsakaBlakeModexpData setBlakeModexp(
-      Wcp wcp,
-      IncrementAndDetectModule modexpEffectiveCall,
-      IncrementingModule modexpLargeCall,
-      IncrementingModule blakeEffectiveCall,
-      BlakeRounds blakeRounds) {
-    return new OsakaBlakeModexpData(
-        wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
   }
 
   @Override

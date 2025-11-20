@@ -24,10 +24,7 @@ import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
-import net.consensys.linea.zktracer.container.module.IncrementAndDetectModule;
-import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.LondonBlakeModexpData;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.LondonBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
@@ -37,7 +34,6 @@ import net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.LondonS
 import net.consensys.linea.zktracer.module.hub.section.skip.LondonTxSkipSection;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.LondonInitializationSection;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.mxp.module.LondonMxp;
 import net.consensys.linea.zktracer.module.mxp.module.Mxp;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
@@ -58,17 +54,6 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 public class LondonHub extends Hub {
   public LondonHub(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
     super(chain, historicalBlockHashes);
-  }
-
-  @Override
-  public LondonBlakeModexpData setBlakeModexp(
-      Wcp wcp,
-      IncrementAndDetectModule modexpEffectiveCall,
-      IncrementingModule modexpLargeCall,
-      IncrementingModule blakeEffectiveCall,
-      BlakeRounds blakeRounds) {
-    return new LondonBlakeModexpData(
-        wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
   }
 
   @Override

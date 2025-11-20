@@ -35,7 +35,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class BlakeModexpData implements OperationListModule<BlakeModexpDataOperation> {
+public class BlakeModexpData implements OperationListModule<BlakeModexpDataOperation> {
   private final Wcp wcp;
   private final IncrementAndDetectModule modexpEffectiveCall;
   private final IncrementingModule modexpLargeCall;

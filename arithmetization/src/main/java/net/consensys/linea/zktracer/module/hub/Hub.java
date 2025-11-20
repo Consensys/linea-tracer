@@ -344,14 +344,8 @@ public abstract class Hub implements Module {
 
   @Getter
   private final BlakeModexpData blakeModexpData =
-      setBlakeModexp(wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
-
-  public abstract BlakeModexpData setBlakeModexp(
-      Wcp wcp,
-      IncrementAndDetectModule modexpEffectiveCall,
-      IncrementingModule modexpLargeCall,
-      IncrementingModule blakeEffectiveCall,
-      BlakeRounds blakeRounds);
+      new BlakeModexpData(
+          wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
 
   public final EcData ecData =
       new EcData(

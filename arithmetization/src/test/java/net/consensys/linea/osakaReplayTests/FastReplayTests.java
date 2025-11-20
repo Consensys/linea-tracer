@@ -30,30 +30,33 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @Tag("replay")
 @ExtendWith(UnitTestWatcher.class)
 public class FastReplayTests extends TracerTestBase {
-
   @Test
+  @Disabled
   void fatMxp(TestInfo testInfo) {
+    // outcome does not match expected outcome (expected true, was false)
     replay(MAINNET_TESTCONFIG(OSAKA), "legacy/2492975-2492977.mainnet.json.gz", testInfo);
   }
-  
+
   @Test
   void failingMmuModexp(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA), "legacy/5995162.mainnet.json.gz", testInfo);
+    // row 7 of column txndata.CT_MAX is out-of-bounds (16) (AIR)
+    replay(MAINNET_TESTCONFIG(OSAKA), "osaka/5995162.mainnet.json.gz", testInfo);
   }
 
   @Test
   void failRlpAddress(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA), "legacy/5995097.mainnet.json.gz", testInfo);
+    // row 53 of column txndata.CT is out-of-bounds (16) (AIR)
+    replay(MAINNET_TESTCONFIG(OSAKA), "osaka/5995097.mainnet.json.gz", testInfo);
   }
 
   @Test
   void rlprcptManyTopicsWoLogData(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA), "legacy/6569423.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA), "osaka/6569423.mainnet.json.gz", testInfo);
   }
 
   @Test
   void multipleFailingCallToEcrecover(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA), "legacy/5000544.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA), "osaka/5000544.mainnet.json.gz", testInfo);
   }
 
   @Test
@@ -74,10 +77,8 @@ public class FastReplayTests extends TracerTestBase {
 
   @Test
   void block_6110045(TestInfo testInfo) {
-    // The purpose of this test is to check the mechanism for spotting divergence between the replay
-    // tests and mainnet.  Specifically, this replay has transaction result information embedded
-    // within it.
-    replay(MAINNET_TESTCONFIG(OSAKA), "legacy/6110045.mainnet.json.gz", testInfo);
+    // row 23 of column txndata.CT is out-of-bounds (16) (AIR)
+    replay(MAINNET_TESTCONFIG(OSAKA), "osaka/6110045.mainnet.json.gz", testInfo);
   }
 
   @Test

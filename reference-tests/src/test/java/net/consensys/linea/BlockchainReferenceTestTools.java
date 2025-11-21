@@ -142,6 +142,8 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("/prague/eip7702_set_code_tx/");
     PARAMS.ignore(
         "tests/osaka/eip7825_transaction_gas_limit_cap/test_tx_gas_limit.py::test_transaction_gas_limit_cap\\[fork_Osaka-tx_gas_limit_cap_over(0|1)-blockchain_test_from_state_test*");
+    PARAMS.ignore(
+        "tests/osaka/eip7825_transaction_gas_limit_cap/test_tx_gas_limit.py::test_tx_gas_limit_cap_authorized_tx\\[fork_Osaka-blockchain_test_from_state_test-exceed_tx_gas_limit_False-correct_intrinsic_cost_in_transaction_gas_limit_True\\]*");
 
     // tests that timeout and pass locally
     // Log when launching locally

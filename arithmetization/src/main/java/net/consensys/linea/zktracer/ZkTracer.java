@@ -17,7 +17,10 @@ package net.consensys.linea.zktracer;
 import static net.consensys.linea.zktracer.ChainConfig.FORK_LINEA_CHAIN;
 import static net.consensys.linea.zktracer.Fork.getTraceFromFork;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.zip.GZIPOutputStream;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +40,7 @@ import net.consensys.linea.zktracer.module.DebugMode;
 import net.consensys.linea.zktracer.module.hub.*;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.FiniteList;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -137,12 +142,32 @@ public class ZkTracer implements LineCountingTracer {
     try {
       // Construct (in memory) trace file
       byte[] bytes = LtTraceFile.toBytes(metadata, trace, modulesToTrace);
+      // Compress file (if requested)
+      if(FilenameUtils.getExtension(filename.toString()).equals("gz")) {
+        bytes = compressGzip(bytes);
+      }
       // Write contents to disk
       Files.write(filename, bytes);
     } catch (IOException e) {
       log.error("Error while writing file {}", filename);
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Compress a given byte array using GZip compression.
+   *
+   * @param bytes
+   * @return
+   * @throws IOException
+   */
+  private byte[] compressGzip(byte[] bytes) throws IOException {
+    ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+    try(GZIPOutputStream gzOut = new GZIPOutputStream(bOut)) {
+      gzOut.write(bytes);
+      gzOut.flush();
+    }
+    return bOut.toByteArray();
   }
 
   /**

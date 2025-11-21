@@ -24,7 +24,6 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import net.consensys.linea.zktracer.container.module.Module;
-import org.jetbrains.annotations.TestOnly;
 
 /** Provides a basic API for writing an LT trace file. */
 public class LtTraceFile {
@@ -52,11 +51,11 @@ public class LtTraceFile {
     @Override
     public void write(long value) {
       // Sanity check
-      if(longMax <= value) {
+      if (longMax <= value) {
         throw new IllegalArgumentException(name + " has invalid value (" + value + ")");
       }
       //
-      switch(byteWidth) {
+      switch (byteWidth) {
         case 8:
           this.buffer.put((byte) (value >> 56));
         case 7:
@@ -83,15 +82,15 @@ public class LtTraceFile {
     public void write(byte[] bytes) {
       final int n = bitLengthOf(bytes);
       // Sanity check
-      if(n > bitWidth) {
+      if (n > bitWidth) {
         throw new IllegalArgumentException(name + " has invalid width (" + n + " bits)");
       }
       // Write padding (if necessary)
-      for(int i=bytes.length;i < byteWidth; i++) {
+      for (int i = bytes.length; i < byteWidth; i++) {
         buffer.put((byte) 0);
       }
       // Write data
-      for(int i=0;i!=bytes.length;i++) {
+      for (int i = 0; i != bytes.length; i++) {
         buffer.put(bytes[i]);
       }
     }
@@ -128,8 +127,8 @@ public class LtTraceFile {
     bout.writeBytes(getHeaderBytes(getMetadataBytes(metadata)));
     bout.writeBytes(getColumnHeaderBytes(headers));
     // Write column data
-    for(int i = 0;i!=columns.length; i++) {
-      if(columns[i] != null) {
+    for (int i = 0; i != columns.length; i++) {
+      if (columns[i] != null) {
         bout.writeBytes(columns[i].buffer.array());
       }
     }
@@ -171,7 +170,7 @@ public class LtTraceFile {
   private static Column[] initialiseTraceColumns(Trace trace, Trace.ColumnHeader[] headers) {
     final Column[] columns = new Column[headers.length];
 
-    for (int i = 0; i < headers.length;i++) {
+    for (int i = 0; i < headers.length; i++) {
       Trace.ColumnHeader header = headers[i];
       if (header != null) {
         columns[i] = new Column(header.name(), header.bitwidth(), header.length());
@@ -265,8 +264,8 @@ public class LtTraceFile {
   }
 
   /**
-   * Convert a given bitwidth into a bytewidth.  For example, a bitwidth of 1 becomes a bytewidth of 1 whilst a
-   * bitwidth of 9 becomes a bytewidth of 2, etc.
+   * Convert a given bitwidth into a bytewidth. For example, a bitwidth of 1 becomes a bytewidth of
+   * 1 whilst a bitwidth of 9 becomes a bytewidth of 2, etc.
    *
    * @param bitwidth
    * @return
@@ -274,7 +273,7 @@ public class LtTraceFile {
   private static int byteWidth(int bitwidth) {
     int byteWidth = bitwidth / 8;
     //
-    if((bitwidth % 8) != 0) {
+    if ((bitwidth % 8) != 0) {
       byteWidth++;
     }
     //
@@ -284,11 +283,11 @@ public class LtTraceFile {
   public static int bitLengthOf(byte[] bytes) {
     int n = 0;
     // Skip forward
-    while(n < bytes.length && bytes[n] == 0) {
+    while (n < bytes.length && bytes[n] == 0) {
       n++;
     }
     // Determine width
-    if(n == bytes.length) {
+    if (n == bytes.length) {
       return 0;
     } else {
       // n > 0
@@ -301,12 +300,12 @@ public class LtTraceFile {
     // Convert into unsigned representation
     int val = b & 0xff;
     // NOTE: we could further improve performance by turning this into one big lookup table.
-    if(val >= 16) {
-      return bits[val>>4] + 4;
+    if (val >= 16) {
+      return bits[val >> 4] + 4;
     } else {
       return bits[val];
     }
   }
 
-  private static final int[] bits = { 0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4 };
+  private static final int[] bits = {0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4};
 }

@@ -29,7 +29,7 @@ public class TracesEndpointCliOptions implements LineaCliOptions {
   static final String CACHING = "--plugin-linea-rpc-caching";
 
   static final String CONFLATED_TRACE_GENERATION_TRACE_COMPRESSION =
-    "--plugin-linea-conflated-trace-generation-trace-compression";
+      "--plugin-linea-conflated-trace-generation-trace-compression";
 
   @CommandLine.Option(
       required = true,

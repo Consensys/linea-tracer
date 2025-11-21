@@ -18,9 +18,7 @@ import static net.consensys.linea.zktracer.ChainConfig.FORK_LINEA_CHAIN;
 import static net.consensys.linea.zktracer.Fork.getTraceFromFork;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -143,7 +141,7 @@ public class ZkTracer implements LineCountingTracer {
       // Construct (in memory) trace file
       byte[] bytes = LtTraceFile.toBytes(metadata, trace, modulesToTrace);
       // Compress file (if requested)
-      if(FilenameUtils.getExtension(filename.toString()).equals("gz")) {
+      if (FilenameUtils.getExtension(filename.toString()).equals("gz")) {
         bytes = compressGzip(bytes);
       }
       // Write contents to disk
@@ -163,7 +161,7 @@ public class ZkTracer implements LineCountingTracer {
    */
   private byte[] compressGzip(byte[] bytes) throws IOException {
     ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-    try(GZIPOutputStream gzOut = new GZIPOutputStream(bOut)) {
+    try (GZIPOutputStream gzOut = new GZIPOutputStream(bOut)) {
       gzOut.write(bytes);
       gzOut.flush();
     }

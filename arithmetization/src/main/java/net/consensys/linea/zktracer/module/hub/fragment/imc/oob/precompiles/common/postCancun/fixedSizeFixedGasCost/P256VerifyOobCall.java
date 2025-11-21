@@ -56,4 +56,9 @@ public class P256VerifyOobCall extends FixedSizeFixedGasCostOobCall {
   public boolean getCdxFilter() {
     return getCds().toInt() == PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY;
   }
+
+  @Override
+  boolean hubSuccess(boolean sufficientGas, boolean validCds) {
+    return sufficientGas;
+  }
 }

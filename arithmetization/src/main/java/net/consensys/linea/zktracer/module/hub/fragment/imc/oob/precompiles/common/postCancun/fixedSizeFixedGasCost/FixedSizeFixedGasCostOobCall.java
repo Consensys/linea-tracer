@@ -54,7 +54,7 @@ public abstract class FixedSizeFixedGasCostOobCall extends CommonPrecompileOobCa
     final boolean sufficientGas = !bytesToBoolean(insufficientGasCall.result());
 
     // Set hubSuccess
-    final boolean hubSuccess = validCds && sufficientGas;
+    final boolean hubSuccess = hubSuccess(sufficientGas, validCds);
     setHubSuccess(hubSuccess);
 
     // Set returnGas
@@ -65,5 +65,9 @@ public abstract class FixedSizeFixedGasCostOobCall extends CommonPrecompileOobCa
                 .subtract(BigInteger.valueOf(precompileLongCost()))
             : BigInteger.ZERO;
     setReturnGas(returnGas);
+  }
+
+  boolean hubSuccess(boolean sufficientGas, boolean validCds) {
+    return sufficientGas && validCds;
   }
 }

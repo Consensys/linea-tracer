@@ -795,6 +795,8 @@ public class EcDataOperation extends ModuleOperation {
           .isEcpairingData(precompileFlag == PRC_ECPAIRING && isData)
           .isEcpairingResult(precompileFlag == PRC_ECPAIRING && !isData);
       if (precompileFlag == PRC_P256_VERIFY) {
+        // this is safe: fillAndValidate row fills these automatically when the precompile
+        // isn't P256_VERIFY
         trace.isP256VerifyData(isData).isP256VerifyResult(!isData);
       }
       trace
@@ -842,7 +844,7 @@ public class EcDataOperation extends ModuleOperation {
           .extResHi(extResHi.get(i))
           .extResLo(extResLo.get(i))
           .extInst(extInst.get(i).unsignedByteValue())
-          .validateRow();
+          .fillAndValidateRow();
 
       // Update ct, isSmallPoint, isLargePoint
       if (precompileFlag == PRC_ECPAIRING && isData) {

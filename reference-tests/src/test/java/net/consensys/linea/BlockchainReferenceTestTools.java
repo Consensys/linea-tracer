@@ -60,20 +60,11 @@ import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseS
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.rlp.RLPException;
 import org.hyperledger.besu.ethereum.trie.pathbased.common.provider.WorldStateQueryParams;
-import org.hyperledger.besu.evm.precompile.KZGPointEvalPrecompiledContract;
 import org.hyperledger.besu.testutil.JsonTestParameters;
 import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeAll;
 
 @Slf4j
 public class BlockchainReferenceTestTools {
-
-  @BeforeAll
-  static void setup() {
-    // Initialize KZG native library before running tests
-    KZGPointEvalPrecompiledContract.init();
-  }
-
   // Keep the forkName and the zkevm_fork in github worklow in PascalCase
   private static final Fork fork = getForkOrDefault(OSAKA);
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
@@ -458,8 +449,7 @@ public class BlockchainReferenceTestTools {
     if (forkPredatesAmsterdam(fork)) {
       // EIP-7610 is proposed for Amsterdam (and will be supported by Linea) but previous fork
       // contains EIP-7610 in BlockchainReferenceTest_42 ...
-      PARAMS.ignore(
-          "paris/eip7610_create_collision/test_init_collision.py::test_init_collision_create_tx*");
+      PARAMS.ignore("tests/paris/eip7610_*");
     }
   }
 

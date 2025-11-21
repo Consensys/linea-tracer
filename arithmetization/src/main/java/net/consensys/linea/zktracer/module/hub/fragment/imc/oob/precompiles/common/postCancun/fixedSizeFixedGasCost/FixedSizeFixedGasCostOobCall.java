@@ -68,6 +68,6 @@ public abstract class FixedSizeFixedGasCostOobCall extends CommonPrecompileOobCa
   }
 
   boolean hubSuccess(boolean sufficientGas, boolean validCds) {
-      return sufficientGas && validCds;
+    return sufficientGas && validCds;
   }
 }

@@ -17,8 +17,8 @@ package net.consensys.linea.zktracer.module.oob;
 
 import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Math.min;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.BASE_MIN_OFFSET;
-import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.EBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
@@ -56,8 +56,8 @@ public class OobOperation extends ModuleOperation {
 
   // Support method for MODEXP
   public static int computeExponentLog(ModexpMetadata metadata, int cds) {
-    final int bbs = metadata.bbsInt();
-    final int ebs = metadata.ebsInt();
+    final short bbs = metadata.normalizedBbsInt();
+    final short ebs = metadata.normalizedEbsInt();
     return computeExponentLog(metadata, cds, bbs, ebs);
   }
 
@@ -78,18 +78,16 @@ public class OobOperation extends ModuleOperation {
             : callData;
 
     final BigInteger leadingBytesOfExponent =
-        paddedCallData
-            .slice(BASE_MIN_OFFSET + bbs, min(ebs, EBS_MIN_OFFSET))
-            .toUnsignedBigInteger();
+        paddedCallData.slice(BASE_MIN_OFFSET + bbs, min(ebs, WORD_SIZE)).toUnsignedBigInteger();
 
-    if (ebs <= EBS_MIN_OFFSET && leadingBytesOfExponent.signum() == 0) {
+    if (ebs <= WORD_SIZE && leadingBytesOfExponent.signum() == 0) {
       return 0;
-    } else if (ebs <= EBS_MIN_OFFSET && leadingBytesOfExponent.signum() != 0) {
+    } else if (ebs <= WORD_SIZE && leadingBytesOfExponent.signum() != 0) {
       return log2(leadingBytesOfExponent, RoundingMode.FLOOR);
-    } else if (ebs > EBS_MIN_OFFSET && leadingBytesOfExponent.signum() != 0) {
-      return multiplier * (ebs - EBS_MIN_OFFSET) + log2(leadingBytesOfExponent, RoundingMode.FLOOR);
+    } else if (ebs > WORD_SIZE && leadingBytesOfExponent.signum() != 0) {
+      return multiplier * (ebs - WORD_SIZE) + log2(leadingBytesOfExponent, RoundingMode.FLOOR);
     } else {
-      return multiplier * (ebs - EBS_MIN_OFFSET);
+      return multiplier * (ebs - WORD_SIZE);
     }
   }
 

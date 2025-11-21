@@ -334,6 +334,7 @@ public abstract class Hub implements Module {
         blsC2MembershipCalls,
         blsG1MembershipCalls,
         blsG2MembershipCalls,
+        p256VerifyEffectiveCalls,
         l1BlockSize,
         l2L1Logs);
   }

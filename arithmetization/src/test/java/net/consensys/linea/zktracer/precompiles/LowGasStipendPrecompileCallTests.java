@@ -19,6 +19,8 @@ import static net.consensys.linea.testing.BytecodeRunner.MAX_GAS_LIMIT;
 import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.oob.OobOperation.computeExponentLog;
+import static net.consensys.linea.zktracer.precompiles.LowGasStipendPrecompileCallTests.GasCase.COST;
+import static net.consensys.linea.zktracer.precompiles.LowGasStipendPrecompileCallTests.GasCase.COST_MINUS_ONE;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.generateModexpInput;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getExpectedReturnAtCapacity;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getPrecompileCost;
@@ -40,7 +42,6 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -99,9 +100,10 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
    * @param modexpCostGT200OrBlake2fRoundsGT0 flag indicating if the MODEXP cost is greater than 200
    *     or if the BLAKE2F rounds are greater than 0. It is ignored for other precompile contracts.
    */
-  @Tag("nightly")
+  // @Tag("nightly")
   @ParameterizedTest
-  @MethodSource("lowGasStipendPrecompileCallTestSource")
+  // @MethodSource("lowGasStipendPrecompileCallTestSource")
+  @MethodSource("lowGasStipendPrecompileCallP256TestSource")
   void lowGasStipendPrecompileCallTest(
       Address precompileAddress,
       ValueCase valueCase,
@@ -178,9 +180,7 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
     // and the case of BLS12_G2ADD as it has a fixed gas cost of 600 < 2300.
     // TODO: are there other cases to exclude?
     if (valueCase.isNonZeroCase()
-        && (gasCase == GasCase.COST_MINUS_ONE
-            || gasCase == GasCase.COST
-            || gasCase == GasCase.COST_PLUS_ONE)
+        && (gasCase == COST_MINUS_ONE || gasCase == COST || gasCase == GasCase.COST_PLUS_ONE)
         && !precompileAddress.equals(ALTBN128_ADD)
         && !precompileAddress.equals(BLS12_G1ADD)
         && !precompileAddress.equals(BLS12_G2ADD)
@@ -205,6 +205,38 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
         precompileAddress == MODEXP ? additionalAccounts : List.of(),
         chainConfig,
         testInfo);
+  }
+
+  static Stream<Arguments> lowGasStipendPrecompileCallP256TestSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (GasCase gasCase : GasCase.values()) {
+      for (ValueCase valueCase : ValueCase.values()) {
+        arguments.add(Arguments.of(P256_VERIFY, valueCase, gasCase, 0, false));
+        arguments.add(Arguments.of(P256_VERIFY, valueCase, gasCase, 1, false));
+        arguments.add(
+            Arguments.of(
+                P256_VERIFY,
+                valueCase,
+                gasCase,
+                PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY - 1,
+                false));
+        arguments.add(
+            Arguments.of(
+                P256_VERIFY, valueCase, gasCase, PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY, false));
+        arguments.add(
+            Arguments.of(
+                P256_VERIFY,
+                valueCase,
+                gasCase,
+                PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY + 1,
+                false));
+        arguments.add(Arguments.of(P256_VERIFY, valueCase, gasCase, Integer.MAX_VALUE, false));
+      }
+    }
+    arguments.clear();
+    arguments.add(Arguments.of(P256_VERIFY, ValueCase.ZERO, COST_MINUS_ONE, 160, false));
+    arguments.add(Arguments.of(BLS12_G1ADD, ValueCase.ZERO, COST, 13, false));
+    return arguments.stream();
   }
 
   static Stream<Arguments> lowGasStipendPrecompileCallTestSource() {

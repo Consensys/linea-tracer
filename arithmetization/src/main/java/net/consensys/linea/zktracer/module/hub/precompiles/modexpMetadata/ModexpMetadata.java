@@ -66,7 +66,7 @@ public abstract class ModexpMetadata {
   public short normalizedBbsInt() {
     final short result = bytesToShort(normalizedBbs());
     checkArgument(
-        ((0 <= result) && result <= getMaxInputSize()), "Normalized EBS out of bounds: " + result);
+        ((0 <= result) && result <= getMaxInputSize()), "Normalized BBS out of bounds: " + result);
     return result;
   }
 

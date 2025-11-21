@@ -35,8 +35,8 @@ public enum Fork {
   SHANGHAI(EVM_SHANGHAI),
   CANCUN(EVM_CANCUN),
   PRAGUE(EVM_PRAGUE),
-  OSAKA(EVM_OSAKA), // not yet live on L1
-  AMSTERDAM(0x16) // for Q? 2026
+  OSAKA(EVM_OSAKA), // live on L1 2025/12/03
+  AMSTERDAM(EVM_AMSTERDAM) // for Q? 2026
 ;
   private final int releaseNumber;
 

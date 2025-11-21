@@ -66,7 +66,6 @@ public abstract class ModexpPricingOobCall extends OobCall {
 
     final int cds = clampedToInt(frame.getStackItem(opCode.callCdsStackIndex()));
     setExponentLog(BigInteger.valueOf(computeExponentLog(metadata, cds)));
-    final int bla = computeExponentLog(metadata, cds);
   }
 
   @Override

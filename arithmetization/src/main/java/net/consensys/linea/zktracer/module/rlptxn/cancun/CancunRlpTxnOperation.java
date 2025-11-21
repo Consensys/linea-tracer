@@ -106,7 +106,6 @@ public class CancunRlpTxnOperation extends RlpTxnOperation {
 
   @Override
   protected int computeLineCount() {
-    final int output = phaseSectionList.stream().mapToInt(PhaseSection::lineCount).sum();
-    return output;
+    return phaseSectionList.stream().mapToInt(PhaseSection::lineCount).sum();
   }
 }

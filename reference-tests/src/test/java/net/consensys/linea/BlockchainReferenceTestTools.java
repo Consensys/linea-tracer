@@ -91,9 +91,9 @@ public class BlockchainReferenceTestTools {
      */
 
     if (isPostPrague(fork)) {
-      PARAMS.ignore("/prague/eip7702_set_code_tx/");
 
       // ignore for v5.0 Osaka v1 release : type 3 and 4 transactions
+      PARAMS.ignore("/prague/eip7702_set_code_tx/");
       PARAMS.ignore("/cancun/eip4844_blobs/");
       PARAMS.ignore("/Cancun/stEIP4844_blobtransactions");
       PARAMS.ignore("/prague/eip6110_deposits/");
@@ -123,8 +123,6 @@ public class BlockchainReferenceTestTools {
           "/prague/eip7623_increase_calldata_cost/test_refunds.py::test_gas_refunds_from_data_floor\\[fork_Prague-blockchain_test_from_state_test-refund_type_RefundType.AUTHORIZATION_EXISTING_AUTHORITY-refund_test_type_RefundTestType.EXECUTION_GAS_MINUS_REFUND*");
       PARAMS.ignore(
           "/prague/eip7623_increase_calldata_cost/test_refunds.py::test_gas_refunds_from_data_floor\\[fork_Prague-blockchain_test_from_state_test-refund_type_RefundType.STORAGE_CLEAR|AUTHORIZATION_EXISTING_AUTHORITY-refund_test_type_RefundTestType.EXECUTION_GAS_MINUS_REFUND*");
-      PARAMS.ignore(
-          "/cancun/eip4788_beacon_root/test_beacon_root_contract.py::test_tx_to_beacon_root_contract");
       // note : called none0 and none1 but are txs of type 4 and 3 respectively
       PARAMS.ignore(
           "/osaka/eip7825_transaction_gas_limit_cap/test_tx_gas_limit.py::test_transaction_gas_limit_cap\\[fork_Prague-tx_gas_limit_cap_none0-blockchain_test_from_state_test\\]");
@@ -161,9 +159,6 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignore("shanghai/eip4895_withdrawals/test_withdrawals.py::test_balance_within_block");
       PARAMS.ignore("shanghai/eip4895_withdrawals/test_withdrawals.py::test_use_value_in_contract");
 
-      // Arithmetization restriction: recipient address is a precompile
-      PARAMS.ignore(
-          "osaka/eip7883_modexp_gas_increase/test_modexp_thresholds.py::test_modexp_used_in_transaction_entry_points");
       /*
        * Tests ignored below regroup tests from different forks. They are labelled from the ethereum/execution-spec-tests from Prague and on
        */
@@ -182,6 +177,8 @@ public class BlockchainReferenceTestTools {
           "dynamicAccountOverwriteEmpty_Paris\\[fork_Prague-blockchain_test_from_state_test-\\]");
 
       // Arithmetization restriction: recipient address is a precompile.
+      PARAMS.ignore(
+          "osaka/eip7883_modexp_gas_increase/test_modexp_thresholds.py::test_modexp_used_in_transaction_entry_points");
       // From the ethereum/execution-spec-tests repo
       PARAMS.ignore("modexpRandomInput\\[fork_Prague-blockchain_test_from_state_test-d0-g0\\]");
       PARAMS.ignore("modexpRandomInput\\[fork_Prague-blockchain_test_from_state_test-d0-g1\\]");

@@ -83,6 +83,8 @@ public class PrecompileUtils extends TracerTestBase {
       return getBlsMapFpToG1Cost();
     } else if (precompileAddress.equals(BLS12_MAP_FP2_TO_G2)) {
       return getBlsMapFp2ToG2Cost();
+    } else if (precompileAddress.equals(P256_VERIFY)) {
+      return getP256VerifyCost();
     } else {
       throw new IllegalArgumentException("Unknown precompile address");
     }
@@ -174,6 +176,10 @@ public class PrecompileUtils extends TracerTestBase {
 
   public static int getBlsMapFp2ToG2Cost() {
     return GAS_CONST_BLS_MAP_FP2_TO_G2;
+  }
+
+  public static int getP256VerifyCost() {
+    return GAS_CONST_P256_VERIFY;
   }
 
   // Methods to prepare inputs for certain precompiles

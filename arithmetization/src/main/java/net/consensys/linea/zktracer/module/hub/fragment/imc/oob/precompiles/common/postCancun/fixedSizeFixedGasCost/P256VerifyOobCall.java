@@ -51,4 +51,9 @@ public class P256VerifyOobCall extends FixedSizeFixedGasCostOobCall {
   public int ctMax() {
     return CT_MAX_P256_VERIFY;
   }
+
+  @Override
+  public boolean getCdxFilter() {
+    return getCds().toInt() == PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY;
+  }
 }

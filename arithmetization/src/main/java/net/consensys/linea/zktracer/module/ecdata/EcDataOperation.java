@@ -63,6 +63,7 @@ import static net.consensys.linea.zktracer.TraceOsaka.Ecdata.TOTAL_SIZE_P256_VER
 import static net.consensys.linea.zktracer.module.Util.rightPaddedSlice;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import static net.consensys.linea.zktracer.types.EWord.ZERO;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
@@ -720,7 +721,7 @@ public class EcDataOperation extends ModuleOperation {
     // Set success bit and output limb
     successBit = returnData.toArray().length == TOTAL_SIZE_P256_VERIFY_RESULT;
     limb.set(10, Bytes.EMPTY);
-    limb.set(11, successBit ? returnData.slice(16, 16) : Bytes.EMPTY);
+    limb.set(11, booleanToBytes(successBit));
   }
 
   void trace(Trace.Ecdata trace, final int stamp, final long previousId) {

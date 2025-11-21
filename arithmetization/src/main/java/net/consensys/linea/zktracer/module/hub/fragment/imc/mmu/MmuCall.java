@@ -33,7 +33,6 @@ import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -146,15 +145,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
   }
 
   final MmuCall setEllipticCurveModule(PrecompileScenarioFragment.PrecompileFlag flag) {
-    Preconditions.checkArgument(
-        flag.isEcdataPrecompile() || flag.isBlsPrecompile(),
-        "Unexpected precompile flag %s for elliptic curve module",
-        flag);
-    if (flag.isEcdataPrecompile()) {
-      return setEcData();
-    } else {
-      return setBlsData();
-    }
+    return flag.isEcdataPrecompile() ? setEcData() : setBlsData();
   }
 
   public MmuCall(final Hub hub, final int instruction) {
@@ -590,19 +581,18 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
   public static MmuCall callDataExtractionForPostCancunPrecompiles(
       Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
     final int precompileContextNumber = subsection.exoModuleOperationId();
-    MmuCall mmuCall =
-        new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING) // Note: there will be no padding
-            .sourceId(hub.currentFrame().contextNumber())
-            .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
-            .targetId(precompileContextNumber)
-            .exoBytes(Optional.of(subsection.extractCallData()))
-            .sourceOffset(EWord.of(subsection.callDataOffset()))
-            .size(subsection.callDataSize())
-            .referenceSize(subsection.callDataSize())
-            // constant
-            .successBit(successBit)
-            .phase(subsection.flag().dataPhase());
-    return mmuCall.setEllipticCurveModule(subsection.flag());
+    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING) // Note: there will be no padding
+        .sourceId(hub.currentFrame().contextNumber())
+        .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
+        .targetId(precompileContextNumber)
+        .exoBytes(Optional.of(subsection.extractCallData()))
+        .sourceOffset(EWord.of(subsection.callDataOffset()))
+        .size(subsection.callDataSize())
+        .referenceSize(subsection.callDataSize())
+        // constant
+        .successBit(successBit)
+        .phase(subsection.flag().dataPhase())
+        .setEllipticCurveModule(subsection.flag());
   }
 
   public static MmuCall fullReturnDataTransferForPostCancunPrecompiles(
@@ -617,17 +607,15 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         subsection.returnDataRange.getRange().size() == expectedReturnDataSize,
         "The return data size for post-cancun precompile does not match our expectation of it");
 
-    MmuCall mmuCall =
-        new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-            .sourceId(precompileContextNumber)
-            .exoBytes(Optional.of(subsection.returnDataRange.extract()))
-            .targetId(precompileContextNumber)
-            .targetRamBytes(Optional.of(Bytes.EMPTY))
-            .size(expectedReturnDataSize)
-            .phase(subsection.flag().resultPhase())
-            .successBit(successBit);
-
-    return mmuCall.setEllipticCurveModule(subsection.flag());
+    return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+        .sourceId(precompileContextNumber)
+        .exoBytes(Optional.of(subsection.returnDataRange.extract()))
+        .targetId(precompileContextNumber)
+        .targetRamBytes(Optional.of(Bytes.EMPTY))
+        .size(expectedReturnDataSize)
+        .phase(subsection.flag().resultPhase())
+        .successBit(successBit)
+        .setEllipticCurveModule(subsection.flag());
   }
 
   public static MmuCall partialCopyOfReturnDataForPostCancunPrecompiles(
@@ -635,17 +623,15 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     final int returnDataSize = (int) subsection.returnDataRange.getRange().size();
 
-    MmuCall mmuCall =
-        new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
-            .sourceId(precompileContextNumber)
-            .sourceRamBytes(Optional.of(subsection.returnDataRange.extract()))
-            .targetId(hub.currentFrame().contextNumber())
-            .targetRamBytes(Optional.of(subsection.rawCallerMemory()))
-            .size(returnDataSize)
-            .referenceOffset(subsection.returnAtOffset())
-            .referenceSize(subsection.returnAtCapacity());
-
-    return mmuCall.setEllipticCurveModule(subsection.flag());
+    return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
+        .sourceId(precompileContextNumber)
+        .sourceRamBytes(Optional.of(subsection.returnDataRange.extract()))
+        .targetId(hub.currentFrame().contextNumber())
+        .targetRamBytes(Optional.of(subsection.rawCallerMemory()))
+        .size(returnDataSize)
+        .referenceOffset(subsection.returnAtOffset())
+        .referenceSize(subsection.returnAtCapacity())
+        .setEllipticCurveModule(subsection.flag());
   }
 
   /**

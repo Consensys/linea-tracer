@@ -25,23 +25,7 @@ import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getPrecom
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareBlake2F;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareSha256Ripemd160Id;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.writeInMemoryByteCodeOfCodeOwner;
-import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
-import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
-import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
-import static org.hyperledger.besu.datatypes.Address.BLAKE2B_F_COMPRESSION;
-import static org.hyperledger.besu.datatypes.Address.BLS12_G1ADD;
-import static org.hyperledger.besu.datatypes.Address.BLS12_G1MULTIEXP;
-import static org.hyperledger.besu.datatypes.Address.BLS12_G2ADD;
-import static org.hyperledger.besu.datatypes.Address.BLS12_G2MULTIEXP;
-import static org.hyperledger.besu.datatypes.Address.BLS12_MAP_FP2_TO_G2;
-import static org.hyperledger.besu.datatypes.Address.BLS12_MAP_FP_TO_G1;
-import static org.hyperledger.besu.datatypes.Address.BLS12_PAIRING;
-import static org.hyperledger.besu.datatypes.Address.ECREC;
-import static org.hyperledger.besu.datatypes.Address.ID;
-import static org.hyperledger.besu.datatypes.Address.KZG_POINT_EVAL;
-import static org.hyperledger.besu.datatypes.Address.MODEXP;
-import static org.hyperledger.besu.datatypes.Address.RIPEMD160;
-import static org.hyperledger.besu.datatypes.Address.SHA256;
+import static org.hyperledger.besu.datatypes.Address.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -307,6 +291,26 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
                   numberOfUnits * PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G2_MSM,
                   false));
         }
+        arguments.add(Arguments.of(P256_VERIFY, valueCase, gasCase, 0, false));
+        arguments.add(Arguments.of(P256_VERIFY, valueCase, gasCase, 1, false));
+        arguments.add(
+            Arguments.of(
+                P256_VERIFY,
+                valueCase,
+                gasCase,
+                PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY - 1,
+                false));
+        arguments.add(
+            Arguments.of(
+                P256_VERIFY, valueCase, gasCase, PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY, false));
+        arguments.add(
+            Arguments.of(
+                P256_VERIFY,
+                valueCase,
+                gasCase,
+                PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY + 1,
+                false));
+        arguments.add(Arguments.of(P256_VERIFY, valueCase, gasCase, Integer.MAX_VALUE, false));
       }
       // The NON_ZERO for MODEXP case will be treated in a separate test
       // callDataSize is defined internally

@@ -19,6 +19,8 @@ import static net.consensys.linea.testing.BytecodeRunner.MAX_GAS_LIMIT;
 import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.oob.OobOperation.computeExponentLog;
+import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
+import static net.consensys.linea.zktracer.opcode.OpCode.JUMPDEST;
 import static net.consensys.linea.zktracer.precompiles.LowGasStipendPrecompileCallTests.GasCase.COST;
 import static net.consensys.linea.zktracer.precompiles.LowGasStipendPrecompileCallTests.GasCase.COST_MINUS_ONE;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.generateModexpInput;
@@ -38,10 +40,10 @@ import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -100,9 +102,9 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
    * @param modexpCostGT200OrBlake2fRoundsGT0 flag indicating if the MODEXP cost is greater than 200
    *     or if the BLAKE2F rounds are greater than 0. It is ignored for other precompile contracts.
    */
-  // @Tag("nightly")
+  @Tag("nightly")
   @ParameterizedTest
-  // @MethodSource("lowGasStipendPrecompileCallTestSource")
+  @MethodSource("lowGasStipendPrecompileCallTestSource")
   @MethodSource("lowGasStipendPrecompileCallP256TestSource")
   void lowGasStipendPrecompileCallTest(
       Address precompileAddress,
@@ -197,7 +199,12 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
         .push(value) // value
         .push(precompileAddress) // address
         .push(gas) // gas
-        .op(OpCode.CALL);
+        .op(CALL);
+
+    for (int i = 0; i < 32; i++) {
+      program.op(JUMPDEST);
+    }
+
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     final long forkAppropriateGasLimit = forkPredatesOsaka(fork) ? 61_000_000L : MAX_GAS_LIMIT;
     bytecodeRunner.run(

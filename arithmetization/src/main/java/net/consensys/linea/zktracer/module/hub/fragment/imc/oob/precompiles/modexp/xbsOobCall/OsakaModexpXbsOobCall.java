@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.xbsOobCall;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase.MODEXP_XBS_CASE_BBS;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,8 +24,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase;
 import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.OsakaModexpMetadata;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-
-import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsCase.MODEXP_XBS_CASE_BBS;
 
 @Getter
 @Setter
@@ -84,9 +84,10 @@ public class OsakaModexpXbsOobCall extends LondonModexpXbsOobCall {
 
   @Override
   protected boolean computeMax() {
-      return switch (modexpXbsCase) {
-          case MODEXP_XBS_CASE_BBS, MODEXP_XBS_CASE_EBS -> false;
-          case MODEXP_XBS_CASE_MBS -> getForkAppropriateModexpMetadata().tracedIsWithinBounds(MODEXP_XBS_CASE_BBS);
-      };
+    return switch (modexpXbsCase) {
+      case MODEXP_XBS_CASE_BBS, MODEXP_XBS_CASE_EBS -> false;
+      case MODEXP_XBS_CASE_MBS -> getForkAppropriateModexpMetadata()
+          .tracedIsWithinBounds(MODEXP_XBS_CASE_BBS);
+    };
   }
 }

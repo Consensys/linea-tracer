@@ -109,7 +109,7 @@ public abstract class ModexpXbsOobCall extends OobCall {
     };
   }
 
-  abstract protected boolean computeMax();
+  protected abstract boolean computeMax();
 
   @Override
   public Trace.Oob trace(Trace.Oob trace) {

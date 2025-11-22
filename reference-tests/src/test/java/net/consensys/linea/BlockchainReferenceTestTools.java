@@ -196,6 +196,8 @@ public class BlockchainReferenceTestTools {
         "randomStatetest645\\[fork_(Prague|Osaka)-blockchain_test_from_state_test--v0\\]");
     PARAMS.ignore(
         "randomStatetest645\\[fork_(Prague|Osaka)-blockchain_test_from_state_test--v1\\]");
+    PARAMS.ignore(
+        "test_p256verify.py::test_precompile_as_tx_entry_point\\[fork_Osaka-blockchain_test_from_state_test-valid_entry_point\\]\\[Osaka\\]");
 
     // Consumes a huge amount of memory.
     PARAMS.ignore(

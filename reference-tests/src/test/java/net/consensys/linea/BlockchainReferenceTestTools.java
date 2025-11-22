@@ -60,11 +60,13 @@ import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseS
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.rlp.RLPException;
 import org.hyperledger.besu.ethereum.trie.pathbased.common.provider.WorldStateQueryParams;
+import org.hyperledger.besu.evm.precompile.KZGPointEvalPrecompiledContract;
 import org.hyperledger.besu.testutil.JsonTestParameters;
 import org.junit.jupiter.api.Assumptions;
 
 @Slf4j
 public class BlockchainReferenceTestTools {
+
   // Keep the forkName and the zkevm_fork in github worklow in PascalCase
   private static final Fork fork = getForkOrDefault(OSAKA);
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
@@ -518,7 +520,19 @@ public class BlockchainReferenceTestTools {
     return param;
   }
 
+  // static boolean kzgIsInitialized = false;
+
   public static void executeTest(final BlockchainReferenceTestCaseSpec spec) {
+    // TODO: dear developer of the future, this may be needed in case tests fail due to KZG
+    //  / point evaluation is not initialized
+    // Initialize KZG library once for all reference tests
+    /*
+    if (!kzgIsInitialized) {
+      KZGPointEvalPrecompiledContract.init();
+      kzgIsInitialized = true;
+    }
+     */
+
     final BlockHeader genesisBlockHeader = spec.getGenesisBlockHeader();
     final ProtocolContext context = spec.buildProtocolContext();
     final MutableWorldState worldState =

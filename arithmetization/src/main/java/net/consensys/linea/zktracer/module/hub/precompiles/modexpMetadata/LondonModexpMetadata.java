@@ -45,4 +45,9 @@ public class LondonModexpMetadata extends ModexpMetadata {
   public Bytes normalize(ModexpXbsCase modexpXbsCase) {
     return xbs(modexpXbsCase).lo();
   }
+
+  @Override
+  public boolean loadRawLeadingWord() {
+    return callData().size() > BASE_MIN_OFFSET + bbsInt() && !ebs().isZero();
+  }
 }

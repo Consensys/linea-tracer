@@ -165,9 +165,7 @@ public abstract class ModexpMetadata {
     return Words.clampedToInt(mbs());
   }
 
-  public boolean loadRawLeadingWord() {
-    return callData().size() > BASE_MIN_OFFSET + bbsInt() && !ebs().isZero();
-  }
+  public abstract boolean loadRawLeadingWord();
 
   public boolean extractModulus() {
     return (callData().size() > BASE_MIN_OFFSET + bbsInt() + ebsInt()) && !mbs().isZero();

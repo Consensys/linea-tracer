@@ -56,4 +56,9 @@ public class OsakaModexpMetadata extends LondonModexpMetadata {
   public int getForkAppropriateLeadLogByteMultiplier() {
     return 16;
   }
+
+  @Override
+  public boolean loadRawLeadingWord() {
+    return callData().size() > BASE_MIN_OFFSET + normalizedBbsInt() && normalizedEbsInt() != 0;
+  }
 }

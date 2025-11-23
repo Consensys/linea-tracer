@@ -162,7 +162,7 @@ public class LondonModexpSubsection extends PrecompileSubsection {
       return;
     }
 
-    checkState(allXbsesAreInBounds(), "");
+    checkState(allXbsesAreInBounds(), "MODEXP' callSucess requires that all XBS' be in bounds");
 
     modexpMetadata.rawResult(extractReturnData());
     hub.blakeModexpData().callModexp(getForkAppropriateBlakeModexpOperation());

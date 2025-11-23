@@ -70,6 +70,11 @@ public class GenerateConflatedTracesV2 {
             endpointConfiguration.traceCompression());
     this.l1L2BridgeSharedConfiguration = lineaL1L2BridgeSharedConfiguration;
     this.traceFileCaching = endpointConfiguration.caching();
+    // log configuration
+    log.info("trace file caching {}", this.traceFileCaching ? "enabled." : "disabled.");
+    log.info(
+        "trace file compression {}",
+        endpointConfiguration.traceCompression() ? "enabled." : "disabled.");
   }
 
   public String getNamespace() {

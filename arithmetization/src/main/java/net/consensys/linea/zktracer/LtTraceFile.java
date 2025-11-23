@@ -78,11 +78,16 @@ public class LtTraceFile {
       }
     }
 
+    /**
+     * Write element bytes
+     *
+     * @param bytes stored in big-endian form and already trimmed.
+     */
     @Override
     public void write(byte[] bytes) {
       final int n = bitLengthOf(bytes);
       // Sanity check
-      if (n > bitWidth) {
+      if (n > bitWidth || bytes.length > byteWidth) {
         throw new IllegalArgumentException(name + " has invalid width (" + n + " bits)");
       }
       // Write padding (if necessary)

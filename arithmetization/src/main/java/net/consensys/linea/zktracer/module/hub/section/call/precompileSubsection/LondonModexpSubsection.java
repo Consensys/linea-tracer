@@ -107,8 +107,8 @@ public class LondonModexpSubsection extends PrecompileSubsection {
     }
     fourthImcFragment.callOob(getForkAppropriateModexpXbsOobCall(MODEXP_XBS_CASE_MBS));
 
-    /// leading exponent word extraction & analysis + exponent log computation
-    //////////////////////////////////////////////////////////////////////////
+    /// leading exponent word extraction, analysis and exponent log computation
+    ///////////////////////////////////////////////////////////////////////////
     final ImcFragment fifthImcFragment = ImcFragment.empty(hub);
     fragments().add(fifthImcFragment);
     fifthImcFragment.callOob(new ModexpLeadOobCall(modexpMetadata));

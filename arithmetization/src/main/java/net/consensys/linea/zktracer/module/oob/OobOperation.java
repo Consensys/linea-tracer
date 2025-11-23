@@ -63,11 +63,7 @@ public class OobOperation extends ModuleOperation {
 
   public static int computeExponentLog(ModexpMetadata modexpMetadata, int cds, int bbs, int ebs) {
     return computeExponentLog(
-        modexpMetadata.callData(),
-        modexpMetadata.getLeadLogByteMultiplier(),
-        cds,
-        bbs,
-        ebs);
+        modexpMetadata.callData(), modexpMetadata.getLeadLogByteMultiplier(), cds, bbs, ebs);
   }
 
   public static int computeExponentLog(Bytes callData, int multiplier, int cds, int bbs, int ebs) {
@@ -80,15 +76,13 @@ public class OobOperation extends ModuleOperation {
     final BigInteger leadingBytesOfExponent =
         paddedCallData.slice(BASE_MIN_OFFSET + bbs, min(ebs, WORD_SIZE)).toUnsignedBigInteger();
 
-    if (ebs <= WORD_SIZE && leadingBytesOfExponent.signum() == 0) {
-      return 0;
-    } else if (ebs <= WORD_SIZE && leadingBytesOfExponent.signum() != 0) {
-      return log2(leadingBytesOfExponent, RoundingMode.FLOOR);
-    } else if (ebs > WORD_SIZE && leadingBytesOfExponent.signum() != 0) {
-      return multiplier * (ebs - WORD_SIZE) + log2(leadingBytesOfExponent, RoundingMode.FLOOR);
-    } else {
-      return multiplier * (ebs - WORD_SIZE);
-    }
+    final int bitContribution =
+        (leadingBytesOfExponent.signum() != 0)
+            ? log2(leadingBytesOfExponent, RoundingMode.FLOOR)
+            : 0;
+    final int byteContribution = (ebs > WORD_SIZE) ? multiplier * (ebs - WORD_SIZE) : 0;
+
+    return bitContribution + byteContribution;
   }
 
   @Override

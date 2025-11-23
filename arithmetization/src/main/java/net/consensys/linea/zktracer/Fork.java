@@ -97,6 +97,10 @@ public enum Fork {
     return forkIsAtLeast(fork, OSAKA);
   }
 
+  public static boolean isPostAmsterdam(Fork fork) {
+    return forkIsAtLeast(fork, AMSTERDAM);
+  }
+
   private static boolean forkPredates(Fork fork, Fork threshold) {
     return !forkIsAtLeast(fork, threshold);
   }

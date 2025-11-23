@@ -16,6 +16,7 @@
 package net.consensys.linea.testing;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.testing.AddressCollisions.senderCoinbaseCollision;
 import static net.consensys.linea.zktracer.Trace.*;
 
 import java.util.ArrayList;
@@ -50,14 +51,6 @@ public final class BytecodeRunner {
       EIP_7825_TRANSACTION_GAS_LIMIT_CAP; // = 0x1000000 max tx gas limit since EIP-7825 (OSAKA)
   private final Bytes byteCode;
   @Getter ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2;
-
-  public enum AddressCollisionCase {
-    NO_IMPOSED_COLLISION,
-    SENDER_RECIPIENT_COLLISION,
-    SENDER_COINBASE_COLLISION,
-    RECIPIENT_COINBASE_COLLISION,
-    TRIPLE_COLLISION
-  }
 
   /**
    * @param byteCode the byte code to test
@@ -145,7 +138,7 @@ public final class BytecodeRunner {
   public void runWithAddressCollision(
       Bytes payload,
       List<AccessListEntry> accessList,
-      AddressCollisionCase addressCollisionCase,
+      AddressCollisions collision,
       ChainConfig chainConfig,
       TestInfo testInfo) {
     this.runWithAddressCollision(
@@ -154,7 +147,7 @@ public final class BytecodeRunner {
         List.of(),
         payload,
         accessList,
-        addressCollisionCase,
+        collision,
         chainConfig,
         testInfo);
   }
@@ -185,7 +178,7 @@ public final class BytecodeRunner {
         additionalAccounts,
         payload,
         accessList,
-        AddressCollisionCase.NO_IMPOSED_COLLISION,
+        AddressCollisions.NO_COLLISION,
         chainConfig,
         testInfo);
     toyExecutionEnvironmentV2.run();
@@ -197,7 +190,7 @@ public final class BytecodeRunner {
       List<ToyAccount> additionalAccounts,
       Bytes payload,
       List<AccessListEntry> accessList,
-      AddressCollisionCase addressCollisionCase,
+      AddressCollisions collision,
       ChainConfig chainConfig,
       TestInfo testInfo) {
     buildToyExecutionEnvironmentV2(
@@ -206,7 +199,7 @@ public final class BytecodeRunner {
         additionalAccounts,
         payload,
         accessList,
-        addressCollisionCase,
+        collision,
         chainConfig,
         testInfo);
     toyExecutionEnvironmentV2.run();
@@ -218,7 +211,7 @@ public final class BytecodeRunner {
       List<ToyAccount> additionalAccounts,
       Bytes payload,
       List<AccessListEntry> accessList,
-      AddressCollisionCase addressCollisionCase,
+      AddressCollisions collision,
       ChainConfig chainConfig,
       TestInfo testInfo) {
     checkArgument(byteCode != null, "byteCode cannot be empty");
@@ -243,8 +236,8 @@ public final class BytecodeRunner {
     final Long selectedGasLimit = Optional.of(gasLimit).orElse(MAX_GAS_LIMIT);
 
     final ToyAccount receiverAccount =
-        switch (addressCollisionCase) {
-          case SENDER_RECIPIENT_COLLISION, TRIPLE_COLLISION -> ToyAccount.builder()
+        switch (collision) {
+          case SENDER_IS_RECIPIENT, TRIPLE_COLLISION -> ToyAccount.builder()
               .balance(senderBalance.subtract(transactionValue + gasPrice * selectedGasLimit))
               .nonce(senderNonce + 1)
               .address(senderAddress)
@@ -276,8 +269,8 @@ public final class BytecodeRunner {
 
     final List<ToyAccount> accounts = new ArrayList<>();
     accounts.add(senderAccount);
-    if (addressCollisionCase == AddressCollisionCase.NO_IMPOSED_COLLISION
-        || addressCollisionCase == AddressCollisionCase.RECIPIENT_COINBASE_COLLISION) {
+    if (collision == AddressCollisions.NO_COLLISION
+        || collision == AddressCollisions.RECIPIENT_IS_COINBASE) {
       accounts.add(receiverAccount);
     }
     accounts.addAll(additionalAccounts);
@@ -290,10 +283,9 @@ public final class BytecodeRunner {
             .zkTracerValidator(zkTracerValidator)
             .transaction(tx);
 
-    if (addressCollisionCase == AddressCollisionCase.SENDER_COINBASE_COLLISION
-        || addressCollisionCase == AddressCollisionCase.TRIPLE_COLLISION) {
+    if (senderCoinbaseCollision(collision)) {
       toyExecutionEnvironmentV2Builder.coinbase(senderAddress);
-    } else if (addressCollisionCase == AddressCollisionCase.RECIPIENT_COINBASE_COLLISION) {
+    } else if (collision == AddressCollisions.RECIPIENT_IS_COINBASE) {
       toyExecutionEnvironmentV2Builder.coinbase(recipientAddress);
     }
 

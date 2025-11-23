@@ -53,7 +53,7 @@ public class OsakaModexpMetadata extends LondonModexpMetadata {
   }
 
   @Override
-  public int getForkAppropriateLeadLogByteMultiplier() {
+  public int getLeadLogByteMultiplier() {
     return 16;
   }
 

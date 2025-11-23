@@ -238,5 +238,5 @@ public abstract class ModexpMetadata {
     return false;
   }
 
-  public abstract int getForkAppropriateLeadLogByteMultiplier();
+  public abstract int getLeadLogByteMultiplier();
 }

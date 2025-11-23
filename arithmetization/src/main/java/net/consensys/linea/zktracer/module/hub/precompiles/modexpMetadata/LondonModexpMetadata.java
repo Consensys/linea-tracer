@@ -32,7 +32,7 @@ public class LondonModexpMetadata extends ModexpMetadata {
   }
 
   @Override
-  public int getForkAppropriateLeadLogByteMultiplier() {
+  public int getLeadLogByteMultiplier() {
     return 8;
   }
 

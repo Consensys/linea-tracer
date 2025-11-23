@@ -64,7 +64,7 @@ public class OobOperation extends ModuleOperation {
   public static int computeExponentLog(ModexpMetadata modexpMetadata, int cds, int bbs, int ebs) {
     return computeExponentLog(
         modexpMetadata.callData(),
-        modexpMetadata.getForkAppropriateLeadLogByteMultiplier(),
+        modexpMetadata.getLeadLogByteMultiplier(),
         cds,
         bbs,
         ebs);

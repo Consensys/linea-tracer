@@ -36,6 +36,7 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -128,4 +129,36 @@ public class P256VerifyTest extends TracerTestBase {
     }
     return arguments.stream();
   }
+
+  @ParameterizedTest
+  @MethodSource("testP256VerifyEdgeCasesSource")
+  void testP256VerifyEdgeCases(EWord h, EWord r, EWord s, EWord qX, EWord qY, TestInfo testInfo) {
+    testP256VerifyBody(
+        h.toHexString() + r.toHexString() + s.toHexString() + qX.toHexString() + qY.toHexString(),
+        "", // TODO: adapt to case without expect output
+        testInfo);
+  }
+
+  private static Stream<Arguments> testP256VerifyEdgeCasesSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (EWord h : hInputs) {
+      for (EWord r : rInputs) {
+        for (EWord s : sInputs) {
+          for (EWord qX : qXInputs) {
+            for (EWord qY : qYInputs) {
+              arguments.add(Arguments.of(h, r, s, qX, qY));
+            }
+          }
+        }
+      }
+    }
+    return arguments.stream();
+  }
+
+  // TODO: add test vectors
+  static final List<EWord> hInputs = List.of();
+  static final List<EWord> rInputs = List.of();
+  static final List<EWord> sInputs = List.of();
+  static final List<EWord> qXInputs = List.of();
+  static final List<EWord> qYInputs = List.of();
 }

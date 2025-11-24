@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +27,15 @@ import net.consensys.linea.zktracer.container.module.Module;
 
 /** Provides a basic API for writing an LT trace file. */
 public class LtTraceFile {
+  private final Map<String, Object> metadata;
+  private final Trace.ColumnHeader[] headers;
+  private final Column[] columns;
+
+  public LtTraceFile(Map<String, Object> metadata, Trace.ColumnHeader[] headers, Column[] columns) {
+    this.metadata = metadata;
+    this.headers = headers;
+    this.columns = columns;
+  }
 
   public static class Column implements Trace.Column {
     private final String name;
@@ -105,16 +114,14 @@ public class LtTraceFile {
   private static final ObjectWriter objectWriter = new ObjectMapper().writer();
 
   /**
-   * Construct the binary representation of a trace.
+   * Construct a full in-memory trace of all columns across all modules.
    *
    * @param metadata
    * @param trace
    * @param modules
    * @return
    */
-  public static byte[] toBytes(Map<String, Object> metadata, Trace trace, List<Module> modules)
-      throws IOException {
-    final ByteArrayOutputStream bout = new ByteArrayOutputStream();
+  public static LtTraceFile of(Map<String, Object> metadata, Trace trace, List<Module> modules) {
     // Determine set of all columns headers
     final List<Trace.ColumnHeader> rawHeaders =
         modules.stream().flatMap(m -> m.columnHeaders(trace).stream()).toList();
@@ -128,17 +135,28 @@ public class LtTraceFile {
     for (Module m : modules) {
       m.commit(trace);
     }
+    //
+    return new LtTraceFile(metadata, headers, columns);
+  }
+
+  /**
+   * Write a binary representation of the trace to a given output stream.
+   *
+   * @param out
+   * @return
+   */
+  public void write(OutputStream out) throws IOException {
     // Write header for LTv1 file
-    bout.writeBytes(getHeaderBytes(getMetadataBytes(metadata)));
-    bout.writeBytes(getColumnHeaderBytes(headers));
+    out.write(getHeaderBytes(getMetadataBytes(metadata)));
+    out.write(getColumnHeaderBytes(headers));
     // Write column data
     for (int i = 0; i != columns.length; i++) {
       if (columns[i] != null) {
-        bout.writeBytes(columns[i].buffer.array());
+        out.write(columns[i].buffer.array());
       }
     }
     // Done
-    return bout.toByteArray();
+    out.flush();
   }
 
   /**

@@ -17,10 +17,10 @@ package net.consensys.linea.zktracer;
 import static net.consensys.linea.zktracer.ChainConfig.FORK_LINEA_CHAIN;
 import static net.consensys.linea.zktracer.Fork.getTraceFromFork;
 
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -136,36 +136,29 @@ public class ZkTracer implements LineCountingTracer {
     final List<Module> modulesToTrace = hub.getModulesToTrace();
     // Configure metadata
     final Map<String, Object> metadata = buildMetaData(startBlock, endBlock);
+    // Construct (in memory) trace file
+    LtTraceFile ltf = LtTraceFile.of(metadata, trace, modulesToTrace);
     //
-    try {
-      // Construct (in memory) trace file
-      byte[] bytes = LtTraceFile.toBytes(metadata, trace, modulesToTrace);
+    try (FileOutputStream fout = new FileOutputStream(filename.toString())) {
       // Compress file (if requested)
       if (FilenameUtils.getExtension(filename.toString()).equals("gz")) {
-        bytes = compressGzip(bytes);
+        // GZIPOutputStream has an internal buffer, so no need for separate buffered output stream.
+        try (GZIPOutputStream gzOut = new GZIPOutputStream(fout, 65536)) {
+          ltf.write(gzOut);
+          gzOut.flush();
+        }
+      } else {
+        try (BufferedOutputStream bout = new BufferedOutputStream(fout, 65536)) {
+          ltf.write(bout);
+          bout.flush();
+        }
       }
-      // Write contents to disk
-      Files.write(filename, bytes);
+      // Flush to disk
+      fout.flush();
     } catch (IOException e) {
       log.error("Error while writing file {}", filename);
       throw new RuntimeException(e);
     }
-  }
-
-  /**
-   * Compress a given byte array using GZip compression.
-   *
-   * @param bytes
-   * @return
-   * @throws IOException
-   */
-  private byte[] compressGzip(byte[] bytes) throws IOException {
-    ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-    try (GZIPOutputStream gzOut = new GZIPOutputStream(bOut)) {
-      gzOut.write(bytes);
-      gzOut.flush();
-    }
-    return bOut.toByteArray();
   }
 
   /**

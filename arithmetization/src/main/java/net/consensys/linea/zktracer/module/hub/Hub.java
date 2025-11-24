@@ -256,6 +256,8 @@ public abstract class Hub implements Module {
       new CountingOnlyModule(PRECOMPILE_ECPAIRING_MILLER_LOOPS);
   private final IncrementingModule ecPairingFinalExponentiations =
       new IncrementingModule(PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS);
+  private final IncrementingModule p256VerifyEffectiveCalls =
+      new IncrementingModule(PRECOMPILE_P256_VERIFY_EFFECTIVE_CALLS);
 
   //  related to Modexp
   private final IncrementAndDetectModule modexpEffectiveCall =
@@ -332,6 +334,7 @@ public abstract class Hub implements Module {
         blsC2MembershipCalls,
         blsG1MembershipCalls,
         blsG2MembershipCalls,
+        p256VerifyEffectiveCalls,
         l1BlockSize,
         l2L1Logs);
   }
@@ -341,9 +344,12 @@ public abstract class Hub implements Module {
    * those module are traced (and could be count)
    */
   private final ShakiraData shakiraData;
+
+  @Getter
   private final BlakeModexpData blakeModexpData =
       new BlakeModexpData(
           wcp, modexpEffectiveCall, modexpLargeCall, blakeEffectiveCall, blakeRounds);
+
   public final EcData ecData =
       new EcData(
           wcp,
@@ -353,7 +359,8 @@ public abstract class Hub implements Module {
           ecRecoverEffectiveCall,
           ecPairingG2MembershipCalls,
           ecPairingMillerLoops,
-          ecPairingFinalExponentiations);
+          ecPairingFinalExponentiations,
+          p256VerifyEffectiveCalls);
   final Module blsData = setBlsData(this);
 
   private final L1BlockSize l1BlockSize;
@@ -448,7 +455,7 @@ public abstract class Hub implements Module {
     rlpTxn = setRlpTxn(this);
     rlpAddr = new RlpAddr(this, trm, keccak);
     blockdata = setBlockData(this, wcp, euc, chain);
-    mmu = new Mmu(euc, wcp);
+    mmu = new Mmu(euc, wcp, fork);
     mmio = new Mmio(mmu);
     blockhash = new Blockhash(this, wcp, historicalBlockHashes);
 

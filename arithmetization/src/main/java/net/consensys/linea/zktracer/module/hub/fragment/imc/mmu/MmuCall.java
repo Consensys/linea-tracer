@@ -23,9 +23,9 @@ import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpD
 import static net.consensys.linea.zktracer.module.hub.Hub.newIdentifierFromStamp;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_RIPEMD_160;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
-import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
-import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
-import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.MBS_MIN_OFFSET;
+import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.BASE_MIN_OFFSET;
+import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.EBS_MIN_OFFSET;
+import static net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata.MBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
@@ -44,9 +44,9 @@ import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.*;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
-import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.modexpMetadata.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.EllipticCurvePrecompileSubsection;
-import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ModexpSubsection;
+import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.LondonModexpSubsection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.state.State;
@@ -142,6 +142,10 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
   final MmuCall setBlsData() {
     return this.exoIsBlsData(true).updateExoSum(EXO_SUM_WEIGHT_BLSDATA);
+  }
+
+  final MmuCall setEllipticCurveModule(PrecompileScenarioFragment.PrecompileFlag flag) {
+    return flag.isEcdataPrecompile() ? setEcData() : setBlsData();
   }
 
   public MmuCall(final Hub hub, final int instruction) {
@@ -574,7 +578,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .phase(PHASE_ECPAIRING_DATA);
   }
 
-  public static MmuCall callDataExtractionForBlsPrecompiles(
+  public static MmuCall callDataExtractionForPostCancunPrecompiles(
       Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING) // Note: there will be no padding
@@ -587,19 +591,21 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .referenceSize(subsection.callDataSize())
         // constant
         .successBit(successBit)
-        .setBlsData()
-        .phase(subsection.flag().dataPhase());
+        .phase(subsection.flag().dataPhase())
+        .setEllipticCurveModule(subsection.flag());
   }
 
-  public static MmuCall fullReturnDataTransferForBlsPrecompiles(
+  public static MmuCall fullReturnDataTransferForPostCancunPrecompiles(
       final Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
-
     final int precompileContextNumber = subsection.exoModuleOperationId();
 
-    final long expectedReturnDataSize = BlsDataOperation.expectedReturnDataSize(subsection.flag());
+    final long expectedReturnDataSize =
+        subsection.flag() != PrecompileScenarioFragment.PrecompileFlag.PRC_P256_VERIFY
+            ? BlsDataOperation.expectedReturnDataSize(subsection.flag())
+            : PRECOMPILE_RETURN_DATA_SIZE___P256_VERIFY;
     checkState(
         subsection.returnDataRange.getRange().size() == expectedReturnDataSize,
-        "The return data size for BLS precompile does not match our expectation of it");
+        "The return data size for post-cancun precompile does not match our expectation of it");
 
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(precompileContextNumber)
@@ -609,10 +615,10 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .size(expectedReturnDataSize)
         .phase(subsection.flag().resultPhase())
         .successBit(successBit)
-        .setBlsData();
+        .setEllipticCurveModule(subsection.flag());
   }
 
-  public static MmuCall partialCopyOfReturnDataForBlsPrecompiles(
+  public static MmuCall partialCopyOfReturnDataForPostCancunPrecompiles(
       final Hub hub, PrecompileSubsection subsection) {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     final int returnDataSize = (int) subsection.returnDataRange.getRange().size();
@@ -624,7 +630,8 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .targetRamBytes(Optional.of(subsection.rawCallerMemory()))
         .size(returnDataSize)
         .referenceOffset(subsection.returnAtOffset())
-        .referenceSize(subsection.returnAtCapacity());
+        .referenceSize(subsection.returnAtCapacity())
+        .setEllipticCurveModule(subsection.flag());
   }
 
   /**
@@ -731,8 +738,8 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .referenceSize(subsection.returnAtCapacity());
   }
 
-  public static MmuCall forModexpExtractBbs(
-      final Hub hub, final ModexpSubsection subsection, final ModexpMetadata metaData) {
+  public static MmuCall extractBbsForModexp(
+      final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata metaData) {
     return new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
@@ -742,8 +749,8 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .limb2(metaData.bbs().lo());
   }
 
-  public static MmuCall forModexpExtractEbs(
-      final Hub hub, final ModexpSubsection subsection, final ModexpMetadata metaData) {
+  public static MmuCall extractEbsForModexp(
+      final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata metaData) {
     return new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
@@ -754,8 +761,8 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .limb2(metaData.ebs().lo());
   }
 
-  public static MmuCall forModexpExtractMbs(
-      final Hub hub, final ModexpSubsection subsection, final ModexpMetadata metaData) {
+  public static MmuCall extractMbsForModexp(
+      final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata metaData) {
     return new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
@@ -767,7 +774,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
   }
 
   public static MmuCall forModexpLoadLead(
-      final Hub hub, final ModexpSubsection subsection, final ModexpMetadata metaData) {
+      final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata metaData) {
     return new MmuCall(hub, MMU_INST_MLOAD)
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
@@ -776,14 +783,14 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .limb2(metaData.rawLeadingWord().lo());
   }
 
-  public static MmuCall forModexpExtractBase(
-      final Hub hub, final ModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
+  public static MmuCall extractModexpBase(
+      final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
     if (modExpMetadata.extractBase()) {
       return new MmuCall(hub, MMU_INST_MODEXP_DATA)
           .sourceId(hub.currentFrame().contextNumber()) // called at ContextReEntry
           .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
           .targetId(subsection.exoModuleOperationId())
-          .exoBytes(Optional.of(leftPadTo(modExpMetadata.base(), MODEXP_COMPONENT_BYTE_SIZE)))
+          .exoBytes(Optional.of(leftPadTo(modExpMetadata.base(), modExpMetadata.getMaxInputSize())))
           .sourceOffset(EWord.of(BASE_MIN_OFFSET))
           .size(modExpMetadata.bbs().toInt())
           .referenceOffset(subsection.callDataOffset())
@@ -798,14 +805,14 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     }
   }
 
-  public static MmuCall forModexpExtractExponent(
-      final Hub hub, final ModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
+  public static MmuCall extractModexpExponent(
+      final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
     if (modExpMetadata.extractExponent()) {
       return new MmuCall(hub, MMU_INST_MODEXP_DATA)
           .sourceId(hub.currentFrame().contextNumber()) // called at ContextReEntry
           .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
           .targetId(subsection.exoModuleOperationId())
-          .exoBytes(Optional.of(leftPadTo(modExpMetadata.exp(), MODEXP_COMPONENT_BYTE_SIZE)))
+          .exoBytes(Optional.of(leftPadTo(modExpMetadata.exp(), modExpMetadata.getMaxInputSize())))
           .sourceOffset(EWord.of(BASE_MIN_OFFSET + modExpMetadata.bbs().toInt()))
           .size(modExpMetadata.ebs().toInt())
           .referenceOffset(subsection.callDataOffset())
@@ -820,13 +827,13 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     }
   }
 
-  public static MmuCall forModexpExtractModulus(
-      final Hub hub, final ModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
+  public static MmuCall extractModexpModulus(
+      final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
     return new MmuCall(hub, MMU_INST_MODEXP_DATA)
         .sourceId(hub.currentFrame().contextNumber()) // called at ContextReEntry
         .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
         .targetId(subsection.exoModuleOperationId())
-        .exoBytes(Optional.of(leftPadTo(modExpMetadata.mod(), MODEXP_COMPONENT_BYTE_SIZE)))
+        .exoBytes(Optional.of(leftPadTo(modExpMetadata.mod(), modExpMetadata.getMaxInputSize())))
         .sourceOffset(
             EWord.of(BASE_MIN_OFFSET + modExpMetadata.bbs().toInt() + modExpMetadata.ebs().toInt()))
         .size(modExpMetadata.mbs().toInt())
@@ -837,29 +844,29 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
   }
 
   public static MmuCall forModexpFullResultCopy(
-      final Hub hub, final ModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
+      final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(subsection.exoModuleOperationId())
         .exoBytes(
             Optional.of(
-                leftPadTo(subsection.returnDataRange.extract(), MODEXP_COMPONENT_BYTE_SIZE)))
+                leftPadTo(subsection.returnDataRange.extract(), modExpMetadata.getMaxInputSize())))
         .targetId(subsection.returnDataContextNumber())
         .targetRamBytes(Optional.of(Bytes.EMPTY))
-        .size(MODEXP_COMPONENT_BYTE_SIZE)
+        .size(modExpMetadata.getMaxInputSize())
         .phase(PHASE_MODEXP_RESULT)
         .setBlakeModexp();
   }
 
   public static MmuCall forModexpPartialResultCopy(
-      final Hub hub, final ModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
+      final Hub hub, final LondonModexpSubsection subsection, final ModexpMetadata modExpMetadata) {
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(subsection.exoModuleOperationId())
         .sourceRamBytes(
             Optional.of(
-                leftPadTo(subsection.returnDataRange.extract(), MODEXP_COMPONENT_BYTE_SIZE)))
+                leftPadTo(subsection.returnDataRange.extract(), modExpMetadata.getMaxInputSize())))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.rawCallerMemory()))
-        .sourceOffset(EWord.of(MODEXP_COMPONENT_BYTE_SIZE - modExpMetadata.mbs().toInt()))
+        .sourceOffset(EWord.of(modExpMetadata.getMaxInputSize() - modExpMetadata.mbs().toInt()))
         .size(modExpMetadata.mbs().toInt())
         .referenceOffset(subsection.returnAtOffset())
         .referenceSize(subsection.returnAtCapacity());

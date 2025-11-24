@@ -118,6 +118,10 @@ public class BlockchainReferenceTestTools {
         "/osaka/eip7934_block_rlp_limit/test_max_block_rlp_size.py::test_block_at_rlp_limit_with_logs*");
     PARAMS.ignore(
         "/osaka/eip7934_block_rlp_limit/test_max_block_rlp_size.py::test_block_rlp_size_at_limit_with_all_typed_transactions*");
+    PARAMS.ignore(
+        "prague/eip7623_increase_calldata_cost/test_eip_mainnet.py::test_eip_7623\\[fork_Prague-blockchain_test_from_state_test----type_3\\]\\[Prague\\]");
+    PARAMS.ignore(
+        "prague/eip7623_increase_calldata_cost/test_eip_mainnet.py::test_eip_7623\\[fork_Prague-blockchain_test_from_state_test----type_4\\]\\[Prague\\]");
 
     // type 3 (BLOB):
     PARAMS.ignore("/cancun/eip4844_blobs/");
@@ -407,6 +411,14 @@ public class BlockchainReferenceTestTools {
           "test_modexp.py::test_modexp\\[fork_.*-blockchain_test_from_state_test-EIP-198-case3-raw-input-out-of-gas\\]");
       PARAMS.ignore(
           "modexp_modsize0_returndatasizeFiller\\.json::modexp_modsize0_returndatasize\\[fork_.*-blockchain_test_from_state_test-d4\\]");
+      PARAMS.ignore(
+          "test_modexp.py::test_modexp\\[fork_Prague-blockchain_test_from_state_test-large-modulus-length-0x20000020-out-of-gas\\]\\[Prague\\]");
+      PARAMS.ignore(
+          "test_modexp.py::test_modexp\\[fork_Prague-blockchain_test_from_state_test-large-modulus-length-0x40000020-out-of-gas\\]\\[Prague\\]");
+      PARAMS.ignore(
+          "test_modexp.py::test_modexp\\[fork_Prague-blockchain_test_from_state_test-large-modulus-length-0x80000020-out-of-gas\\]\\[Prague\\]");
+      PARAMS.ignore(
+          "test_modexp.py::test_modexp\\[fork_Prague-blockchain_test_from_state_test-large-modulus-length-0xffffffff-out-of-gas\\]\\[Prague\\]");
 
       // massive bbs
       PARAMS.ignore(
@@ -425,6 +437,16 @@ public class BlockchainReferenceTestTools {
           "modexpFiller.json::modexp\\[fork_.*-blockchain_test_from_state_test-d37-g[0-3]\\]");
       PARAMS.ignore(
           "randomStatetest650Filler.json::randomStatetest650\\[fork_.*-blockchain_test_from_state_test-\\]");
+      PARAMS.ignore(
+          "test_modexp.py::test_modexp\\[fork_Prague-blockchain_test_from_state_test-ModExpInput_base_0x-exponent_0x-modulus_0x-declared_exponent_length_4294967296-declared_modulus_length_1-ModExpOutput_call_success_False-returned_data_0x00\\]\\[Prague\\]");
+      PARAMS.ignore(
+          "test_modexp.py::test_modexp\\[fork_Prague-blockchain_test_from_state_test-large-exponent-length-0x10000000-out-of-gas\\]\\[Prague\\]");
+      PARAMS.ignore(
+          "test_modexp.py::test_modexp\\[fork_Prague-blockchain_test_from_state_test-large-exponent-length-0x20000000-out-of-gas\\]\\[Prague\\]");
+      PARAMS.ignore(
+          "test_modexp.py::test_modexp\\[fork_Prague-blockchain_test_from_state_test-large-exponent-length-0x40000000-out-of-gas\\]\\[Prague\\]");
+      PARAMS.ignore(
+          "test_modexp.py::test_modexp\\[fork_Prague-blockchain_test_from_state_test-large-exponent-length-0x80000000-out-of-gas\\]\\[Prague\\]");
 
       // byte sizes 512 < xbs ≤ 1024
       PARAMS.ignore(

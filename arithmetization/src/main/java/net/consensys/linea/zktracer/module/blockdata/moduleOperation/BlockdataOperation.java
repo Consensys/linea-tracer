@@ -31,6 +31,7 @@ import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -66,6 +67,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
   private final long firstBlockNumber;
   private final int relTxMax;
   @Getter private final int relBlock;
+  private final EWord blobBaseFee;
 
   protected EWord data;
   private EWord[] arg1;
@@ -84,7 +86,8 @@ public abstract class BlockdataOperation extends ModuleOperation {
       Euc euc,
       ChainConfig chain,
       OpCode opCode,
-      long firstBlockNumber) {
+      long firstBlockNumber,
+      Map<Long, Bytes> blobBaseFees) {
     // Data from blockHeader
     this.hub = hub;
     this.blockHeader = blockHeader;
@@ -93,6 +96,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
     this.gasLimitMaximum = EWord.of(chain.gasLimitMaximum);
     this.chainId = EWord.of(chain.id);
     this.nbRows = nbRows(opCode);
+    blobBaseFee = EWord.of(blobBaseFees.get(blockHeader.getNumber()));
     this.firstBlockNumber = firstBlockNumber;
     this.relTxMax = relTxMax;
     this.relBlock = (int) (blockHeader.getNumber() - firstBlockNumber + 1);

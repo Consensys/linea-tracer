@@ -68,6 +68,7 @@ public class LondonBlockData extends Blockdata {
         euc,
         chain,
         opCode,
-        firstBlockNumber);
+        firstBlockNumber,
+        blobBaseFees);
   }
 }

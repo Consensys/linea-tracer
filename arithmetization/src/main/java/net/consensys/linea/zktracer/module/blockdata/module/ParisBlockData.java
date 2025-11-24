@@ -66,7 +66,8 @@ public class ParisBlockData extends LondonBlockData {
         euc,
         chain,
         opCode,
-        firstBlockNumber);
+        firstBlockNumber,
+        blobBaseFees);
   }
 
   @Override

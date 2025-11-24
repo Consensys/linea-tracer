@@ -58,6 +58,7 @@ public class ShanghaiBlockData extends ParisBlockData {
         euc,
         chain,
         opCode,
-        firstBlockNumber);
+        firstBlockNumber,
+        blobBaseFees);
   }
 }

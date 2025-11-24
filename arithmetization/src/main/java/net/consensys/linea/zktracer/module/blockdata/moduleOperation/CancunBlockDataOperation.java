@@ -32,7 +32,6 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 public class CancunBlockDataOperation extends ShanghaiBlockDataOperation {
 
   private final BlockHeader blockHeader;
-  private final EWord blobBaseFee;
 
   public CancunBlockDataOperation(
       Hub hub,
@@ -45,14 +44,23 @@ public class CancunBlockDataOperation extends ShanghaiBlockDataOperation {
       OpCode opCode,
       long firstBlockNumber,
       Map<Long, Bytes> blobBaseFees) {
-    super(hub, blockHeader, prevBlockHeader, relTxMax, wcp, euc, chain, opCode, firstBlockNumber);
+    super(
+        hub,
+        blockHeader,
+        prevBlockHeader,
+        relTxMax,
+        wcp,
+        euc,
+        chain,
+        opCode,
+        firstBlockNumber,
+        blobBaseFees);
     this.blockHeader = blockHeader;
-    blobBaseFee = EWord.of(blobBaseFees.get(blockHeader.getNumber()));
   }
 
   @Override
   protected void handleBlobBaseFee() {
-    data = blobBaseFee;
+    data = this.blobBaseFee();
 
     // row i
     wcpCallToGEQ(0, data(), EWord.ZERO);

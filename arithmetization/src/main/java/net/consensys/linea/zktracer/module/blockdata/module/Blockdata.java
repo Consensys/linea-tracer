@@ -48,7 +48,7 @@ public abstract class Blockdata implements Module {
   private final Wcp wcp;
   private final Euc euc;
   private final ChainConfig chain;
-  private final Map<Long, Bytes> blobBaseFees;
+  protected final Map<Long, Bytes> blobBaseFees;
   @Getter private final List<BlockdataOperation> operations = new ArrayList<>();
   @Getter private long firstBlockNumber;
 
@@ -176,9 +176,8 @@ public abstract class Blockdata implements Module {
     return blobBaseFees;
   }
 
-  public static Map<Long, Bytes> getDefaultBlobBaseFees(
-      long fromBlock, long toBlock) {
-    final Map<Long, Bytes> blobBaseFees = new HashMap<>((int) (toBlock-fromBlock));
+  public static Map<Long, Bytes> getDefaultBlobBaseFees(long fromBlock, long toBlock) {
+    final Map<Long, Bytes> blobBaseFees = new HashMap<>((int) (toBlock - fromBlock));
     for (long l = fromBlock; l <= toBlock; l++) {
       final long blockNumber = l;
       // Just put a dummy value

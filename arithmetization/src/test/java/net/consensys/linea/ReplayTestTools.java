@@ -97,7 +97,8 @@ public class ReplayTestTools {
 
     final Map<Long, Hash> historicalBlockHashes = conflation.historicalBlockHashes();
     // TODO: make it better: currently, blobBaseFees are not captured in the conflation snapshot
-    final Map<Long, Bytes> blobBaseFees = getDefaultBlobBaseFees(conflation.firstBlockNumber(), conflation.lastBlockNumber());
+    final Map<Long, Bytes> blobBaseFees =
+        getDefaultBlobBaseFees(conflation.firstBlockNumber(), conflation.lastBlockNumber());
 
     ReplayExecutionEnvironment.builder()
         .filename(filename)

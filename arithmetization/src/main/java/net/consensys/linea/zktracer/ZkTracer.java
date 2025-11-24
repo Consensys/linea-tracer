@@ -95,12 +95,12 @@ public class ZkTracer implements LineCountingTracer {
     this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId));
   }
 
-  public ZkTracer(ChainConfig chain) {
-    this(chain, new HashMap<>(), new HashMap<>());
-  }
-
   public ZkTracer(ChainConfig chain, Map<Long, Bytes> blobBaseFees) {
     this(chain, new HashMap<>(), blobBaseFees);
+  }
+
+  public ZkTracer(ChainConfig chain) {
+    this(chain, new HashMap<>(), new HashMap<>());
   }
 
   /**

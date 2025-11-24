@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.module.ecdata;
 
 import static net.consensys.linea.zktracer.Fork.isPostOsaka;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_RETURN_DATA_SIZE___P256_VERIFY;
+import static net.consensys.linea.zktracer.module.ecdata.EcDataOperation.P_R1;
+import static net.consensys.linea.zktracer.module.ecdata.EcDataOperation.SECP256R1N;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -100,7 +102,7 @@ public class P256VerifyTest extends TracerTestBase {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
 
-    if (isPostOsaka(fork)) {
+    if (isPostOsaka(fork) && expectedAsString != null) {
       assertEquals(
           Bytes.fromHexString(expectedAsString),
           bytecodeRunner.getHub().ecData().ecDataOperation().returnData());
@@ -130,35 +132,35 @@ public class P256VerifyTest extends TracerTestBase {
     return arguments.stream();
   }
 
+  static final List<String> rs =
+      Stream.of(EWord.ZERO, EWord.ONE, SECP256R1N.subtract(1), SECP256R1N, SECP256R1N.add(1))
+          .map(e -> e.toHexString().substring(2))
+          .toList();
+  static final List<String> qXqY =
+      Stream.of(EWord.ZERO, EWord.ONE, P_R1.subtract(1), P_R1, P_R1.add(1))
+          .map(e -> e.toHexString().substring(2))
+          .toList();
+
+  @Tag("nightly")
   @ParameterizedTest
-  @MethodSource("testP256VerifyEdgeCasesSource")
-  void testP256VerifyEdgeCases(EWord h, EWord r, EWord s, EWord qX, EWord qY, TestInfo testInfo) {
-    testP256VerifyBody(
-        h.toHexString() + r.toHexString() + s.toHexString() + qX.toHexString() + qY.toHexString(),
-        "", // TODO: adapt to case without expect output
-        testInfo);
+  @MethodSource("testP256VerifyExploreEdgeCasesSource")
+  void testP256VerifyExploreEdgeCases(String r, String s, String qX, String qY, TestInfo testInfo) {
+    final String h = "00".repeat(32);
+    // We do not to assert the returned value being equal to something, thus we pass null
+    testP256VerifyBody(h + r + s + qX + qY, null, testInfo);
   }
 
-  private static Stream<Arguments> testP256VerifyEdgeCasesSource() {
+  private static Stream<Arguments> testP256VerifyExploreEdgeCasesSource() {
     List<Arguments> arguments = new ArrayList<>();
-    for (EWord h : hInputs) {
-      for (EWord r : rInputs) {
-        for (EWord s : sInputs) {
-          for (EWord qX : qXInputs) {
-            for (EWord qY : qYInputs) {
-              arguments.add(Arguments.of(h, r, s, qX, qY));
-            }
+    for (String r : rs) {
+      for (String s : rs) {
+        for (String qX : qXqY) {
+          for (String qY : qXqY) {
+            arguments.add(Arguments.of(r, s, qX, qY));
           }
         }
       }
     }
     return arguments.stream();
   }
-
-  // TODO: add test vectors
-  static final List<EWord> hInputs = List.of();
-  static final List<EWord> rInputs = List.of();
-  static final List<EWord> sInputs = List.of();
-  static final List<EWord> qXInputs = List.of();
-  static final List<EWord> qYInputs = List.of();
 }

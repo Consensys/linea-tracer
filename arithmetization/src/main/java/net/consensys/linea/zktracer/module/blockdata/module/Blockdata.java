@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.blockdata.module;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.Trace.LINEA_BLOB_BASE_FEE;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_DATA;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -33,9 +35,12 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockContext;
 import org.hyperledger.besu.plugin.data.BlockHeader;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 
 @RequiredArgsConstructor
 public abstract class Blockdata implements Module {
@@ -43,6 +48,7 @@ public abstract class Blockdata implements Module {
   private final Wcp wcp;
   private final Euc euc;
   private final ChainConfig chain;
+  private final Map<Long, Bytes> blobBaseFees;
   @Getter private final List<BlockdataOperation> operations = new ArrayList<>();
   @Getter private long firstBlockNumber;
 
@@ -98,7 +104,8 @@ public abstract class Blockdata implements Module {
               euc,
               chain,
               opCode,
-              firstBlockNumber);
+              firstBlockNumber,
+              blobBaseFees);
       operations.addLast(operation);
     }
   }
@@ -112,7 +119,8 @@ public abstract class Blockdata implements Module {
       Euc euc,
       ChainConfig chain,
       OpCode opCode,
-      long firstBlockNumber);
+      long firstBlockNumber,
+      Map<Long, Bytes> blobBaseFees);
 
   protected abstract OpCode[] setOpCodes();
 
@@ -149,5 +157,33 @@ public abstract class Blockdata implements Module {
 
   TxnData txnData() {
     return hub.txnData();
+  }
+
+  public static Map<Long, Bytes> getBlobBaseFees(
+      BlockchainService blockchainService, long fromBlock, long toBlock) {
+    final Map<Long, Bytes> blobBaseFees = new HashMap<>();
+    for (long l = fromBlock; l <= toBlock; l++) {
+      final long blockNumber = l;
+      final BlockContext block =
+          blockchainService
+              .getBlockByNumber(blockNumber)
+              .orElseThrow(() -> new IllegalArgumentException("Block not found: " + blockNumber));
+      final BlockHeader header = block.getBlockHeader();
+      final Bytes blobBaseFee = blockchainService.getBlobGasPrice(header);
+      checkArgument(blobBaseFee != null, "Blob base fee is null for block number " + blockNumber);
+      blobBaseFees.put(blockNumber, blobBaseFee);
+    }
+    return blobBaseFees;
+  }
+
+  public static Map<Long, Bytes> getDefaultBlobBaseFees(
+      long fromBlock, long toBlock) {
+    final Map<Long, Bytes> blobBaseFees = new HashMap<>((int) (toBlock-fromBlock));
+    for (long l = fromBlock; l <= toBlock; l++) {
+      final long blockNumber = l;
+      // Just put a dummy value
+      blobBaseFees.put(blockNumber, Bytes.ofUnsignedLong(LINEA_BLOB_BASE_FEE));
+    }
+    return blobBaseFees;
   }
 }

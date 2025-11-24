@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.module.blockdata.module;
 import static net.consensys.linea.zktracer.TraceLondon.Blockdata.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
+import java.util.Map;
+
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockdataOperation;
 import net.consensys.linea.zktracer.module.blockdata.moduleOperation.LondonBlockDataOperation;
@@ -25,12 +27,14 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class LondonBlockData extends Blockdata {
 
-  public LondonBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
-    super(hub, wcp, euc, chain);
+  public LondonBlockData(
+      Hub hub, Wcp wcp, Euc euc, ChainConfig chain, Map<Long, Bytes> blobBaseFees) {
+    super(hub, wcp, euc, chain, blobBaseFees);
   }
 
   @Override
@@ -53,7 +57,8 @@ public class LondonBlockData extends Blockdata {
       Euc euc,
       ChainConfig chain,
       OpCode opCode,
-      long firstBlockNumber) {
+      long firstBlockNumber,
+      Map<Long, Bytes> blobBaseFees) {
     return new LondonBlockDataOperation(
         hub,
         blockHeader,

@@ -15,8 +15,9 @@
 
 package net.consensys.linea.zktracer.module.blockdata.moduleOperation;
 
-import static net.consensys.linea.zktracer.Trace.LINEA_BLOB_BASE_FEE;
 import static net.consensys.linea.zktracer.opcode.OpCode.BLOBBASEFEE;
+
+import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
@@ -31,6 +32,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 public class CancunBlockDataOperation extends ShanghaiBlockDataOperation {
 
   private final BlockHeader blockHeader;
+  private final EWord blobBaseFee;
 
   public CancunBlockDataOperation(
       Hub hub,
@@ -41,14 +43,16 @@ public class CancunBlockDataOperation extends ShanghaiBlockDataOperation {
       Euc euc,
       ChainConfig chain,
       OpCode opCode,
-      long firstBlockNumber) {
+      long firstBlockNumber,
+      Map<Long, Bytes> blobBaseFees) {
     super(hub, blockHeader, prevBlockHeader, relTxMax, wcp, euc, chain, opCode, firstBlockNumber);
     this.blockHeader = blockHeader;
+    blobBaseFee = EWord.of(blobBaseFees.get(blockHeader.getNumber()));
   }
 
   @Override
   protected void handleBlobBaseFee() {
-    data = EWord.of(LINEA_BLOB_BASE_FEE);
+    data = blobBaseFee;
 
     // row i
     wcpCallToGEQ(0, data(), EWord.ZERO);

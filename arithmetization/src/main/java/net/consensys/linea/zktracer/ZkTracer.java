@@ -75,8 +75,9 @@ public class ZkTracer implements LineCountingTracer {
       final Fork fork,
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
       BigInteger chainId,
-      Map<Long, Hash> historicalBlockHashes) {
-    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId), historicalBlockHashes);
+      Map<Long, Hash> historicalBlockHashes,
+      Map<Long, Bytes> blobBaseFees) {
+    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId), historicalBlockHashes, blobBaseFees);
   }
 
   /**
@@ -95,7 +96,11 @@ public class ZkTracer implements LineCountingTracer {
   }
 
   public ZkTracer(ChainConfig chain) {
-    this(chain, new HashMap<>());
+    this(chain, new HashMap<>(), new HashMap<>());
+  }
+
+  public ZkTracer(ChainConfig chain, Map<Long, Bytes> blobBaseFees) {
+    this(chain, new HashMap<>(), blobBaseFees);
   }
 
   /**
@@ -104,23 +109,24 @@ public class ZkTracer implements LineCountingTracer {
    *
    * @param chain
    */
-  public ZkTracer(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
+  public ZkTracer(
+      ChainConfig chain, Map<Long, Hash> historicalBlockHashes, Map<Long, Bytes> blobBaseFees) {
     if (historicalBlockHashes.isEmpty()) {
       log.info(
           "[ZkTracer] No historical block hashes provided, assuming line counting only, testing, or tracing conflation of only genesis block. Tracing will fail.");
     }
     this.chain = chain;
-    this.hub =
+    hub =
         switch (chain.fork) {
-          case LONDON -> new LondonHub(chain, historicalBlockHashes);
-          case PARIS -> new ParisHub(chain, historicalBlockHashes);
-          case SHANGHAI -> new ShanghaiHub(chain, historicalBlockHashes);
-          case CANCUN -> new CancunHub(chain, historicalBlockHashes);
-          case PRAGUE -> new PragueHub(chain, historicalBlockHashes);
-          case OSAKA -> new OsakaHub(chain, historicalBlockHashes);
+          case LONDON -> new LondonHub(chain, historicalBlockHashes, blobBaseFees);
+          case PARIS -> new ParisHub(chain, historicalBlockHashes, blobBaseFees);
+          case SHANGHAI -> new ShanghaiHub(chain, historicalBlockHashes, blobBaseFees);
+          case CANCUN -> new CancunHub(chain, historicalBlockHashes, blobBaseFees);
+          case PRAGUE -> new PragueHub(chain, historicalBlockHashes, blobBaseFees);
+          case OSAKA -> new OsakaHub(chain, historicalBlockHashes, blobBaseFees);
           default -> throw new IllegalArgumentException("Unknown fork: " + chain.fork);
         };
-    this.trace = getTraceFromFork(chain.fork);
+    trace = getTraceFromFork(chain.fork);
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));

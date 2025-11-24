@@ -46,14 +46,16 @@ import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.txndata.london.LondonTxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class LondonHub extends Hub {
-  public LondonHub(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
-    super(chain, historicalBlockHashes);
+  public LondonHub(
+      ChainConfig chain, Map<Long, Hash> historicalBlockHashes, Map<Long, Bytes> blobBaseFees) {
+    super(chain, historicalBlockHashes, blobBaseFees);
   }
 
   @Override
@@ -74,8 +76,9 @@ public class LondonHub extends Hub {
   }
 
   @Override
-  protected Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
-    return new LondonBlockData(hub, wcp, euc, chain);
+  protected Blockdata setBlockData(
+      Hub hub, Wcp wcp, Euc euc, ChainConfig chain, Map<Long, Bytes> blobBaseFees) {
+    return new LondonBlockData(hub, wcp, euc, chain, blobBaseFees);
   }
 
   @Override

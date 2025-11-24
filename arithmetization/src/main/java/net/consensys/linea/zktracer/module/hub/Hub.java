@@ -434,7 +434,10 @@ public abstract class Hub implements Module {
     return Stream.concat(realModule().stream(), getTracelessModules().stream()).toList();
   }
 
-  public Hub(final ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
+  public Hub(
+      final ChainConfig chain,
+      Map<Long, Hash> historicalBlockHashes,
+      Map<Long, Bytes> blobBaseFees) {
     fork = chain.fork;
     gasCalculator = getGasCalculatorFromFork(fork);
     opCodes = OpCodes.load(fork);
@@ -454,7 +457,7 @@ public abstract class Hub implements Module {
     trm = new Trm(fork);
     rlpTxn = setRlpTxn(this);
     rlpAddr = new RlpAddr(this, trm, keccak);
-    blockdata = setBlockData(this, wcp, euc, chain);
+    blockdata = setBlockData(this, wcp, euc, chain, blobBaseFees);
     mmu = new Mmu(euc, wcp, fork);
     mmio = new Mmio(mmu);
     blockhash = new Blockhash(this, wcp, historicalBlockHashes);
@@ -1165,7 +1168,8 @@ public abstract class Hub implements Module {
 
   protected abstract Mxp setMxp();
 
-  protected abstract Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain);
+  protected abstract Blockdata setBlockData(
+      Hub hub, Wcp wcp, Euc euc, ChainConfig chain, Map<Long, Bytes> blobBaseFees);
 
   protected abstract RlpTxn setRlpTxn(Hub hub);
 

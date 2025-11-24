@@ -22,15 +22,18 @@ import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.ParisBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Hash;
 
 public class ParisHub extends LondonHub {
-  public ParisHub(ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
-    super(chain, historicalBlockHashes);
+  public ParisHub(
+      ChainConfig chain, Map<Long, Hash> historicalBlockHashes, Map<Long, Bytes> blobBaseFees) {
+    super(chain, historicalBlockHashes, blobBaseFees);
   }
 
   @Override
-  protected Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
-    return new ParisBlockData(hub, wcp, euc, chain);
+  protected Blockdata setBlockData(
+      Hub hub, Wcp wcp, Euc euc, ChainConfig chain, Map<Long, Bytes> blobBaseFees) {
+    return new ParisBlockData(hub, wcp, euc, chain, blobBaseFees);
   }
 }

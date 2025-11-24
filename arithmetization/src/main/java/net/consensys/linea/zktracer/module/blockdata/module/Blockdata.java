@@ -178,8 +178,7 @@ public abstract class Blockdata implements Module {
 
   public static Map<Long, Bytes> getDefaultBlobBaseFees(long fromBlock, long toBlock) {
     final Map<Long, Bytes> blobBaseFees = new HashMap<>((int) (toBlock - fromBlock + 1));
-    for (long l = fromBlock; l <= toBlock; l++) {
-      final long blockNumber = l;
+    for (long blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
       // Just put the linea blob base fee constant
       blobBaseFees.put(blockNumber, Bytes.ofUnsignedLong(LINEA_BLOB_BASE_FEE));
     }

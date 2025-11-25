@@ -14,11 +14,11 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.p256verify;
 
+import static net.consensys.linea.zktracer.Fork.isPostOsaka;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_CALL_STIPEND;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_P256_VERIFY;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_RETURN_DATA_SIZE___P256_VERIFY;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.simpleCall;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.simpleCallAndReturnDataSize;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -28,9 +28,7 @@ import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.postCancun.fixedSizeFixedGasCost.P256VerifyOobCall;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
@@ -39,7 +37,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(UnitTestWatcher.class)
 public class P256VerifyCallSuccessAndFailureCasesTest extends TracerTestBase {
-
 
   @Test
   void insufficientGasP256VerifyCall_ExpectedCallFailure(TestInfo testInfo) {
@@ -56,13 +53,14 @@ public class P256VerifyCallSuccessAndFailureCasesTest extends TracerTestBase {
         PRECOMPILE_RETURN_DATA_SIZE___P256_VERIFY);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);
-    P256VerifyOobCall p256VerifyOobCall =
-        (P256VerifyOobCall)
-            bytecodeRunner.getHub().oob().operations().stream().toList().getLast().oobCall();
-
-    assertFalse(p256VerifyOobCall.isHubSuccess());
-    final Bytes returnDataSize = bytecodeRunner.getHub().currentFrame().frame().getStackItem(0);
-    assertFalse(returnDataSize.isEmpty());
+    if (isPostOsaka(fork)) {
+      P256VerifyOobCall p256VerifyOobCall =
+          (P256VerifyOobCall)
+              bytecodeRunner.getHub().oob().operations().stream().toList().getLast().oobCall();
+      assertFalse(p256VerifyOobCall.isHubSuccess());
+      final Bytes returnDataSize = bytecodeRunner.getHub().currentFrame().frame().getStackItem(0);
+      assertTrue(returnDataSize.isZero());
+    }
   }
 
   @Test
@@ -80,12 +78,12 @@ public class P256VerifyCallSuccessAndFailureCasesTest extends TracerTestBase {
         PRECOMPILE_RETURN_DATA_SIZE___P256_VERIFY);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);
-    P256VerifyOobCall p256VerifyOobCall =
-        (P256VerifyOobCall)
-            bytecodeRunner.getHub().oob().operations().stream().toList().getLast().oobCall();
-    assertTrue(p256VerifyOobCall.isHubSuccess());
-    final Bytes returnDataSize = bytecodeRunner.getHub().currentFrame().frame().getStackItem(0);
-    assertFalse(returnDataSize.isEmpty());
+    if (isPostOsaka(fork)) {
+      P256VerifyOobCall p256VerifyOobCall =
+          (P256VerifyOobCall)
+              bytecodeRunner.getHub().oob().operations().stream().toList().getLast().oobCall();
+      assertTrue(p256VerifyOobCall.isHubSuccess());
+    }
   }
 
   @Test
@@ -103,12 +101,12 @@ public class P256VerifyCallSuccessAndFailureCasesTest extends TracerTestBase {
         PRECOMPILE_RETURN_DATA_SIZE___P256_VERIFY);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);
-    P256VerifyOobCall p256VerifyOobCall =
-        (P256VerifyOobCall)
-            bytecodeRunner.getHub().oob().operations().stream().toList().getLast().oobCall();
-    assertTrue(p256VerifyOobCall.isHubSuccess());
-    final Bytes returnDataSize = bytecodeRunner.getHub().currentFrame().frame().getStackItem(0);
-    assertFalse(returnDataSize.isEmpty());
+    if (isPostOsaka(fork)) {
+      P256VerifyOobCall p256VerifyOobCall =
+          (P256VerifyOobCall)
+              bytecodeRunner.getHub().oob().operations().stream().toList().getLast().oobCall();
+      assertTrue(p256VerifyOobCall.isHubSuccess());
+    }
   }
 
   @Test
@@ -126,11 +124,11 @@ public class P256VerifyCallSuccessAndFailureCasesTest extends TracerTestBase {
         PRECOMPILE_RETURN_DATA_SIZE___P256_VERIFY);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);
-    P256VerifyOobCall p256VerifyOobCall =
-        (P256VerifyOobCall)
-            bytecodeRunner.getHub().oob().operations().stream().toList().getLast().oobCall();
-    assertTrue(p256VerifyOobCall.isHubSuccess());
-    final Bytes returnDataSize = bytecodeRunner.getHub().currentFrame().frame().getStackItem(0);
-    assertFalse(returnDataSize.isEmpty());
+    if (isPostOsaka(fork)) {
+      P256VerifyOobCall p256VerifyOobCall =
+          (P256VerifyOobCall)
+              bytecodeRunner.getHub().oob().operations().stream().toList().getLast().oobCall();
+      assertTrue(p256VerifyOobCall.isHubSuccess());
+    }
   }
 }

@@ -73,15 +73,15 @@ public class Utilities {
   }
 
   public static void simpleCallAndReturnDataSize(
-    BytecodeCompiler program,
-    OpCode callOpcode,
-    int gas,
-    Address to,
-    int value,
-    int cdo,
-    int cds,
-    int rao,
-    int rac) {
+      BytecodeCompiler program,
+      OpCode callOpcode,
+      int gas,
+      Address to,
+      int value,
+      int cdo,
+      int cds,
+      int rao,
+      int rac) {
     simpleCall(program, callOpcode, gas, to, value, cdo, cds, rao, rac);
     program.op(RETURNDATASIZE);
   }

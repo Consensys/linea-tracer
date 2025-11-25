@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.exceptions.TracingExceptions;
+import net.consensys.linea.zktracer.lt.LtFile;
 import net.consensys.linea.zktracer.module.DebugMode;
 import net.consensys.linea.zktracer.module.hub.*;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -147,7 +148,8 @@ public class ZkTracer implements LineCountingTracer {
     // Configure metadata
     final Map<String, Object> metadata = buildMetaData(startBlock, endBlock);
     // Construct (in memory) trace file
-    LtTraceFile ltf = LtTraceFile.of(metadata, trace, modulesToTrace);
+    LtFile.Header lth = new LtFile.Header(1, 0, metadata);
+    LtFile ltf = LtFile.of(lth, trace, modulesToTrace);
     //
     try (FileOutputStream fout = new FileOutputStream(filename.toString())) {
       // Compress file (if requested)

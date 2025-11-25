@@ -19,8 +19,8 @@ import java.nio.ByteBuffer;
 import net.consensys.linea.zktracer.Trace;
 
 /**
- * Provides a simple encoding of column data, where each element is stored directly in place.  This is suitable for
- * the v1 file format.
+ * Provides a simple encoding of column data, where each element is stored directly in place. This
+ * is suitable for the v1 file format.
  */
 public class RawColumn implements Trace.Column {
   private final String name;
@@ -96,6 +96,7 @@ public class RawColumn implements Trace.Column {
 
   /**
    * Access the underling array of bytes for this column.
+   *
    * @return
    */
   public byte[] toBytes() {

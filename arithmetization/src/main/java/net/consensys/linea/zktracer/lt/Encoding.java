@@ -17,9 +17,9 @@ package net.consensys.linea.zktracer.lt;
 import java.nio.ByteBuffer;
 
 public record Encoding(int encoding, byte[] data) {
-  public final static byte ENCODING_ZERO = 0;
-  public final static byte ENCODING_STATIC = 1;
-  public final static byte ENCODING_POOL = 2;
+  public static final byte ENCODING_ZERO = 0;
+  public static final byte ENCODING_STATIC = 1;
+  public static final byte ENCODING_POOL = 2;
 
   /**
    * Construct a static encoding for a given set of column data.
@@ -32,35 +32,34 @@ public record Encoding(int encoding, byte[] data) {
     byte[] data;
     long maxValue = maxValue(buffer);
     //
-    if(maxValue == 0) {
-      encoding = encoding(Encoding.ENCODING_ZERO,0);
+    if (maxValue == 0) {
+      encoding = encoding(Encoding.ENCODING_ZERO, 0);
       data = encodeU0(buffer);
-    } else if(maxValue <= 255L) {
-      encoding = encoding(Encoding.ENCODING_STATIC,8);
+    } else if (maxValue <= 255L) {
+      encoding = encoding(Encoding.ENCODING_STATIC, 8);
       data = encodeU8(buffer);
-    } else if(maxValue <= 65535L) {
-      encoding = encoding(Encoding.ENCODING_STATIC,16);
+    } else if (maxValue <= 65535L) {
+      encoding = encoding(Encoding.ENCODING_STATIC, 16);
       data = encodeU16(buffer);
-    } else if(maxValue <= 4294967296L){
-      encoding = encoding(Encoding.ENCODING_STATIC,32);
+    } else if (maxValue <= 4294967296L) {
+      encoding = encoding(Encoding.ENCODING_STATIC, 32);
       data = encodeU32(buffer);
     } else {
       throw new IllegalArgumentException("column data too large (" + maxValue + ")");
     }
     //
-    return new Encoding(encoding,data);
+    return new Encoding(encoding, data);
   }
 
   private static long maxValue(long[] data) {
     long max = 0;
 
-    for(int i = 0; i < data.length; i++) {
-        max = Math.max(max,data[i]);
+    for (int i = 0; i < data.length; i++) {
+      max = Math.max(max, data[i]);
     }
 
     return max;
   }
-
 
   /**
    * Construct a pooled encoding for a given set of column data.
@@ -71,7 +70,7 @@ public record Encoding(int encoding, byte[] data) {
   public static Encoding ofPool(int[] buffer, int bitwidth) {
     int encoding = encoding(ENCODING_POOL, bitwidth);
     byte[] data = encodeU32(buffer);
-    return new Encoding(encoding,data);
+    return new Encoding(encoding, data);
   }
 
   private static int encoding(byte opcode, int operand) {
@@ -88,49 +87,48 @@ public record Encoding(int encoding, byte[] data) {
   private static byte[] encodeU8(long[] buffer) {
     final byte[] bytes = new byte[buffer.length];
     //
-    for(int i=0;i!=buffer.length;i++) {
+    for (int i = 0; i != buffer.length; i++) {
       bytes[i] = (byte) buffer[i];
     }
     //
     return bytes;
   }
 
-
   private static byte[] encodeU16(long[] buffer) {
-    final byte[] bytes = new byte[buffer.length*2];
+    final byte[] bytes = new byte[buffer.length * 2];
     //
-    for(int i=0;i!=buffer.length;i++) {
+    for (int i = 0; i != buffer.length; i++) {
       final long ith = buffer[i];
-      bytes[i<<1] = (byte) (ith >> 8);
-      bytes[(i<<1)+1] = (byte) ith;
+      bytes[i << 1] = (byte) (ith >> 8);
+      bytes[(i << 1) + 1] = (byte) ith;
     }
     //
     return bytes;
   }
 
   private static byte[] encodeU32(int[] buffer) {
-    final byte[] bytes = new byte[buffer.length*4];
+    final byte[] bytes = new byte[buffer.length * 4];
     //
-    for(int i=0;i!=buffer.length;i++) {
+    for (int i = 0; i != buffer.length; i++) {
       final int ith = buffer[i];
-      bytes[i<<2] = (byte) (ith >> 24);
-      bytes[(i<<2)+1] = (byte) (ith >> 16);
-      bytes[(i<<2)+2] = (byte) (ith >> 8);
-      bytes[(i<<2)+3] = (byte) ith;
+      bytes[i << 2] = (byte) (ith >> 24);
+      bytes[(i << 2) + 1] = (byte) (ith >> 16);
+      bytes[(i << 2) + 2] = (byte) (ith >> 8);
+      bytes[(i << 2) + 3] = (byte) ith;
     }
     //
     return bytes;
   }
 
   private static byte[] encodeU32(long[] buffer) {
-    final byte[] bytes = new byte[buffer.length*4];
+    final byte[] bytes = new byte[buffer.length * 4];
     //
-    for(int i=0;i!=buffer.length;i++) {
+    for (int i = 0; i != buffer.length; i++) {
       final long ith = buffer[i];
-      bytes[i<<2] = (byte) (ith >> 24);
-      bytes[(i<<2)+1] = (byte) (ith >> 16);
-      bytes[(i<<2)+2] = (byte) (ith >> 8);
-      bytes[(i<<2)+3] = (byte) ith;
+      bytes[i << 2] = (byte) (ith >> 24);
+      bytes[(i << 2) + 1] = (byte) (ith >> 16);
+      bytes[(i << 2) + 2] = (byte) (ith >> 8);
+      bytes[(i << 2) + 3] = (byte) ith;
     }
     //
     return bytes;

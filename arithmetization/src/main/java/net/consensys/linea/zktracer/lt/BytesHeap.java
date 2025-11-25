@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 public class BytesHeap {
-  private final HashMap<Entry,Integer> index = new HashMap<>();
+  private final HashMap<Entry, Integer> index = new HashMap<>();
   private byte[] bytes = new byte[256];
   private byte[] lengths = new byte[256];
   private int length;
@@ -27,6 +27,7 @@ public class BytesHeap {
   public BytesHeap() {
     alloc(new Entry(new byte[0]));
   }
+
   /**
    * Insert a new element into this heap, returning its index.
    *
@@ -37,7 +38,7 @@ public class BytesHeap {
     Entry e = new Entry(key);
     Integer val = this.index.get(e);
     //
-    if(val == null) {
+    if (val == null) {
       val = alloc(e);
     }
     //
@@ -46,6 +47,7 @@ public class BytesHeap {
 
   /**
    * Encode this heap into a given set of bytes.
+   *
    * @return
    */
   public byte[] toBytes() {
@@ -54,7 +56,7 @@ public class BytesHeap {
     // write heap length
     buffer.putInt(length);
     // write lengths
-    buffer.put(lengths,0,length);
+    buffer.put(lengths, 0, length);
     // write bytes
     buffer.put(bytes, 0, length);
     //
@@ -63,18 +65,18 @@ public class BytesHeap {
 
   private int alloc(Entry e) {
     int val = length;
-    int size = Math.max(e.bytes.length,1);
+    int size = Math.max(e.bytes.length, 1);
     // Ensure enough capacity
-    if(length + size > bytes.length) {
+    if (length + size > bytes.length) {
       bytes = Arrays.copyOf(bytes, 2 * (size + length + 1));
       lengths = Arrays.copyOf(lengths, 2 * (size + length + 1));
     }
     // Configure entry
-    this.index.put(e,val);
+    this.index.put(e, val);
     this.lengths[val] = (byte) e.bytes.length;
     this.length += size;
     // Copy over bytes
-    System.arraycopy(e.bytes,0,this.bytes, val, e.bytes.length);
+    System.arraycopy(e.bytes, 0, this.bytes, val, e.bytes.length);
     // Done
     return val;
   }
@@ -87,8 +89,8 @@ public class BytesHeap {
     }
 
     public boolean equals(Object o) {
-      if(o instanceof Entry e) {
-        return Arrays.equals(bytes,e.bytes);
+      if (o instanceof Entry e) {
+        return Arrays.equals(bytes, e.bytes);
       }
       //
       return false;

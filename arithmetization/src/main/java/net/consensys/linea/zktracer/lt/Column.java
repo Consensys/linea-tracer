@@ -5,15 +5,18 @@ import net.consensys.linea.zktracer.Trace;
 public interface Column extends Trace.Column {
   /**
    * Unqualified name of the column.
+   *
    * @return
    */
   String name();
 
   /**
    * bitwidth of enclosing column.
+   *
    * @return
    */
   int bitwidth();
+
   /**
    * Get an encoding of this column
    *
@@ -22,7 +25,7 @@ public interface Column extends Trace.Column {
   Encoding toEncoding();
 
   static Column of(Trace.ColumnHeader header, BytesHeap heap) {
-    if(header.bitwidth() <= 32) {
+    if (header.bitwidth() <= 32) {
       return new Small(header);
     } else {
       return new Large(header, heap);
@@ -37,13 +40,14 @@ public interface Column extends Trace.Column {
       final String[] split = header.name().split("\\.");
       this.bitwidth = header.bitwidth();
       // Unqualify the qualified name
-      this.name = switch(split.length) {
-        case 1 -> split[0];
-        case 2 -> split[1];
-        default -> {
-          throw new IllegalArgumentException("invalid column name: " + header.name());
-        }
-      };
+      this.name =
+          switch (split.length) {
+            case 1 -> split[0];
+            case 2 -> split[1];
+            default -> {
+              throw new IllegalArgumentException("invalid column name: " + header.name());
+            }
+          };
     }
 
     public String name() {
@@ -56,9 +60,9 @@ public interface Column extends Trace.Column {
   }
 
   /**
-   * Provides a static encoding of column data, where each element is stored explicitly (i.e. not as a pool index). This
-   * uses an optimised encoding (e.g. where binary colunms are stored as bits) and, hence, is suitable only for the v2
-   * file format.
+   * Provides a static encoding of column data, where each element is stored explicitly (i.e. not as
+   * a pool index). This uses an optimised encoding (e.g. where binary colunms are stored as bits)
+   * and, hence, is suitable only for the v2 file format.
    */
   class Small extends Base implements Column {
     private final long longMax;
@@ -130,16 +134,16 @@ public interface Column extends Trace.Column {
       byte b0 = (byte) value;
       byte[] bytes;
       // ensure bytes in trimmed and in big endian form.
-      if(value <= 0xffff) {
-        if(value <= 0xff) {
-          bytes = new byte[]{b0};
+      if (value <= 0xffff) {
+        if (value <= 0xff) {
+          bytes = new byte[] {b0};
         } else {
-          bytes = new byte[]{b1,b0};
+          bytes = new byte[] {b1, b0};
         }
-      } else if(value <= 0xffffff) {
-        bytes = new byte[]{b2,b1,b0};
+      } else if (value <= 0xffffff) {
+        bytes = new byte[] {b2, b1, b0};
       } else {
-        bytes = new byte[]{b3,b2,b1,b0};
+        bytes = new byte[] {b3, b2, b1, b0};
       }
       //
       this.write(bytes);

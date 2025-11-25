@@ -14,73 +14,7 @@
  */
 package net.consensys.linea.zktracer.lt;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.Map;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import net.consensys.linea.zktracer.Trace;
-
 public class Util {
-
-  /**
-   * Write header information for the trace file.
-   *
-   * @param headers Column headers.*
-   */
-  public static byte[] getColumnHeaderBytes(Trace.ColumnHeader[] headers) throws IOException {
-    ByteBuffer buffer = ByteBuffer.allocate(getColumnHeadersSize(headers));
-    // Write column count as uint32
-    buffer.putInt(countHeaders(headers));
-    // Write column headers one-by-one
-    for (Trace.ColumnHeader h : headers) {
-      if (h != null) {
-        buffer.putShort((short) h.name().length());
-        buffer.put(h.name().getBytes());
-        buffer.put((byte) Util.byteWidth(h.bitwidth()));
-        buffer.putInt(h.length());
-      }
-    }
-    //
-    return buffer.array();
-  }
-
-  /**
-   * Precompute the size of the trace file in order to memory map the buffers.
-   *
-   * @param headers Set of headers for the columns being written.
-   * @return Number of bytes requires for the trace file header.
-   */
-  private static int getColumnHeadersSize(Trace.ColumnHeader[] headers) {
-    int nBytes = 4; // column count
-
-    for (Trace.ColumnHeader header : headers) {
-      if (header != null) {
-        nBytes += 2; // name length
-        nBytes += header.name().length();
-        nBytes += 1; // byte per element
-        nBytes += 4; // element count
-      }
-    }
-
-    return nBytes;
-  }
-
-  /**
-   * Counter number of active (i.e. non-null) headers. A header can be null if it represents a
-   * column in a module which is not activated for this trace.
-   */
-  private static int countHeaders(Trace.ColumnHeader[] headers) {
-    int count = 0;
-    for (Trace.ColumnHeader h : headers) {
-      if (h != null) {
-        count++;
-      }
-    }
-    return count;
-  }
 
   /**
    * Convert a given bitwidth into a bytewidth. For example, a bitwidth of 1 becomes a bytewidth of
@@ -100,8 +34,9 @@ public class Util {
   }
 
   /**
-   * Determine the minimal number of bits required to store the value held in a given set of bytes (assuming a big
-   * endian layout).  For example, a value of 0x0AFF (binary 0b00001010_11111111). has a bit length of 12.
+   * Determine the minimal number of bits required to store the value held in a given set of bytes
+   * (assuming a big endian layout). For example, a value of 0x0AFF (binary 0b00001010_11111111).
+   * has a bit length of 12.
    *
    * @param bytes the bytes (stored in big endian form) whose bitlength is being determined.
    * @return
@@ -123,11 +58,10 @@ public class Util {
   }
 
   /**
-   * Determine the minimal number of bits required to store the value held in a given byte.  For example, 0x0A
-   * (binary 0b00001010) has a bit length of 4.
+   * Determine the minimal number of bits required to store the value held in a given byte. For
+   * example, 0x0A (binary 0b00001010) has a bit length of 4.
    *
    * @param b the byte whose bitlength is being determined.
-   *
    * @return
    */
   static int bitLengthOf(byte b) {

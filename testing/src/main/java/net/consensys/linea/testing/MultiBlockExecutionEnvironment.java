@@ -124,10 +124,7 @@ public class MultiBlockExecutionEnvironment {
     final Map<Long, Hash> historicalBlockhashes = conflationSnapshot.historicalBlockHashes();
     // Remove the last block number as it's not part of the historical blockhashes
     historicalBlockhashes.remove(conflationSnapshot.lastBlockNumber());
-    final Map<Long, Bytes> blobBaseFees =
-        getDefaultBlobBaseFees(
-            conflationSnapshot.firstBlockNumber(), conflationSnapshot.lastBlockNumber());
-    tracer = new ZkTracer(chainConfig, historicalBlockhashes, blobBaseFees);
+    tracer = new ZkTracer(chainConfig, historicalBlockhashes, conflationSnapshot.blobBaseFees());
     ReplayExecutionEnvironment.builder()
         .zkTracer(tracer)
         .useCoinbaseAddressFromBlockHeader(true)
@@ -172,7 +169,16 @@ public class MultiBlockExecutionEnvironment {
           block.header().number(), block.header().toBlockHeader().getBlockHash());
     }
 
+    final Map<Long, Bytes> blobBaseFees =
+        getDefaultBlobBaseFees(
+            blocks.getFirst().header().number(), blocks.getLast().header().number());
+
     return ConflationSnapshot.from(
-        testsChain.fork.name(), blocks, accountSnapshots, storageSnapshots, blockHashSnapshots);
+        testsChain.fork.name(),
+        blocks,
+        accountSnapshots,
+        storageSnapshots,
+        blockHashSnapshots,
+        blobBaseFees);
   }
 }

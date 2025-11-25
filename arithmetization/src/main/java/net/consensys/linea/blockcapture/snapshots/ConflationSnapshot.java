@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.evm.blockhash.BlockHashLookup;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -39,22 +40,25 @@ public record ConflationSnapshot(
     List<BlockSnapshot> blocks,
     List<AccountSnapshot> accounts,
     List<StorageSnapshot> storage,
-    List<BlockHashSnapshot> blockHashes) {
+    List<BlockHashSnapshot> blockHashes,
+    Map<Long, Bytes> blobBaseFees) {
 
   public static ConflationSnapshot from(
       String fork,
       List<BlockSnapshot> blocks,
       List<AccountSnapshot> accounts,
       List<StorageSnapshot> storage,
-      Map<Long, Hash> blockHashes) {
-    ArrayList<BlockHashSnapshot> blockHashSnapshots = new ArrayList<>();
+      Map<Long, Hash> blockHashes,
+      Map<Long, Bytes> blobBaseFees) {
+    final ArrayList<BlockHashSnapshot> blockHashSnapshots = new ArrayList<>();
     //
     for (Map.Entry<Long, Hash> e : blockHashes.entrySet()) {
       String h = e.getValue().toHexString();
       blockHashSnapshots.add(new BlockHashSnapshot(e.getKey(), h));
     }
     //
-    return new ConflationSnapshot(fork, blocks, accounts, storage, blockHashSnapshots);
+    return new ConflationSnapshot(
+        fork, blocks, accounts, storage, blockHashSnapshots, blobBaseFees);
   }
 
   public long firstBlockNumber() {

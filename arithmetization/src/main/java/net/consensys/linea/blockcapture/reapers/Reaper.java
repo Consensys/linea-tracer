@@ -16,8 +16,7 @@
 package net.consensys.linea.blockcapture.reapers;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.Trace.HISTORY_BUFFER_LENGTH;
-import static net.consensys.linea.zktracer.Trace.HISTORY_SERVE_WINDOW;
+import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.EIP2935_HISTORY_STORAGE_ADDRESS;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.EIP4788_BEACONROOT_ADDRESS;
 
@@ -62,6 +61,9 @@ public class Reaper {
 
   /** Collection all block hashes read during the conflation * */
   private final Map<Long, Hash> conflationHashes = new HashMap<>();
+
+  /** Collection all blob base fees during the conflation * */
+  private final Map<Long, Bytes> conflationBlobBaseFees = new HashMap<>();
 
   /** Collect the blocks within a conflation */
   private final List<BlockSnapshot> blocks = new ArrayList<>();
@@ -183,6 +185,13 @@ public class Reaper {
     }
   }
 
+  public void touchBlobBaseFee(final long blockNumber, Bytes blobBaseFee) {
+    checkArgument(
+        conflationBlobBaseFees.getOrDefault(blockNumber, blobBaseFee).equals(blobBaseFee),
+        "BLOBBASEFEE must be constant along a block");
+    conflationBlobBaseFees.put(blockNumber, blobBaseFee);
+  }
+
   /**
    * Uniquify and solidify the accumulated data, then return a {@link ConflationSnapshot}, which
    * contains the smallest dataset required to exactly replay the conflation within a test framework
@@ -196,7 +205,21 @@ public class Reaper {
     final List<AccountSnapshot> accounts = conflationAddresses.collapse(world);
     // Collapse storage
     final List<StorageSnapshot> storage = conflationStorage.collapse(world);
+    // Collapse BlobBaseFee: if a blobBaseFee of a block is not known, copy/paste the one of the
+    // previous block. For the first block of the conflation, if not known, write the LINEA default
+    // value.
+    Bytes previousBlobBaseFee =
+        conflationBlobBaseFees.getOrDefault(
+            blocks.getFirst().header().number(), Bytes.ofUnsignedShort(LINEA_BLOB_BASE_FEE));
+    for (BlockSnapshot block : blocks) {
+      if (conflationBlobBaseFees.get(block.header().number()).isEmpty()) {
+        conflationBlobBaseFees.put(block.header().number(), previousBlobBaseFee);
+      } else {
+        previousBlobBaseFee = conflationBlobBaseFees.get(block.header().number());
+      }
+    }
     // Done
-    return ConflationSnapshot.from(fork.name(), blocks, accounts, storage, conflationHashes);
+    return ConflationSnapshot.from(
+        fork.name(), blocks, accounts, storage, conflationHashes, conflationBlobBaseFees);
   }
 }

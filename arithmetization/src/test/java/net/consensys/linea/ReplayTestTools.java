@@ -15,7 +15,6 @@
 
 package net.consensys.linea;
 
-import static net.consensys.linea.zktracer.module.blockdata.module.Blockdata.getDefaultBlobBaseFees;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
@@ -24,7 +23,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import com.google.gson.Gson;
@@ -35,8 +33,6 @@ import net.consensys.linea.testing.ReplayExecutionEnvironment;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Hash;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
@@ -95,14 +91,10 @@ public class ReplayTestTools {
     final ConflationSnapshot conflation =
         gson.fromJson(new BufferedReader(new InputStreamReader(stream)), ConflationSnapshot.class);
 
-    final Map<Long, Hash> historicalBlockHashes = conflation.historicalBlockHashes();
-    // TODO: make it better: currently, blobBaseFees are not captured in the conflation snapshot
-    final Map<Long, Bytes> blobBaseFees =
-        getDefaultBlobBaseFees(conflation.firstBlockNumber(), conflation.lastBlockNumber());
-
     ReplayExecutionEnvironment.builder()
         .filename(filename)
-        .zkTracer(new ZkTracer(chain, historicalBlockHashes, blobBaseFees))
+        .zkTracer(
+            new ZkTracer(chain, conflation.historicalBlockHashes(), conflation.blobBaseFees()))
         .txResultChecking(resultChecking)
         .useCoinbaseAddressFromBlockHeader(Fork.isPostPrague(chain.fork))
         .build()

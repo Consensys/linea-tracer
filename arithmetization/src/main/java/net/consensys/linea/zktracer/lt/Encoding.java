@@ -35,13 +35,13 @@ public record Encoding(int encoding, byte[] data) {
     if (maxValue == 0) {
       encoding = encoding(Encoding.ENCODING_ZERO, 0);
       data = encodeU0(buffer);
-    } else if (maxValue <= 255L) {
+    } else if (maxValue < 256L) {
       encoding = encoding(Encoding.ENCODING_STATIC, 8);
       data = encodeU8(buffer);
-    } else if (maxValue <= 65535L) {
+    } else if (maxValue < 65536L) {
       encoding = encoding(Encoding.ENCODING_STATIC, 16);
       data = encodeU16(buffer);
-    } else if (maxValue <= 4294967296L) {
+    } else if (maxValue < 4294967296L) {
       encoding = encoding(Encoding.ENCODING_STATIC, 32);
       data = encodeU32(buffer);
     } else {

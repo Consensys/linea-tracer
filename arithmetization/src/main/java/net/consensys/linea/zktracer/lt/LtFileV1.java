@@ -24,7 +24,7 @@ import net.consensys.linea.zktracer.container.module.Module;
 
 public class LtFileV1 extends LtFile {
   private final Trace.ColumnHeader[] columnHeaders;
-  private final RawColumn[] columns;
+  private final Column.Raw[] columns;
 
   public LtFileV1(Header header, Trace trace, List<Module> modules) {
     super(header);
@@ -33,12 +33,12 @@ public class LtFileV1 extends LtFile {
         modules.stream().flatMap(m -> m.columnHeaders(trace).stream()).toList();
     //
     this.columnHeaders = alignHeaders(headers);
-    this.columns = new RawColumn[columnHeaders.length];
+    this.columns = new Column.Raw[columnHeaders.length];
 
     for (int i = 0; i < columnHeaders.length; i++) {
       Trace.ColumnHeader colHeader = columnHeaders[i];
       if (colHeader != null) {
-        columns[i] = new RawColumn(colHeader.name(), colHeader.bitwidth(), colHeader.length());
+        columns[i] = new Column.Raw(colHeader.name(), colHeader.bitwidth(), colHeader.length());
       }
     }
   }

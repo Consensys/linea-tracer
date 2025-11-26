@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.container.module.Module;
@@ -69,6 +70,9 @@ public class ZkTracer implements LineCountingTracer {
 
   // Fields for metadata
   @Getter private final ChainConfig chain;
+
+  /** Determines which version the LT trace file format to use by default. */
+  @Setter private int ltFileMajorVersion = 1;
 
   /**
    * Construct a ZkTracer for a given bridge configuration and chainId. This is used, for example,
@@ -148,7 +152,7 @@ public class ZkTracer implements LineCountingTracer {
     // Configure metadata
     final Map<String, Object> metadata = buildMetaData(startBlock, endBlock);
     // Construct (in memory) trace file
-    LtFile.Header lth = new LtFile.Header(1, 0, metadata);
+    LtFile.Header lth = new LtFile.Header(ltFileMajorVersion, 0, metadata);
     LtFile ltf = LtFile.of(lth, trace, modulesToTrace);
     //
     try (FileOutputStream fout = new FileOutputStream(filename.toString())) {

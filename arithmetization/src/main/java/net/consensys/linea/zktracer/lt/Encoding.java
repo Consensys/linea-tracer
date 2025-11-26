@@ -31,7 +31,7 @@ public record Encoding(int encoding, byte[] data) {
     int encoding;
     byte[] data;
     long maxValue = maxValue(buffer);
-    long minValue = maxValue(buffer);
+    long minValue = minValue(buffer);
     //
     if (maxValue == minValue && maxValue <= 0xFF_FFFF) {
       encoding = encoding(Encoding.ENCODING_CONSTANT, (int) maxValue);
@@ -66,7 +66,7 @@ public record Encoding(int encoding, byte[] data) {
   }
 
   private static long minValue(long[] data) {
-    long min = 0;
+    long min = Long.MAX_VALUE;
 
     for (int i = 0; i < data.length; i++) {
       min = Math.min(min, data[i]);

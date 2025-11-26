@@ -131,8 +131,10 @@ public class ModexpEIP7883Tests extends TracerTestBase {
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL)
         .op(OpCode.RETURNDATASIZE)
-        .op(OpCode.JUMPDEST, 32);
+        .op(OpCode.JUMPDEST, 32); // TODO: temporary workaround for go-corset issue
 
+    // TODO: do we want to add a RETURNDATACOPY?
+    
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
   }

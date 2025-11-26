@@ -14,4 +14,18 @@
  */
 package net.consensys.linea.zktracer.precompiles.osakaModexpTests;
 
-public class XbsLimitsTests {}
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.params.provider.Arguments;
+
+public class XbsLimitsTests {
+
+  static Stream<Arguments> bbsOutOfBoundsParameters() {
+
+    List<Arguments> parameters = new ArrayList<>();
+
+    return parameters.stream();
+  }
+}

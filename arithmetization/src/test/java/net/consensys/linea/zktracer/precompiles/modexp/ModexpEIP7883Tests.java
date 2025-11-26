@@ -38,14 +38,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class ModexpEIP7883Tests extends TracerTestBase {
 
   // See https://github.com/Consensys/linea-tracer/issues/2496
-  static final List<Pair<Integer, Integer>> bbsMbsPairs =
+  static final List<Pair<Integer, Integer>> bbsMbsPairOfValues =
       List.of(Pair.create(0, 0), Pair.create(0, 3), Pair.create(21, 23), Pair.create(56, 55));
 
-  static final List<Integer> ebss = List.of(0, 1, 16, 27, 32, 39, 173);
+  static final List<Integer> ebsValues = List.of(0, 1, 16, 27, 32, 39, 173);
 
   // Pre-computed leading words for the exponent for each ebs value
   static final Map<Integer, List<String>> ebsToExponentLeadingWords =
-      ebss.stream()
+      ebsValues.stream()
           .collect(
               Collectors.toMap(
                   ebsItem -> ebsItem,
@@ -69,24 +69,36 @@ public class ModexpEIP7883Tests extends TracerTestBase {
                   }));
 
   // Support method to compute cds given bbs, ebs, mbs
-  static List<Integer> cdss(Integer bbs, Integer ebs, Integer mbs) {
-    List<Integer> cds = new ArrayList<>();
+  static List<Integer> cdsValues(Integer bbs, Integer ebs, Integer mbs) {
+    List<Integer> cdsValues = new ArrayList<>();
     for (Integer extra : ebs != 0 ? List.of(ebs / 2, ebs, ebs + mbs) : List.of(0, mbs)) {
-      cds.add(bbs + extra);
+      cdsValues.add(bbs + extra);
     }
-    return cds;
+    return cdsValues;
   }
 
   @ParameterizedTest
   @MethodSource("modexpEIP7883TestSource")
-  void modexpEIP7883Test(int bbs, int ebs, int mbs, int cds, String exponentLeadingWord) {
-    // TODO
-
+  void modexpEIP7883Test(
+      int bbs, int ebs, int mbs, int cds, String exponentLeadingWord, TestInfo testInfo) {
+    modexpEIP7883TestBody(bbs, ebs, mbs, cds, exponentLeadingWord, testInfo);
   }
 
   private void modexpEIP7883TestBody(
       int bbs, int ebs, int mbs, int cds, String exponentLeadingWord, TestInfo testInfo) {
-    final Bytes input = Bytes.fromHexString("...");
+    final String bbsHex = String.format("%064x", bbs);
+    final String ebsHex = String.format("%064x", ebs);
+    final String mbsHex = String.format("%064x", mbs);
+
+    final Bytes input =
+        Bytes.fromHexString(
+            bbsHex
+                + ebsHex
+                + mbsHex
+                + "00".repeat(bbs)
+                + exponentLeadingWord
+                + "00".repeat(Math.max(0, ebs - Math.min(ebs, 32)))
+                + "00".repeat(mbs));
 
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
@@ -113,7 +125,7 @@ public class ModexpEIP7883Tests extends TracerTestBase {
     program
         .push(mbs) // retSize
         .push(input.size()) // retOffset
-        .push(input.size()) // argSize
+        .push(cds) // argSize
         .push(0) // argOffset
         .push(Address.MODEXP) // address
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
@@ -127,15 +139,15 @@ public class ModexpEIP7883Tests extends TracerTestBase {
 
   static Stream<Arguments> modexpEIP7883TestSource() {
     List<Arguments> arguments = new ArrayList<>();
-    for (Pair<Integer, Integer> bbsMbs : bbsMbsPairs) {
+    for (Pair<Integer, Integer> bbsMbs : bbsMbsPairOfValues) {
       Integer bbs = bbsMbs.getFirst();
       Integer mbs = bbsMbs.getSecond();
-      for (Integer ebs : ebss) {
-        List<Integer> cdss = cdss(bbs, ebs, mbs);
-        List<String> exponentLeadsForEbs = ebsToExponentLeadingWords.get(ebs);
-        for (Integer cds : cdss) {
-          for (String exponentLeadForEbs : exponentLeadsForEbs) {
-            arguments.add(Arguments.of(bbs, ebs, mbs, cds, exponentLeadForEbs));
+      for (Integer ebs : ebsValues) {
+        List<Integer> cdsValues = cdsValues(bbs, ebs, mbs);
+        List<String> exponentLeadingWordsForEbs = ebsToExponentLeadingWords.get(ebs);
+        for (Integer cds : cdsValues) {
+          for (String exponentLeadingWordForEbs : exponentLeadingWordsForEbs) {
+            arguments.add(Arguments.of(bbs, ebs, mbs, cds, exponentLeadingWordForEbs));
           }
         }
       }

@@ -19,10 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.consensys.linea.reporting.TracerTestBase;
 import org.apache.commons.math3.util.Pair;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class ModexpEIP7883Tests extends TracerTestBase {
 
@@ -30,26 +34,25 @@ public class ModexpEIP7883Tests extends TracerTestBase {
   static final List<Pair<Integer, Integer>> bbsMbsPairs =
       List.of(Pair.create(0, 0), Pair.create(0, 3), Pair.create(21, 23), Pair.create(56, 55));
 
-  static final List<Integer> ebs = List.of(0, 1, 16, 27, 32, 39, 173);
+  static final List<Integer> ebss = List.of(0, 1, 16, 27, 32, 39, 173);
 
   // Pre-computed exponents for each ebs value
-  static final Map<Integer, List<BigInteger>> exponents =
-      ebs.stream()
+  static final Map<Integer, List<String>> exponentLeads =
+      ebss.stream()
           .collect(
               Collectors.toMap(
                   ebsItem -> ebsItem,
                   ebsItem -> {
                     final int minEbs32 = Math.min(ebsItem, 32);
-                    List<BigInteger> exponents = new ArrayList<>();
+                    List<String> exponents = new ArrayList<>();
                     for (int z = 0; z <= 8 * minEbs32; z++) {
-                      final String exponent = "0".repeat(8 * minEbs32 - z) + "1".repeat(z);
-                      exponents.add(new BigInteger(exponent, 2));
+                      exponents.add("0".repeat(8 * minEbs32 - z) + "1".repeat(z));
                     }
                     return exponents;
                   }));
 
   // Support method to compute cds given bbs, ebs, mbs
-  static List<Integer> cds(Integer bbs, Integer ebs, Integer mbs) {
+  static List<Integer> cdss(Integer bbs, Integer ebs, Integer mbs) {
     List<Integer> cds = new ArrayList<>();
     for (Integer extra : List.of(ebs / 2, ebs, ebs + mbs)) {
       cds.add(bbs + extra);
@@ -57,7 +60,28 @@ public class ModexpEIP7883Tests extends TracerTestBase {
     return cds;
   }
 
-  // TODO: tests
-  @Test
-  void test() {}
+  @ParameterizedTest
+  @MethodSource("modexpEIP7883TestSource")
+  void modexpEIP7883Test(int bbs, int ebs, int mbs, int cds, String exponentLead) {
+    // TODO
+
+  }
+
+  static Stream<Arguments> modexpEIP7883TestSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Pair<Integer, Integer> bbsMbs : bbsMbsPairs) {
+      Integer bbs = bbsMbs.getFirst();
+      Integer mbs = bbsMbs.getSecond();
+      for (Integer ebs : ebss) {
+        List<Integer> cdss = cdss(bbs, ebs, mbs);
+        List<String> exponentLeadsForEbs = exponentLeads.get(ebs);
+          for (Integer cds : cdss) {
+            for (String exponentLeadForEbs : exponentLeadsForEbs) {
+            arguments.add(Arguments.of(bbs, ebs, mbs, cds, exponentLeadForEbs));
+          }
+        }
+      }
+    }
+    return arguments.stream();
+  }
 }

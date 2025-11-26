@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.lt;
 import java.nio.ByteBuffer;
 
 public record Encoding(int encoding, byte[] data) {
-  public static final byte ENCODING_ZERO = 0;
+  public static final byte ENCODING_CONSTANT = 0;
   public static final byte ENCODING_STATIC = 1;
   public static final byte ENCODING_POOL = 2;
 
@@ -31,9 +31,10 @@ public record Encoding(int encoding, byte[] data) {
     int encoding;
     byte[] data;
     long maxValue = maxValue(buffer);
+    long minValue = maxValue(buffer);
     //
-    if (maxValue == 0) {
-      encoding = encoding(Encoding.ENCODING_ZERO, 0);
+    if (maxValue == minValue && maxValue <= 0xFF_FFFF) {
+      encoding = encoding(Encoding.ENCODING_CONSTANT, (int) maxValue);
       data = encodeU0(buffer);
     } else if (maxValue < 2L) {
       encoding = encoding(Encoding.ENCODING_STATIC, 1);
@@ -62,6 +63,16 @@ public record Encoding(int encoding, byte[] data) {
     }
 
     return max;
+  }
+
+  private static long minValue(long[] data) {
+    long min = 0;
+
+    for (int i = 0; i < data.length; i++) {
+      min = Math.min(min, data[i]);
+    }
+
+    return min;
   }
 
   /**

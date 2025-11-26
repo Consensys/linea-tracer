@@ -52,13 +52,17 @@ public class ModexpEIP7883Tests extends TracerTestBase {
                   ebsItem -> {
                     List<String> leadingWords = new ArrayList<>();
                     final int minEbs32 = Math.min(ebsItem, 32);
-                    BigInteger leadingWord = new BigInteger("ff".repeat(minEbs32), 16);
+                    BigInteger leadingWord =
+                        minEbs32 > 0 ? new BigInteger("ff".repeat(minEbs32), 16) : BigInteger.ZERO;
                     for (int z = 0; z <= 8 * minEbs32; z++) {
-                      final String leadingWordAsHex = leadingWord.toString(16);
+                      final String leadingWordAsHex =
+                          leadingWord.signum() != 0 ? leadingWord.toString(16) : "";
                       final String leftPaddedLeadingWordAsHex =
                           "0".repeat(Math.max(0, 2 * minEbs32 - leadingWordAsHex.length()))
                               + leadingWordAsHex;
+
                       leadingWords.add(leftPaddedLeadingWordAsHex);
+
                       leadingWord = leadingWord.shiftRight(1);
                     }
                     return leadingWords;

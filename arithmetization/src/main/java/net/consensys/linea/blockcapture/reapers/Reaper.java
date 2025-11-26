@@ -17,6 +17,7 @@ package net.consensys.linea.blockcapture.reapers;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.module.blockdata.module.Blockdata.LINEA_BLOB_BASE_FEE_BYTES;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.EIP2935_HISTORY_STORAGE_ADDRESS;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.EIP4788_BEACONROOT_ADDRESS;
 
@@ -210,9 +211,9 @@ public class Reaper {
     // value.
     Bytes previousBlobBaseFee =
         conflationBlobBaseFees.getOrDefault(
-            blocks.getFirst().header().number(), Bytes.ofUnsignedShort(LINEA_BLOB_BASE_FEE));
+            blocks.getFirst().header().number(), LINEA_BLOB_BASE_FEE_BYTES);
     for (BlockSnapshot block : blocks) {
-      if (conflationBlobBaseFees.get(block.header().number()).isEmpty()) {
+      if (!conflationBlobBaseFees.containsKey(block.header().number())) {
         conflationBlobBaseFees.put(block.header().number(), previousBlobBaseFee);
       } else {
         previousBlobBaseFee = conflationBlobBaseFees.get(block.header().number());

@@ -44,6 +44,9 @@ import org.hyperledger.besu.plugin.services.BlockchainService;
 
 @RequiredArgsConstructor
 public abstract class Blockdata implements Module {
+
+  public static final Bytes LINEA_BLOB_BASE_FEE_BYTES = Bytes.minimalBytes(LINEA_BLOB_BASE_FEE);
+
   private final Hub hub;
   private final Wcp wcp;
   private final Euc euc;
@@ -180,7 +183,7 @@ public abstract class Blockdata implements Module {
     final Map<Long, Bytes> blobBaseFees = new HashMap<>((int) (toBlock - fromBlock + 1));
     for (long blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
       // Just put the linea blob base fee constant
-      blobBaseFees.put(blockNumber, Bytes.ofUnsignedLong(LINEA_BLOB_BASE_FEE));
+      blobBaseFees.put(blockNumber, LINEA_BLOB_BASE_FEE_BYTES);
     }
     return blobBaseFees;
   }

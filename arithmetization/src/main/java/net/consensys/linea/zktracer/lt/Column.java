@@ -97,6 +97,11 @@ public interface Column extends Trace.Column {
     }
 
     @Override
+    public void write(byte value) {
+      this.write(value&0xff);
+    }
+
+    @Override
     public void write(long value) {
       // Sanity check
       if (value < 0 || longMax <= value) {
@@ -147,6 +152,11 @@ public interface Column extends Trace.Column {
     }
 
     @Override
+    public void write(byte value) {
+      this.write(value&0xff);
+    }
+
+    @Override
     public void write(long value) {
       this.write(Util.long2TruncatedBytes(value));
     }
@@ -193,6 +203,11 @@ public interface Column extends Trace.Column {
     @Override
     public void write(boolean value) {
       this.buffer.put((byte) (value ? 1 : 0));
+    }
+
+    @Override
+    public void write(byte value) {
+      this.write(value&0xff);
     }
 
     @Override

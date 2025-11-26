@@ -105,8 +105,9 @@ public class LtFileV1 extends LtFile {
     // Write column headers one-by-one
     for (Trace.ColumnHeader h : headers) {
       if (h != null) {
-        buffer.putShort((short) h.name().length());
-        buffer.put(h.name().getBytes());
+        byte[] bytes = h.name().getBytes();
+        buffer.putShort((short) bytes.length);
+        buffer.put(bytes);
         buffer.put((byte) Util.byteWidth(h.bitwidth()));
         buffer.putInt(h.length());
       }
@@ -126,8 +127,9 @@ public class LtFileV1 extends LtFile {
 
     for (Trace.ColumnHeader header : headers) {
       if (header != null) {
+        byte[] bytes = header.name().getBytes();
         nBytes += 2; // name length
-        nBytes += header.name().length();
+        nBytes += (short) bytes.length;
         nBytes += 1; // byte per element
         nBytes += 4; // element count
       }

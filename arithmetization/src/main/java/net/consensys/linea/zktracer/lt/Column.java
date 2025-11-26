@@ -98,7 +98,7 @@ public interface Column extends Trace.Column {
 
     @Override
     public void write(byte value) {
-      this.write(value&0xff);
+      this.write(value & 0xff);
     }
 
     @Override
@@ -153,7 +153,7 @@ public interface Column extends Trace.Column {
 
     @Override
     public void write(byte value) {
-      this.write(value&0xff);
+      this.write(value & 0xff);
     }
 
     @Override
@@ -207,7 +207,7 @@ public interface Column extends Trace.Column {
 
     @Override
     public void write(byte value) {
-      this.write(value&0xff);
+      this.write(value & 0xff);
     }
 
     @Override

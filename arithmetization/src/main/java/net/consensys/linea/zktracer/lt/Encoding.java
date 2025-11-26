@@ -78,7 +78,7 @@ public record Encoding(int encoding, byte[] data) {
 
   private static int encoding(byte opcode, int operand) {
     int encoding = (opcode & 0xff) << 24;
-    return encoding | (operand & 0xfff);
+    return encoding | (operand & 0xff_ffff);
   }
 
   private static byte[] encodeU0(long[] buffer) {

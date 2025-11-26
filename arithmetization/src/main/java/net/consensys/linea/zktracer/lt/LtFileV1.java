@@ -129,7 +129,7 @@ public class LtFileV1 extends LtFile {
       if (header != null) {
         byte[] bytes = header.name().getBytes();
         nBytes += 2; // name length
-        nBytes += (short) bytes.length;
+        nBytes += bytes.length;
         nBytes += 1; // byte per element
         nBytes += 4; // element count
       }

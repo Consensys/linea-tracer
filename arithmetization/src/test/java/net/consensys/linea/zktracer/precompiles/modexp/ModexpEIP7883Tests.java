@@ -14,8 +14,7 @@
  */
 package net.consensys.linea.zktracer.precompiles.modexp;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,25 +43,31 @@ public class ModexpEIP7883Tests extends TracerTestBase {
 
   static final List<Integer> ebss = List.of(0, 1, 16, 27, 32, 39, 173);
 
-  // Pre-computed exponents for each ebs value
+  // Pre-computed leading words for the exponent for each ebs value
   static final Map<Integer, List<String>> ebsToExponentLeadingWords =
       ebss.stream()
           .collect(
               Collectors.toMap(
                   ebsItem -> ebsItem,
                   ebsItem -> {
+                    List<String> leadingWords = new ArrayList<>();
                     final int minEbs32 = Math.min(ebsItem, 32);
-                    List<String> exponentLeadingWords = new ArrayList<>();
+                    BigInteger leadingWord = new BigInteger("ff".repeat(minEbs32), 16);
                     for (int z = 0; z <= 8 * minEbs32; z++) {
-                      exponentLeadingWords.add("0".repeat(8 * minEbs32 - z) + "1".repeat(z));
+                      final String leadingWordAsHex = leadingWord.toString(16);
+                      final String leftPaddedLeadingWordAsHex =
+                          "0".repeat(Math.max(0, 2 * minEbs32 - leadingWordAsHex.length()))
+                              + leadingWordAsHex;
+                      leadingWords.add(leftPaddedLeadingWordAsHex);
+                      leadingWord = leadingWord.shiftRight(1);
                     }
-                    return exponentLeadingWords;
+                    return leadingWords;
                   }));
 
   // Support method to compute cds given bbs, ebs, mbs
   static List<Integer> cdss(Integer bbs, Integer ebs, Integer mbs) {
     List<Integer> cds = new ArrayList<>();
-    for (Integer extra : List.of(ebs / 2, ebs, ebs + mbs)) {
+    for (Integer extra : ebs != 0 ? List.of(ebs / 2, ebs, ebs + mbs) : List.of(0, mbs)) {
       cds.add(bbs + extra);
     }
     return cds;
@@ -75,41 +80,42 @@ public class ModexpEIP7883Tests extends TracerTestBase {
 
   }
 
-  private void modexpEIP7883TestBody(int bbs, int ebs, int mbs, int cds, String exponentLeadingWord, TestInfo testInfo) {
+  private void modexpEIP7883TestBody(
+      int bbs, int ebs, int mbs, int cds, String exponentLeadingWord, TestInfo testInfo) {
     final Bytes input = Bytes.fromHexString("...");
 
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
     final ToyAccount codeOwnerAccount =
-      ToyAccount.builder()
-        .balance(Wei.of(0))
-        .nonce(1)
-        .address(codeOwnerAddress)
-        .code(input)
-        .build();
+        ToyAccount.builder()
+            .balance(Wei.of(0))
+            .nonce(1)
+            .address(codeOwnerAddress)
+            .code(input)
+            .build();
 
     // First place the parameters in memory
     // Copy to targetOffset the code of codeOwnerAccount
     program
-      .push(codeOwnerAddress)
-      .op(OpCode.EXTCODESIZE) // size
-      .push(0) // offset
-      .push(0) // targetOffset
-      .push(codeOwnerAddress) // address
-      .op(OpCode.EXTCODECOPY);
+        .push(codeOwnerAddress)
+        .op(OpCode.EXTCODESIZE) // size
+        .push(0) // offset
+        .push(0) // targetOffset
+        .push(codeOwnerAddress) // address
+        .op(OpCode.EXTCODECOPY);
 
     // Do the call
     program
-      .push(mbs) // retSize
-      .push(input.size()) // retOffset
-      .push(input.size()) // argSize
-      .push(0) // argOffset
-      .push(Address.MODEXP) // address
-      .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
-      .op(OpCode.STATICCALL)
-      .op(OpCode.RETURNDATASIZE)
-      .op(OpCode.JUMPDEST, 32);
+        .push(mbs) // retSize
+        .push(input.size()) // retOffset
+        .push(input.size()) // argSize
+        .push(0) // argOffset
+        .push(Address.MODEXP) // address
+        .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+        .op(OpCode.STATICCALL)
+        .op(OpCode.RETURNDATASIZE)
+        .op(OpCode.JUMPDEST, 32);
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
@@ -123,8 +129,8 @@ public class ModexpEIP7883Tests extends TracerTestBase {
       for (Integer ebs : ebss) {
         List<Integer> cdss = cdss(bbs, ebs, mbs);
         List<String> exponentLeadsForEbs = ebsToExponentLeadingWords.get(ebs);
-          for (Integer cds : cdss) {
-            for (String exponentLeadForEbs : exponentLeadsForEbs) {
+        for (Integer cds : cdss) {
+          for (String exponentLeadForEbs : exponentLeadsForEbs) {
             arguments.add(Arguments.of(bbs, ebs, mbs, cds, exponentLeadForEbs));
           }
         }

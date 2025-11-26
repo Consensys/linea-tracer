@@ -235,9 +235,9 @@ public class P256VerifyTest extends TracerTestBase {
     Bytes trailingProgram =
         BytecodeCompiler.newProgram(chainConfig)
             .op(OpCode.RETURNDATASIZE)
-            .push(0xff)
-            .push(0)
             .push(PRECOMPILE_RETURN_DATA_SIZE___P256_VERIFY)
+            .push(0)
+            .push(0xff)
             .op(OpCode.RETURNDATACOPY)
             .compile();
     // input from p256_verify_test_vectors.json

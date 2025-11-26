@@ -35,6 +35,9 @@ public record Encoding(int encoding, byte[] data) {
     if (maxValue == 0) {
       encoding = encoding(Encoding.ENCODING_ZERO, 0);
       data = encodeU0(buffer);
+    } else if (maxValue < 2L) {
+      encoding = encoding(Encoding.ENCODING_STATIC, 1);
+      data = encodeU1(buffer);
     } else if (maxValue < 256L) {
       encoding = encoding(Encoding.ENCODING_STATIC, 8);
       data = encodeU8(buffer);
@@ -82,6 +85,39 @@ public record Encoding(int encoding, byte[] data) {
     final ByteBuffer buf = ByteBuffer.allocate(4);
     buf.putInt(buffer.length);
     return buf.array();
+  }
+
+  /**
+   * U1 encoding is given a special bit representation for efficiency.
+   *
+   * @param buffer
+   * @return
+   */
+  private static byte[] encodeU1(long[] buffer) {
+    // Determine how many bytes required
+    int n = Util.byteWidth(buffer.length);
+    final byte[] bytes = new byte[n + 1];
+    int bitIndex = 0;
+    int byteIndex = 0;
+    //
+    for (int i = 0; i != buffer.length; i++) {
+      // Check whether bit set
+      if (buffer[i] != 0) {
+        int bit = 1 << bitIndex;
+        int ith = (bytes[byteIndex] & 0xff) | bit;
+        // Assign updated byte
+        bytes[byteIndex] = (byte) ith;
+      }
+      // Increment indices
+      if (++bitIndex == 8) {
+        bitIndex = 0;
+        byteIndex++;
+      }
+    }
+    // Mark unused bits
+    bytes[n] = (byte) ((n * 8) - buffer.length);
+    // Done
+    return bytes;
   }
 
   private static byte[] encodeU8(long[] buffer) {

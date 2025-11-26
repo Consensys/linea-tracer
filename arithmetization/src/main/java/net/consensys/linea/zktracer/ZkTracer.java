@@ -72,7 +72,7 @@ public class ZkTracer implements LineCountingTracer {
   @Getter private final ChainConfig chain;
 
   /** Determines which version the LT trace file format to use by default. */
-  @Setter private int ltFileMajorVersion = 1;
+  @Setter private int ltFileMajorVersion = 2;
 
   /**
    * Construct a ZkTracer for a given bridge configuration and chainId. This is used, for example,

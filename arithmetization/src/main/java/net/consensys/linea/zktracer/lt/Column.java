@@ -41,7 +41,7 @@ public interface Column extends Trace.Column {
   Encoding toEncoding();
 
   static Column of(Trace.ColumnHeader header, BytesHeap heap) {
-    if (header.bitwidth() <= 32) {
+    if (header.bitwidth() < 64) {
       return new Small(header);
     } else {
       return new Large(header, heap);
@@ -99,7 +99,7 @@ public interface Column extends Trace.Column {
     @Override
     public void write(long value) {
       // Sanity check
-      if (longMax <= value) {
+      if (value < 0 || longMax <= value) {
         throw new IllegalArgumentException(name() + " has invalid value (" + value + ")");
       }
       //
@@ -198,7 +198,7 @@ public interface Column extends Trace.Column {
     @Override
     public void write(long value) {
       // Sanity check
-      if (longMax <= value) {
+      if (value < 0 || longMax <= value) {
         throw new IllegalArgumentException(name + " has invalid value (" + value + ")");
       }
       //

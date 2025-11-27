@@ -20,10 +20,8 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.precompiles.osakaModexpTests.XbsValueType.GIBBERISH;
 import static net.consensys.linea.zktracer.precompiles.osakaModexpTests.XbsValueType.getListOfInputs;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,6 +34,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -83,10 +82,22 @@ public class XbsLimitsTests extends TracerTestBase {
           .address(Address.fromHexString("11223344aaaaffff000000000000000000000001"));
 
   @ParameterizedTest
-  @MethodSource("fullParametricTestSource")
-  public void fullParametricTest(
+  @MethodSource("parametricTestPartialSource")
+  public void parametricTestPartial(
       XbsValueType.BbsEbsMbsScenario scenario, String bbsEbsMbsString, TestInfo testInfo) {
+    body(scenario, bbsEbsMbsString, testInfo);
+  }
 
+  @Tag("nightly")
+  @ParameterizedTest
+  @MethodSource("parametricTestNighlySource")
+  public void parametricTestNightly(
+      XbsValueType.BbsEbsMbsScenario scenario, String bbsEbsMbsString, TestInfo testInfo) {
+    body(scenario, bbsEbsMbsString, testInfo);
+  }
+
+  private void body(
+      XbsValueType.BbsEbsMbsScenario scenario, String bbsEbsMbsString, TestInfo testInfo) {
     final int cds = scenario.callDataSize();
     String transactionCallData = bbsEbsMbsString + GIBBERISH;
 
@@ -170,7 +181,7 @@ public class XbsLimitsTests extends TracerTestBase {
                                                       bbsType, ebsType, mbsType))))))
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-  static Stream<Arguments> fullParametricTestSource() {
+  static Stream<Arguments> parametricTestNighlySource() {
 
     List<Arguments> arguments = new ArrayList<>();
     for (Map.Entry<XbsValueType.BbsEbsMbsScenario, List<String>> entry : allParameters.entrySet()) {
@@ -183,6 +194,12 @@ public class XbsLimitsTests extends TracerTestBase {
     }
 
     return arguments.stream();
+  }
+
+  static Stream<Arguments> parametricTestPartialSource() {
+    List<Arguments> arguments = new ArrayList<>(parametricTestNighlySource().toList());
+    Collections.shuffle(arguments, new Random(LocalDate.now().toEpochDay()));
+    return arguments.stream().limit(arguments.size() / 40); // Execute 2.5 % of the tests
   }
 
   static List<String> getParameters(XbsValueType.BbsEbsMbsScenario bbsEbsMbsScenario) {

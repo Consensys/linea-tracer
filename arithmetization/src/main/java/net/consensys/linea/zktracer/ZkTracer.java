@@ -117,8 +117,10 @@ public class ZkTracer implements LineCountingTracer {
     if (publicInputs.missingSomeInfos()) {
       log.info(
           "[ZkTracer] Missing part of the public inputs, assuming line counting only, testing, or tracing very specific conflation. Tracing might fail. \nhistorical blockhashes size = {}\nblob base fees size = {}",
-          publicInputs.historicalBlockhashes().size(),
-          publicInputs.blobBaseFees().size());
+          publicInputs.historicalBlockhashes() == null
+              ? 0
+              : publicInputs.historicalBlockhashes().size(),
+          publicInputs.blobBaseFees() == null ? 0 : publicInputs.blobBaseFees().size());
     }
     this.chain = chain;
     hub =

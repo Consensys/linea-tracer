@@ -183,9 +183,12 @@ public class P256VerifyTest extends TracerTestBase {
 
   // Edge cases with checks over return data
   @Test
-  void testIcpIsFalseP256Verify(TestInfo testInfo) {
+  void testInternalChecksFailP256Verify(TestInfo testInfo) {
     Bytes trailingProgram =
-        BytecodeCompiler.newProgram(chainConfig).op(OpCode.RETURNDATASIZE).compile();
+        BytecodeCompiler.newProgram(chainConfig)
+            .op(OpCode.RETURNDATASIZE)
+            .op(OpCode.JUMPDEST, 32) // TODO: temporary workaround for go-corset issue
+            .compile();
     BytecodeRunner bytecodeRunner =
         testP256VerifyBody(
             h + rs.getLast() + rs.getLast() + qXqY.getLast() + qXqY.getLast(),
@@ -193,6 +196,9 @@ public class P256VerifyTest extends TracerTestBase {
             testInfo);
 
     if (isPostOsaka(fork)) {
+      final Bytes callSuccess = bytecodeRunner.getHub().currentFrame().frame().getStackItem(1);
+      assertFalse(callSuccess.isZero());
+
       P256VerifyOobCall p256VerifyOobCall =
           (P256VerifyOobCall)
               bytecodeRunner.getHub().oob().operations().stream().toList().getLast().oobCall();
@@ -207,9 +213,12 @@ public class P256VerifyTest extends TracerTestBase {
   }
 
   @Test
-  void testIcpIsTrueButSignatureVerificationFailsP256Verify(TestInfo testInfo) {
+  void testInternalChecksSucceedButSignatureVerificationFailsP256Verify(TestInfo testInfo) {
     Bytes trailingProgram =
-        BytecodeCompiler.newProgram(chainConfig).op(OpCode.RETURNDATASIZE).compile();
+        BytecodeCompiler.newProgram(chainConfig)
+            .op(OpCode.RETURNDATASIZE)
+            .op(OpCode.JUMPDEST, 32) // TODO: temporary workaround for go-corset issue
+            .compile();
     BytecodeRunner bytecodeRunner =
         testP256VerifyBody(
             "bb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023d45c5740946b2a147f59262ee6f5bc90bd01ed280528b62b3aed5fc93f06f739b329f479a2bbd0a5c384ee1493b1f5186a87139cac5df4087c134b49156847db2927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838c7787964eaac00e5921fb1498a60f4606766b3d9685001558d1a974e7341513e",
@@ -217,6 +226,9 @@ public class P256VerifyTest extends TracerTestBase {
             testInfo);
 
     if (isPostOsaka(fork)) {
+      final Bytes callSuccess = bytecodeRunner.getHub().currentFrame().frame().getStackItem(1);
+      assertFalse(callSuccess.isZero());
+
       P256VerifyOobCall p256VerifyOobCall =
           (P256VerifyOobCall)
               bytecodeRunner.getHub().oob().operations().stream().toList().getLast().oobCall();
@@ -239,6 +251,7 @@ public class P256VerifyTest extends TracerTestBase {
             .push(0)
             .push(0xff)
             .op(OpCode.RETURNDATACOPY)
+            .op(OpCode.JUMPDEST, 32) // TODO: temporary workaround for go-corset issue
             .compile();
     // input from p256_verify_test_vectors.json
     BytecodeRunner bytecodeRunner =
@@ -248,6 +261,9 @@ public class P256VerifyTest extends TracerTestBase {
             testInfo);
 
     if (isPostOsaka(fork)) {
+      final Bytes callSuccess = bytecodeRunner.getHub().currentFrame().frame().getStackItem(1);
+      assertFalse(callSuccess.isZero());
+
       P256VerifyOobCall p256VerifyOobCall =
           (P256VerifyOobCall)
               bytecodeRunner.getHub().oob().operations().stream().toList().get(1).oobCall();

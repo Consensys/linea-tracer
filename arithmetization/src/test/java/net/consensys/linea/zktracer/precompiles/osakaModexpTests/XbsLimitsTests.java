@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.*;
@@ -37,6 +38,9 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class XbsLimitsTests extends TracerTestBase {
 
@@ -47,7 +51,13 @@ public class XbsLimitsTests extends TracerTestBase {
   final ToyAccount senderAccount =
       ToyAccount.builder().balance(Wei.fromEth(1900)).nonce(420).address(senderAddress).build();
 
-  final BytecodeCompiler getProgram(int cds) {
+  /**
+   * Returns code calling the <b>MODEXP</b> precompile with the transaction's call data as inputs.
+   *
+   * @param cds
+   * @return
+   */
+  final BytecodeCompiler modexpCallerCode(int cds) {
     return BytecodeCompiler.newProgram(chainConfig)
         // full copy of call data
         .op(CALLDATASIZE)
@@ -72,6 +82,33 @@ public class XbsLimitsTests extends TracerTestBase {
           .nonce(6)
           .address(Address.fromHexString("11223344aaaaffff000000000000000000000001"));
 
+
+  @ParameterizedTest
+  @MethodSource("fullParametricTestSource")
+  public void fullParametricTest(XbsValueType.BbsEbsMbsScenario scenario, String bbsEbsMbsString, TestInfo testInfo) {
+
+      final int cds = scenario.callDataSize();
+      String transactionCallData = bbsEbsMbsString + GIBBERISH;
+
+      ToyAccount targetAccount =
+              receiverAccountBuilder.code(modexpCallerCode(cds).compile()).build();
+
+      Transaction tx =
+              ToyTransaction.builder()
+                      .sender(senderAccount)
+                      .to(targetAccount)
+                      .keyPair(keyPair)
+                      .payload(Bytes.fromHexString(transactionCallData))
+                      .gasLimit((long) (1 << 24))
+                      .build();
+
+      ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+              .accounts(List.of(senderAccount, targetAccount))
+              .transaction(tx)
+              .build()
+              .run();
+  }
+
   @Test
   public void fullTest(TestInfo testInfo) {
 
@@ -95,7 +132,8 @@ public class XbsLimitsTests extends TracerTestBase {
         System.out.println("Testing scenario: " + scenario + " with parameters: " + parameter);
         String transactionCallData = parameter + GIBBERISH;
 
-        ToyAccount receiverAccount = receiverAccountBuilder.code(getProgram(cds).compile()).build();
+        ToyAccount receiverAccount =
+            receiverAccountBuilder.code(modexpCallerCode(cds).compile()).build();
 
         Transaction tx =
             ToyTransaction.builder()
@@ -132,6 +170,21 @@ public class XbsLimitsTests extends TracerTestBase {
                                                   new XbsValueType.BbsEbsMbsScenario(
                                                       bbsType, ebsType, mbsType))))))
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+  static Stream<Arguments> fullParametricTestSource() {
+
+      List<Arguments> arguments = new ArrayList<>();
+        for (Map.Entry<XbsValueType.BbsEbsMbsScenario, List<String>> entry : allParameters.entrySet()) {
+            XbsValueType.BbsEbsMbsScenario scenario = entry.getKey();
+            List<String> parametersList = entry.getValue();
+
+            for (String parameter : parametersList) {
+                arguments.add(Arguments.of(scenario, parameter));
+            }
+        }
+
+        return arguments.stream();
+  }
 
   static List<String> getParameters(XbsValueType.BbsEbsMbsScenario bbsEbsMbsScenario) {
 

@@ -64,8 +64,7 @@ public enum XbsValueType {
 
   /**
    * Byte sizes (<b>xbs</b>) are conditionally valid in OSAKA if they are ≤ 1024 ≡ 400 only after
-   * trimming, which means we can accept byte sizes of the form <b>4??</b> as long as <b>cds</b>
-   * is
+   * trimming, which means we can accept byte sizes of the form <b>4??</b> as long as <b>cds</b> is
    *
    * <ul>
    *   <li>32 - 1 for {@link #CONDITIONALLY_VALID} bbs

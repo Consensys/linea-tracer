@@ -82,13 +82,18 @@ public interface Column extends Trace.Column {
    */
   class Small extends Base implements Column {
     private final long longMax;
-    private final long[] buffer;
+    private final int[] buffer;
     private int index;
 
     public Small(Trace.ColumnHeader header) {
       super(header);
+      // Sanity check bitwidth
+      if(header.bitwidth() >= 64) {
+        throw new IllegalArgumentException("invalid width for small column (u" + header.bitwidth() + ")");
+      }
+      // Following cannot overflow because of above check.
       this.longMax = 1L << header.bitwidth();
-      this.buffer = new long[header.length()];
+      this.buffer = new int[header.length()];
     }
 
     @Override
@@ -108,7 +113,7 @@ public interface Column extends Trace.Column {
         throw new IllegalArgumentException(name() + " has invalid value (" + value + ")");
       }
       //
-      this.buffer[index++] = value;
+      this.buffer[index++] = (int) value;
     }
 
     /**

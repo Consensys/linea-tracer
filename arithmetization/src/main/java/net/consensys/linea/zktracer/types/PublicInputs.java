@@ -52,6 +52,9 @@ public record PublicInputs(Map<Long, Hash> historicalBlockhashes, Map<Long, Byte
   }
 
   public boolean allPublicInputsKnown() {
+    if (historicalBlockhashes == null || blobBaseFees == null) {
+      return false;
+    }
     return historicalBlockhashes.size() >= BLOCKHASH_MAX_HISTORY && !blobBaseFees.isEmpty();
   }
 

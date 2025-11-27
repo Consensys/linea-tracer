@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -60,9 +61,8 @@ public class ModexpEIP7883Tests extends TracerTestBase {
                       final String leftPaddedLeadingWordAsHex =
                           "0".repeat(Math.max(0, 2 * minEbs32 - leadingWordAsHex.length()))
                               + leadingWordAsHex;
-
+                      Preconditions.checkArgument(leftPaddedLeadingWordAsHex.length() == 2 * minEbs32);
                       leadingWords.add(leftPaddedLeadingWordAsHex);
-
                       leadingWord = leadingWord.shiftRight(1);
                     }
                     return leadingWords;
@@ -72,7 +72,7 @@ public class ModexpEIP7883Tests extends TracerTestBase {
   static List<Integer> cdsValues(Integer bbs, Integer ebs, Integer mbs) {
     List<Integer> cdsValues = new ArrayList<>();
     for (Integer extra : ebs != 0 ? List.of(ebs / 2, ebs, ebs + mbs) : List.of(0, mbs)) {
-      cdsValues.add(bbs + extra);
+      cdsValues.add(96 + bbs + extra);
     }
     return cdsValues;
   }
@@ -96,35 +96,33 @@ public class ModexpEIP7883Tests extends TracerTestBase {
                 + ebsHex
                 + mbsHex
                 + "00".repeat(bbs)
-                + exponentLeadingWord
-                + "00".repeat(Math.max(0, ebs - Math.min(ebs, 32)))
-                + "00".repeat(mbs));
+                + exponentLeadingWord); // Then the right cds implicitly adds the right padding
 
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
-    final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
+    final Address callDataAsBytecodeAddress = Address.fromHexString("0xC0DE");
     final ToyAccount codeOwnerAccount =
         ToyAccount.builder()
             .balance(Wei.of(0))
             .nonce(1)
-            .address(codeOwnerAddress)
+            .address(callDataAsBytecodeAddress)
             .code(input)
             .build();
 
     // First place the parameters in memory
     // Copy to targetOffset the code of codeOwnerAccount
     program
-        .push(codeOwnerAddress)
+        .push(callDataAsBytecodeAddress)
         .op(OpCode.EXTCODESIZE) // size
         .push(0) // offset
         .push(0) // targetOffset
-        .push(codeOwnerAddress) // address
+        .push(callDataAsBytecodeAddress) // address
         .op(OpCode.EXTCODECOPY);
 
     // Do the call
     program
         .push(mbs) // retSize
-        .push(input.size()) // retOffset
+        .push(cds) // retOffset
         .push(cds) // argSize
         .push(0) // argOffset
         .push(Address.MODEXP) // address

@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer;
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+import static org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD;
 
 import java.util.List;
 
@@ -39,9 +40,14 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+// Adding this annotation to ensure tests run in the same thread, avoiding potential concurrency
+// issues
+// As most tests will run with a Besu node
+@Execution(SAME_THREAD)
 public class EmptyBlockTests extends TracerTestBase {
 
   enum BlockType {

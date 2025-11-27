@@ -85,6 +85,8 @@ public class XbsLimitsTests extends TracerTestBase {
   @MethodSource("modexpXbsLimitTestsSource")
   public void modexpXbsLimitTests(
       XbsValueType.BbsEbsMbsScenario scenario, String bbsEbsMbsString, TestInfo testInfo) {
+
+    if (forkPredatesOsaka(fork)) return;
     body(scenario, bbsEbsMbsString, testInfo);
   }
 
@@ -93,6 +95,8 @@ public class XbsLimitsTests extends TracerTestBase {
   @MethodSource("modexpXbsLimitsTestsNighlySource")
   public void modexpXbsLimitTestsNightly(
       XbsValueType.BbsEbsMbsScenario scenario, String bbsEbsMbsString, TestInfo testInfo) {
+
+    if (forkPredatesOsaka(fork)) return;
     body(scenario, bbsEbsMbsString, testInfo);
   }
 
@@ -117,50 +121,6 @@ public class XbsLimitsTests extends TracerTestBase {
         .transaction(tx)
         .build()
         .run();
-  }
-
-  @Test
-  public void fullTest(TestInfo testInfo) {
-
-    // goal:
-    // create a transaction with call data derived from entries in allParameters
-    // do a full copy of the transaction's call data using CALLDATACOPY
-    // do a CALL to MODEXP with that call data
-    // for sanity reasons: append 32 JUMPDESTs
-
-    // skip test if fork is before Osaka
-    if (forkPredatesOsaka(fork)) return;
-
-    for (Map.Entry<XbsValueType.BbsEbsMbsScenario, List<String>> entry : allParameters.entrySet()) {
-      XbsValueType.BbsEbsMbsScenario scenario = entry.getKey();
-      List<String> parametersList = entry.getValue();
-
-      final int cds = scenario.callDataSize();
-
-      for (String parameter : parametersList) {
-
-        System.out.println("Testing scenario: " + scenario + " with parameters: " + parameter);
-        String transactionCallData = parameter + GIBBERISH;
-
-        ToyAccount receiverAccount =
-            receiverAccountBuilder.code(modexpCallerCode(cds).compile()).build();
-
-        Transaction tx =
-            ToyTransaction.builder()
-                .sender(senderAccount)
-                .to(receiverAccount)
-                .keyPair(keyPair)
-                .payload(Bytes.fromHexString(transactionCallData))
-                .gasLimit((long) (1 << 24))
-                .build();
-
-        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
-            .accounts(List.of(senderAccount, receiverAccount))
-            .transaction(tx)
-            .build()
-            .run();
-      }
-    }
   }
 
   static Map<XbsValueType.BbsEbsMbsScenario, List<String>> allParameters =

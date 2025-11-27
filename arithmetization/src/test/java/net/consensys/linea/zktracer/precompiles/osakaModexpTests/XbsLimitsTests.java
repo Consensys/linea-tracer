@@ -82,31 +82,30 @@ public class XbsLimitsTests extends TracerTestBase {
           .nonce(6)
           .address(Address.fromHexString("11223344aaaaffff000000000000000000000001"));
 
-
   @ParameterizedTest
   @MethodSource("fullParametricTestSource")
-  public void fullParametricTest(XbsValueType.BbsEbsMbsScenario scenario, String bbsEbsMbsString, TestInfo testInfo) {
+  public void fullParametricTest(
+      XbsValueType.BbsEbsMbsScenario scenario, String bbsEbsMbsString, TestInfo testInfo) {
 
-      final int cds = scenario.callDataSize();
-      String transactionCallData = bbsEbsMbsString + GIBBERISH;
+    final int cds = scenario.callDataSize();
+    String transactionCallData = bbsEbsMbsString + GIBBERISH;
 
-      ToyAccount targetAccount =
-              receiverAccountBuilder.code(modexpCallerCode(cds).compile()).build();
+    ToyAccount targetAccount = receiverAccountBuilder.code(modexpCallerCode(cds).compile()).build();
 
-      Transaction tx =
-              ToyTransaction.builder()
-                      .sender(senderAccount)
-                      .to(targetAccount)
-                      .keyPair(keyPair)
-                      .payload(Bytes.fromHexString(transactionCallData))
-                      .gasLimit((long) (1 << 24))
-                      .build();
+    Transaction tx =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(targetAccount)
+            .keyPair(keyPair)
+            .payload(Bytes.fromHexString(transactionCallData))
+            .gasLimit((long) (1 << 24))
+            .build();
 
-      ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
-              .accounts(List.of(senderAccount, targetAccount))
-              .transaction(tx)
-              .build()
-              .run();
+    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+        .accounts(List.of(senderAccount, targetAccount))
+        .transaction(tx)
+        .build()
+        .run();
   }
 
   @Test
@@ -173,17 +172,17 @@ public class XbsLimitsTests extends TracerTestBase {
 
   static Stream<Arguments> fullParametricTestSource() {
 
-      List<Arguments> arguments = new ArrayList<>();
-        for (Map.Entry<XbsValueType.BbsEbsMbsScenario, List<String>> entry : allParameters.entrySet()) {
-            XbsValueType.BbsEbsMbsScenario scenario = entry.getKey();
-            List<String> parametersList = entry.getValue();
+    List<Arguments> arguments = new ArrayList<>();
+    for (Map.Entry<XbsValueType.BbsEbsMbsScenario, List<String>> entry : allParameters.entrySet()) {
+      XbsValueType.BbsEbsMbsScenario scenario = entry.getKey();
+      List<String> parametersList = entry.getValue();
 
-            for (String parameter : parametersList) {
-                arguments.add(Arguments.of(scenario, parameter));
-            }
-        }
+      for (String parameter : parametersList) {
+        arguments.add(Arguments.of(scenario, parameter));
+      }
+    }
 
-        return arguments.stream();
+    return arguments.stream();
   }
 
   static List<String> getParameters(XbsValueType.BbsEbsMbsScenario bbsEbsMbsScenario) {

@@ -33,6 +33,7 @@ import net.consensys.linea.testing.ReplayExecutionEnvironment;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.types.PublicInputs;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
@@ -94,7 +95,9 @@ public class ReplayTestTools {
     ReplayExecutionEnvironment.builder()
         .filename(filename)
         .zkTracer(
-            new ZkTracer(chain, conflation.historicalBlockHashes(), conflation.blobBaseFees()))
+            new ZkTracer(
+                chain,
+                new PublicInputs(conflation.historicalBlockHashes(), conflation.blobBaseFees())))
         .txResultChecking(resultChecking)
         .useCoinbaseAddressFromBlockHeader(Fork.isPostPrague(chain.fork))
         .build()

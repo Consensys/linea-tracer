@@ -15,13 +15,10 @@
 
 package net.consensys.linea.zktracer.module.blockdata.module;
 
-import static net.consensys.linea.zktracer.TraceParis.Blockdata.*;
-import static net.consensys.linea.zktracer.opcode.OpCode.*;
-
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockdataOperation;
+import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockDataOperation;
 import net.consensys.linea.zktracer.module.blockdata.moduleOperation.ShanghaiBlockDataOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -38,7 +35,7 @@ public class ShanghaiBlockData extends ParisBlockData {
   }
 
   @Override
-  protected BlockdataOperation setBlockDataOperation(
+  protected BlockDataOperation setBlockDataOperation(
       Hub hub,
       BlockHeader blockHeader,
       BlockHeader previousBlockHeader,

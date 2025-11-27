@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.blockhash;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_HASH;
 import static net.consensys.linea.zktracer.module.blockhash.BlockhashOperation.NB_ROWS_BLOCKHASH;
@@ -45,7 +44,6 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
-import org.hyperledger.besu.plugin.services.BlockchainService;
 
 @Slf4j
 @Getter
@@ -225,43 +223,6 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
             ? 0
             : Math.max(0, blockHashMap.size() + 1 - successfulBlockhashAttempt().size());
     return operations().lineCount() + additionalOp * NB_ROWS_BLOCKHASH;
-  }
-
-  public static Map<Long, Hash> retrieveHistoricalBlockHashes(
-      BlockchainService blockchain,
-      long firstBlockNumberOfConflation,
-      long lastBlockNumberOfConflation) {
-
-    final Map<Long, Hash> historicalBlockHashes =
-        new HashMap<>(
-            (int)
-                (BLOCKHASH_MAX_HISTORY
-                    + lastBlockNumberOfConflation
-                    - firstBlockNumberOfConflation));
-
-    final long firstBlockToRetrieve =
-        Math.max(firstBlockNumberOfConflation - BLOCKHASH_MAX_HISTORY, 0);
-    final long lastBlockToRetrieve =
-        lastBlockNumberOfConflation == 0 ? 0 : lastBlockNumberOfConflation - 1;
-
-    for (long blockNumber = lastBlockToRetrieve;
-        blockNumber >= firstBlockToRetrieve;
-        blockNumber--) {
-      final long blockNumberAttempt = blockNumber;
-      final Hash hash =
-          blockchain
-              .getBlockByNumber(blockNumberAttempt)
-              .orElseThrow(
-                  () ->
-                      new IllegalArgumentException(
-                          "When retrieving historical blockhashes, block number: "
-                              + blockNumberAttempt
-                              + " was not found"))
-              .getBlockHeader()
-              .getBlockHash();
-      historicalBlockHashes.put(blockNumber, hash);
-    }
-    return historicalBlockHashes;
   }
 
   public short fromAbsoluteBlockToRelativeBlock(long absoluteBlock) {

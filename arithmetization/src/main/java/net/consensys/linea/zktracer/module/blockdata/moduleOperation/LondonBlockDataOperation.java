@@ -29,7 +29,7 @@ import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
-public class LondonBlockDataOperation extends BlockdataOperation {
+public class LondonBlockDataOperation extends BlockDataOperation {
   public LondonBlockDataOperation(
       Hub hub,
       BlockHeader blockHeader,

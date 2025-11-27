@@ -28,6 +28,7 @@ import static net.consensys.linea.zktracer.TraceLondon.Blockdata.nROWS_DF;
 import static net.consensys.linea.zktracer.TraceShanghai.Blockdata.nROWS_PV;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.types.Conversions.*;
+import static net.consensys.linea.zktracer.types.PublicInputs.LINEA_BLOB_BASE_FEE_BYTES;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -49,7 +50,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @Accessors(fluent = true)
 @Getter
-public abstract class BlockdataOperation extends ModuleOperation {
+public abstract class BlockDataOperation extends ModuleOperation {
   private final Hub hub;
   private final Wcp wcp;
   private final Euc euc;
@@ -77,7 +78,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
   private final boolean[] wcpFlag;
   private final boolean[] eucFlag;
 
-  public BlockdataOperation(
+  public BlockDataOperation(
       Hub hub,
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
@@ -96,7 +97,8 @@ public abstract class BlockdataOperation extends ModuleOperation {
     this.gasLimitMaximum = EWord.of(chain.gasLimitMaximum);
     this.chainId = EWord.of(chain.id);
     this.nbRows = nbRows(opCode);
-    blobBaseFee = EWord.of(blobBaseFees.get(blockHeader.getNumber()));
+    blobBaseFee =
+        EWord.of(blobBaseFees.getOrDefault(blockHeader.getNumber(), LINEA_BLOB_BASE_FEE_BYTES));
     this.firstBlockNumber = firstBlockNumber;
     this.relTxMax = relTxMax;
     this.relBlock = (int) (blockHeader.getNumber() - firstBlockNumber + 1);

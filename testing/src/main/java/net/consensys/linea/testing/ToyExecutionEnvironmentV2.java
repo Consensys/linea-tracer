@@ -21,8 +21,7 @@ import static net.consensys.linea.reporting.TracerTestBase.fork;
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.Fork.*;
 import static net.consensys.linea.zktracer.Trace.LINEA_BASE_FEE;
-import static net.consensys.linea.zktracer.module.ModuleName.*;
-import static net.consensys.linea.zktracer.module.blockdata.module.Blockdata.getDefaultBlobBaseFees;
+import static net.consensys.linea.zktracer.types.PublicInputs.getDefaultBlobBaseFees;
 
 import java.util.*;
 import java.util.function.Consumer;

@@ -18,21 +18,20 @@ package net.consensys.linea.zktracer.module.hub;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
+import net.consensys.linea.zktracer.module.blockdata.module.BlockData;
 import net.consensys.linea.zktracer.module.blockdata.module.ParisBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.PublicInputs;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Hash;
 
 public class ParisHub extends LondonHub {
-  public ParisHub(
-      ChainConfig chain, Map<Long, Hash> historicalBlockHashes, Map<Long, Bytes> blobBaseFees) {
-    super(chain, historicalBlockHashes, blobBaseFees);
+  public ParisHub(ChainConfig chain, PublicInputs publicInputs) {
+    super(chain, publicInputs);
   }
 
   @Override
-  protected Blockdata setBlockData(
+  protected BlockData setBlockData(
       Hub hub, Wcp wcp, Euc euc, ChainConfig chain, Map<Long, Bytes> blobBaseFees) {
     return new ParisBlockData(hub, wcp, euc, chain, blobBaseFees);
   }

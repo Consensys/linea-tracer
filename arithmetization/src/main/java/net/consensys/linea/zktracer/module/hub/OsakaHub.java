@@ -15,19 +15,15 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import java.util.Map;
-
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.*;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.txndata.osaka.OsakaTxnData;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Hash;
+import net.consensys.linea.zktracer.types.PublicInputs;
 
 public class OsakaHub extends PragueHub {
-  public OsakaHub(
-      ChainConfig chain, Map<Long, Hash> historicalBlockHashes, Map<Long, Bytes> blobBaseFees) {
-    super(chain, historicalBlockHashes, blobBaseFees);
+  public OsakaHub(ChainConfig chain, PublicInputs publicInputs) {
+    super(chain, publicInputs);
   }
 
   @Override

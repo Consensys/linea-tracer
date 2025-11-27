@@ -15,20 +15,16 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import java.util.Map;
-
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash;
 import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Hash;
+import net.consensys.linea.zktracer.types.PublicInputs;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class PragueHub extends CancunHub {
-  public PragueHub(
-      ChainConfig chain, Map<Long, Hash> historicalBlockHashes, Map<Long, Bytes> blobBaseFees) {
-    super(chain, historicalBlockHashes, blobBaseFees);
+  public PragueHub(ChainConfig chain, PublicInputs publicInputs) {
+    super(chain, publicInputs);
   }
 
   @Override

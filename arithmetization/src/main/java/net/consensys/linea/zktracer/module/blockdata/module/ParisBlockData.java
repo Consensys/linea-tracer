@@ -25,7 +25,7 @@ import static net.consensys.linea.zktracer.opcode.OpCode.PREVRANDAO;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockdataOperation;
+import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockDataOperation;
 import net.consensys.linea.zktracer.module.blockdata.moduleOperation.ParisBlockDataOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -46,7 +46,7 @@ public class ParisBlockData extends LondonBlockData {
   }
 
   @Override
-  protected BlockdataOperation setBlockDataOperation(
+  protected BlockDataOperation setBlockDataOperation(
       Hub hub,
       BlockHeader blockHeader,
       BlockHeader previousBlockHeader,

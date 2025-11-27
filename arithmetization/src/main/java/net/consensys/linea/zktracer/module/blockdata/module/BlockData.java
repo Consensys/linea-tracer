@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.blockdata.module;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.Trace.LINEA_BLOB_BASE_FEE;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_DATA;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -29,7 +27,7 @@ import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.ModuleName;
-import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockdataOperation;
+import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockDataOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
@@ -38,21 +36,16 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
-import org.hyperledger.besu.plugin.data.BlockContext;
 import org.hyperledger.besu.plugin.data.BlockHeader;
-import org.hyperledger.besu.plugin.services.BlockchainService;
 
 @RequiredArgsConstructor
-public abstract class Blockdata implements Module {
-
-  public static final Bytes LINEA_BLOB_BASE_FEE_BYTES = Bytes.minimalBytes(LINEA_BLOB_BASE_FEE);
-
+public abstract class BlockData implements Module {
   private final Hub hub;
   private final Wcp wcp;
   private final Euc euc;
   private final ChainConfig chain;
   protected final Map<Long, Bytes> blobBaseFees;
-  @Getter private final List<BlockdataOperation> operations = new ArrayList<>();
+  @Getter private final List<BlockDataOperation> operations = new ArrayList<>();
   @Getter private long firstBlockNumber;
 
   private boolean conflationFinished = false;
@@ -97,7 +90,7 @@ public abstract class Blockdata implements Module {
     final BlockHeader previousBlockHeader =
         operations.isEmpty() ? null : operations.getLast().blockHeader();
     for (OpCode opCode : opCodes) {
-      final BlockdataOperation operation =
+      final BlockDataOperation operation =
           setBlockDataOperation(
               hub,
               blockHeader,
@@ -113,7 +106,7 @@ public abstract class Blockdata implements Module {
     }
   }
 
-  protected abstract BlockdataOperation setBlockDataOperation(
+  protected abstract BlockDataOperation setBlockDataOperation(
       Hub hub,
       BlockHeader blockHeader,
       BlockHeader previousBlockHeader,
@@ -153,38 +146,12 @@ public abstract class Blockdata implements Module {
 
   @Override
   public void commit(Trace trace) {
-    for (BlockdataOperation blockData : operations) {
+    for (BlockDataOperation blockData : operations) {
       blockData.trace(trace.blockdata());
     }
   }
 
   TxnData txnData() {
     return hub.txnData();
-  }
-
-  public static Map<Long, Bytes> getBlobBaseFees(
-      BlockchainService blockchainService, long fromBlock, long toBlock) {
-    final Map<Long, Bytes> blobBaseFees = new HashMap<>((int) (toBlock - fromBlock + 1));
-    for (long l = fromBlock; l <= toBlock; l++) {
-      final long blockNumber = l;
-      final BlockContext block =
-          blockchainService
-              .getBlockByNumber(blockNumber)
-              .orElseThrow(() -> new IllegalArgumentException("Block not found: " + blockNumber));
-      final BlockHeader header = block.getBlockHeader();
-      final Bytes blobBaseFee = blockchainService.getBlobGasPrice(header);
-      checkArgument(blobBaseFee != null, "Blob base fee is null for block number " + blockNumber);
-      blobBaseFees.put(blockNumber, blobBaseFee);
-    }
-    return blobBaseFees;
-  }
-
-  public static Map<Long, Bytes> getDefaultBlobBaseFees(long fromBlock, long toBlock) {
-    final Map<Long, Bytes> blobBaseFees = new HashMap<>((int) (toBlock - fromBlock + 1));
-    for (long blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
-      // Just put the linea blob base fee constant
-      blobBaseFees.put(blockNumber, LINEA_BLOB_BASE_FEE_BYTES);
-    }
-    return blobBaseFees;
   }
 }

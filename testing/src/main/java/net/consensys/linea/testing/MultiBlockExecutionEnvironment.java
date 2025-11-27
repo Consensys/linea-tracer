@@ -16,9 +16,7 @@
 package net.consensys.linea.testing;
 
 import static net.consensys.linea.reporting.TracerTestBase.chainConfig;
-import static net.consensys.linea.reporting.TracerTestBase.fork;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
-import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
 import static net.consensys.linea.zktracer.types.PublicInputs.getDefaultBlobBaseFees;
 
@@ -58,6 +56,7 @@ public class MultiBlockExecutionEnvironment {
   @Builder.Default private final long startingBlockNumber = DEFAULT_BLOCK_NUMBER;
   @Builder.Default private final boolean systemContractDeployedPriorToConflation = true;
   @Builder.Default private final Boolean runWithBesuNode = false;
+
   /**
    * A transaction validator of each transaction; by default, it asserts that the transaction was
    * successfully processed.
@@ -142,7 +141,7 @@ public class MultiBlockExecutionEnvironment {
       BesuExecutionTools besuExecTools =
           new BesuExecutionTools(
               Optional.of(testInfo),
-              chainConfig,
+              testsChain,
               ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS,
               accounts,
               transactionsIncludingNullTransactionsForEmptyBlocks,
@@ -154,10 +153,11 @@ public class MultiBlockExecutionEnvironment {
       final Map<Long, Hash> historicalBlockhashes = conflationSnapshot.historicalBlockHashes();
       // Remove the last block number as it's not part of the historical blockhashes
       historicalBlockhashes.remove(conflationSnapshot.lastBlockNumber());
-      tracer = new ZkTracer(
-              chainConfig,
+      tracer =
+          new ZkTracer(
+              testsChain,
               new PublicInputs(historicalBlockhashes, conflationSnapshot.blobBaseFees()));
-        ReplayExecutionEnvironment.builder()
+      ReplayExecutionEnvironment.builder()
           .zkTracer(tracer)
           .useCoinbaseAddressFromBlockHeader(true)
           .transactionProcessingResultValidator(transactionProcessingResultValidator)

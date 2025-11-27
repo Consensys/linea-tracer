@@ -225,10 +225,10 @@ public class EmptyBlockTests extends TracerTestBase {
       MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
           builderFromBlockTypeList(
               List.of(
+                  BlockType.MONO_TRANSACTION_BLOCK___STORING,
                   BlockType.EMPTY_BLOCK,
                   BlockType.EMPTY_BLOCK,
-                  BlockType.EMPTY_BLOCK,
-                  BlockType.MONO_TRANSACTION_BLOCK___STORING),
+                  BlockType.EMPTY_BLOCK),
               testInfo);
 
       final MultiBlockExecutionEnvironment env = builder.runWithBesuNode(runWithBesu).build();
@@ -320,8 +320,7 @@ public class EmptyBlockTests extends TracerTestBase {
 
     final MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
         MultiBlockExecutionEnvironment.builder(chainConfig, testInfo)
-            .accounts(List.of(senderAccount, storingNumber, logging, receivingAccount))
-            .runWithBesuNode(true);
+            .accounts(List.of(senderAccount, storingNumber, logging, receivingAccount));
 
     for (BlockType blockType : blockTypes) {
       switch (blockType) {

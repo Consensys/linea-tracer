@@ -192,15 +192,8 @@ public class BesuExecutionTools {
       Fork currentFork = nextFork;
       Iterator<Transaction> txs = transactions.iterator();
       Boolean txHasNext = txs.hasNext();
-
-      int numberOfLeadingEmptyBlocks = 0;
-      for (Transaction tx : transactions) {
-        if (tx != null) {
-          break;
-        }
-        numberOfLeadingEmptyBlocks++;
-      }
-      boolean allTransactionsAreNull = (numberOfLeadingEmptyBlocks == transactions.size());
+      long firstBlockNumber = 0;
+      long finalBlockNumber = 0;
 
       while (txHasNext) {
         // Send transaction to the transaction pool with eth_sendRawTransaction
@@ -216,10 +209,12 @@ public class BesuExecutionTools {
         } else {
           // Send all transactions in the same block
           while (txHasNext) {
-            String txHash =
-                besuNode.execute(
-                    ethTransactions.sendRawTransaction(txs.next().encoded().toHexString()));
-            txHashes.add(txHash);
+            final Transaction tx = txs.next();
+            if (tx != null) {
+              String txHash =
+                  besuNode.execute(ethTransactions.sendRawTransaction(tx.encoded().toHexString()));
+              txHashes.add(txHash);
+            }
             txHasNext = txs.hasNext();
           }
         }
@@ -237,10 +232,19 @@ public class BesuExecutionTools {
         currentFork = nextFork;
 
         // We trace the conflation
-        checkState(blockNumbers.isEmpty() == allTransactionsAreNull);
-        long firstBlockNumber = blockNumbers.isEmpty() ? 1 : Collections.min(blockNumbers);
-        long finalBlockNumber =
-            blockNumbers.isEmpty() ? transactions.size() : Collections.max(blockNumbers);
+        // For now conflations are composed of a single block triggered by
+        // callEngineAPIToBuildNewBlock
+        Block blockInfoUpdated = this.besuNode.execute(ethTransactions.block());
+        checkState(blockNumbers.isEmpty() == blockInfoUpdated.getTransactions().isEmpty());
+        if (blockNumbers.isEmpty()) {
+          // If the block has no transactions, we retrieve the block numbers to trace from the last
+          // traced until the latest block
+          firstBlockNumber = finalBlockNumber + 1;
+          finalBlockNumber = blockInfoUpdated.getNumber().longValue();
+        } else {
+          firstBlockNumber = Collections.min(blockNumbers);
+          finalBlockNumber = Collections.max(blockNumbers);
+        }
         TraceFile traceFile = traceAndCheckTracer(firstBlockNumber, finalBlockNumber, currentFork);
         Path traceFilePath = Path.of(traceFile.conflatedTracesFileName());
 

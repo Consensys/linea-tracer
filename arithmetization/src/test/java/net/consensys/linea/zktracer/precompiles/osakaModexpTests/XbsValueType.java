@@ -44,9 +44,9 @@ public enum XbsValueType {
   static final String CONDITIONALLY_VALID_XBS_MAX =
       "00000000000000000000000000000000000000000000000000000000000004ff";
 
-  static final String INVALID_LEAD_LIMB_ZERO = "0x00000000000000000000000000000000";
-  static final String INVALID_LEAD_LIMB_RAND = "0xdeadbeef00123400ffffffff00c0ffee";
-  static final String INVALID_LEAD_LIMB_MAX = "0xffffffffffffffffffffffffffffffff";
+  static final String INVALID_LEAD_LIMB_ZERO = "00000000000000000000000000000000";
+  static final String INVALID_LEAD_LIMB_RAND = "deadbeef00123400ffffffff00c0ffee";
+  static final String INVALID_LEAD_LIMB_MAX = "ffffffffffffffffffffffffffffffff";
 
   static final String INVALID_TAIL_LIMB_ZERO = "00000000000000000000000000000000";
   static final String INVALID_TAIL_LIMB_401 = "00000000000000000000000000000401";
@@ -55,7 +55,7 @@ public enum XbsValueType {
   static final String INVALID_TAIL_LIMB_MAX = "ffffffffffffffffffffffffffffffff";
 
   /**
-   * Byte sizes (<b>xbs</b>) are unconditionally valid in OSAKA if they are ≤ 1024 ≡ 0x400 after
+   * Byte sizes (<b>xbs</b>) are unconditionally valid in OSAKA if they are ≤ 1024 ≡ 400 after
    * trimming. The {@link #unconditionallyValidByteSizes} are those that are valid without resorting
    * to any trimming.
    */
@@ -63,8 +63,8 @@ public enum XbsValueType {
       List.of(VALID_XBS_ZERO, VALID_XBS_ONE, VALID_XBS_WORD, VALID_XBS_RAND, VALID_XBS_MAX);
 
   /**
-   * Byte sizes (<b>xbs</b>) are conditionally valid in OSAKA if they are ≤ 1024 ≡ 0x400 only after
-   * trimming, which means we can accept byte sizes of the form <b>0x4??</b> as long as <b>cds</b>
+   * Byte sizes (<b>xbs</b>) are conditionally valid in OSAKA if they are ≤ 1024 ≡ 400 only after
+   * trimming, which means we can accept byte sizes of the form <b>4??</b> as long as <b>cds</b>
    * is
    *
    * <ul>
@@ -89,7 +89,7 @@ public enum XbsValueType {
           INVALID_TAIL_LIMB_RAND,
           INVALID_TAIL_LIMB_MAX);
 
-  static final List<String> nonzeroTailLimbsForInvalidXbses =
+  static final List<String> nonzeroTailLimbsForInvalidByteSizes =
       List.of(
           INVALID_TAIL_LIMB_401,
           INVALID_TAIL_LIMB_500,
@@ -97,7 +97,9 @@ public enum XbsValueType {
           INVALID_TAIL_LIMB_MAX);
 
   static final List<String> smallInvalidByteSizes =
-      nonzeroTailLimbsForInvalidXbses.stream().map(tail -> INVALID_LEAD_LIMB_ZERO + tail).toList();
+      nonzeroTailLimbsForInvalidByteSizes.stream()
+          .map(tail -> INVALID_LEAD_LIMB_ZERO + tail)
+          .toList();
   static final List<String> largeInvalidByteSizes =
       headLimbsForInvalidXbses.stream()
           .flatMap(head -> tailLimbsForInvalidXbses.stream().map(tail -> head + tail))

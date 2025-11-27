@@ -14,18 +14,137 @@
  */
 package net.consensys.linea.zktracer.precompiles.osakaModexpTests;
 
+import static net.consensys.linea.zktracer.Fork.forkPredatesOsaka;
+import static net.consensys.linea.zktracer.TraceOsaka.EIP_7823_MODEXP_UPPER_BYTE_SIZE_BOUND;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+import static net.consensys.linea.zktracer.precompiles.osakaModexpTests.XbsValueType.GIBBERISH;
+import static net.consensys.linea.zktracer.precompiles.osakaModexpTests.XbsValueType.getListOfInputs;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.junit.jupiter.params.provider.Arguments;
+import net.consensys.linea.reporting.TracerTestBase;
+import net.consensys.linea.testing.*;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.crypto.KeyPair;
+import org.hyperledger.besu.crypto.SECP256K1;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
-public class XbsLimitsTests {
+public class XbsLimitsTests extends TracerTestBase {
 
-  static Stream<Arguments> bbsOutOfBoundsParameters() {
+  final KeyPair keyPair = new SECP256K1().generateKeyPair();
+  final Address senderAddress =
+      Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
-    List<Arguments> parameters = new ArrayList<>();
+  final ToyAccount senderAccount =
+      ToyAccount.builder().balance(Wei.fromEth(1900)).nonce(420).address(senderAddress).build();
 
-    return parameters.stream();
+  final BytecodeCompiler getProgram(int cds) {
+    return BytecodeCompiler.newProgram(chainConfig)
+        // full copy of call data
+        .op(CALLDATASIZE)
+        .op(PUSH0)
+        .op(PUSH0)
+        .op(CALLDATACOPY)
+        // call MODEXP precompile
+        .push(EIP_7823_MODEXP_UPPER_BYTE_SIZE_BOUND) // r@c
+        .push(3 * 32 + 3 * EIP_7823_MODEXP_UPPER_BYTE_SIZE_BOUND) // r@o
+        .push(cds) // cds
+        .push(0) // cdo
+        .push("0000000000000000000000000000000000000005")
+        .op(GAS)
+        .op(STATICCALL)
+        // append 32 JUMPDESTs for sanity
+        .op(JUMPDEST, 32);
+  }
+
+  final ToyAccount.ToyAccountBuilder receiverAccountBuilder =
+      ToyAccount.builder()
+          .balance(Wei.ONE)
+          .nonce(6)
+          .address(Address.fromHexString("11223344aaaaffff000000000000000000000001"));
+
+  @Test
+  public void fullTest(TestInfo testInfo) {
+
+    // goal:
+    // create a transaction with call data derived from entries in allParameters
+    // do a full copy of the transaction's call data using CALLDATACOPY
+    // do a CALL to MODEXP with that call data
+    // for sanity reasons: append 32 JUMPDESTs
+
+    // skip test if fork is before Osaka
+    if (forkPredatesOsaka(fork)) return;
+
+    for (Map.Entry<XbsValueType.BbsEbsMbsScenario, List<String>> entry : allParameters.entrySet()) {
+      XbsValueType.BbsEbsMbsScenario scenario = entry.getKey();
+      List<String> parametersList = entry.getValue();
+
+      final int cds = scenario.callDataSize();
+
+      for (String parameter : parametersList) {
+
+        System.out.println("Testing scenario: " + scenario + " with parameters: " + parameter);
+        String transactionCallData = parameter + GIBBERISH;
+
+        ToyAccount receiverAccount = receiverAccountBuilder.code(getProgram(cds).compile()).build();
+
+        Transaction tx =
+            ToyTransaction.builder()
+                .sender(senderAccount)
+                .to(receiverAccount)
+                .keyPair(keyPair)
+                .payload(Bytes.fromHexString(transactionCallData))
+                .gasLimit((long) (1 << 24))
+                .build();
+
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+            .accounts(List.of(senderAccount, receiverAccount))
+            .transaction(tx)
+            .build()
+            .run();
+      }
+    }
+  }
+
+  static Map<XbsValueType.BbsEbsMbsScenario, List<String>> allParameters =
+      Arrays.stream(XbsValueType.values())
+          .flatMap(
+              bbsType ->
+                  Arrays.stream(XbsValueType.values())
+                      .flatMap(
+                          ebsType ->
+                              Arrays.stream(XbsValueType.values())
+                                  .map(
+                                      mbsType ->
+                                          Map.entry(
+                                              new XbsValueType.BbsEbsMbsScenario(
+                                                  bbsType, ebsType, mbsType),
+                                              getParameters(
+                                                  new XbsValueType.BbsEbsMbsScenario(
+                                                      bbsType, ebsType, mbsType))))))
+          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+  static List<String> getParameters(XbsValueType.BbsEbsMbsScenario bbsEbsMbsScenario) {
+
+    List<String> parameters = new ArrayList<>();
+
+    for (String bbs : getListOfInputs(bbsEbsMbsScenario.bbsValueType())) {
+      for (String ebs : getListOfInputs(bbsEbsMbsScenario.ebsValueType())) {
+        for (String mbs : getListOfInputs(bbsEbsMbsScenario.mbsValueType())) {
+          parameters.add(bbs + ebs + mbs);
+        }
+      }
+    }
+
+    return parameters;
   }
 }

@@ -16,6 +16,7 @@
 package net.consensys.linea.blockcapture.snapshots;
 
 import static net.consensys.linea.zktracer.Trace.BLOCKHASH_MAX_HISTORY;
+import static net.consensys.linea.zktracer.types.PublicInputs.getDefaultBlobBaseFees;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -90,6 +91,12 @@ public record ConflationSnapshot(
     }
     // Done
     return hashes;
+  }
+
+  public Map<Long, Bytes> blobBaseFeesOrDefault() {
+    return blobBaseFees() == null
+        ? getDefaultBlobBaseFees(firstBlockNumber(), lastBlockNumber())
+        : blobBaseFees();
   }
 
   /**

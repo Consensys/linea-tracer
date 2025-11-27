@@ -97,7 +97,8 @@ public class ReplayTestTools {
         .zkTracer(
             new ZkTracer(
                 chain,
-                new PublicInputs(conflation.historicalBlockHashes(), conflation.blobBaseFees())))
+                new PublicInputs(
+                    conflation.historicalBlockHashes(), conflation.blobBaseFeesOrDefault())))
         .txResultChecking(resultChecking)
         .useCoinbaseAddressFromBlockHeader(Fork.isPostPrague(chain.fork))
         .build()

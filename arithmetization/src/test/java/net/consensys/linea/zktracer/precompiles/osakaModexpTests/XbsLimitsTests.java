@@ -82,16 +82,16 @@ public class XbsLimitsTests extends TracerTestBase {
           .address(Address.fromHexString("11223344aaaaffff000000000000000000000001"));
 
   @ParameterizedTest
-  @MethodSource("parametricTestPartialSource")
-  public void parametricTestPartial(
+  @MethodSource("modexpXbsLimitTestsSource")
+  public void modexpXbsLimitTests(
       XbsValueType.BbsEbsMbsScenario scenario, String bbsEbsMbsString, TestInfo testInfo) {
     body(scenario, bbsEbsMbsString, testInfo);
   }
 
   @Tag("nightly")
   @ParameterizedTest
-  @MethodSource("parametricTestNighlySource")
-  public void parametricTestNightly(
+  @MethodSource("modexpXbsLimitsTestsNighlySource")
+  public void modexpXbsLimitTestsNightly(
       XbsValueType.BbsEbsMbsScenario scenario, String bbsEbsMbsString, TestInfo testInfo) {
     body(scenario, bbsEbsMbsString, testInfo);
   }
@@ -181,7 +181,7 @@ public class XbsLimitsTests extends TracerTestBase {
                                                       bbsType, ebsType, mbsType))))))
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-  static Stream<Arguments> parametricTestNighlySource() {
+  static Stream<Arguments> modexpXbsLimitsTestsNighlySource() {
 
     List<Arguments> arguments = new ArrayList<>();
     for (Map.Entry<XbsValueType.BbsEbsMbsScenario, List<String>> entry : allParameters.entrySet()) {
@@ -196,8 +196,8 @@ public class XbsLimitsTests extends TracerTestBase {
     return arguments.stream();
   }
 
-  static Stream<Arguments> parametricTestPartialSource() {
-    List<Arguments> arguments = new ArrayList<>(parametricTestNighlySource().toList());
+  static Stream<Arguments> modexpXbsLimitTestsSource() {
+    List<Arguments> arguments = new ArrayList<>(modexpXbsLimitsTestsNighlySource().toList());
     Collections.shuffle(arguments, new Random(LocalDate.now().toEpochDay()));
     return arguments.stream().limit(arguments.size() / 40); // Execute 2.5 % of the tests
   }

@@ -177,7 +177,7 @@ public interface Column extends Trace.Column {
      * @return
      */
     public Encoding toEncoding() {
-      return Encoding.ofPool(buffer, bitwidth());
+      return Encoding.of(buffer, bitwidth(), heap);
     }
   }
 

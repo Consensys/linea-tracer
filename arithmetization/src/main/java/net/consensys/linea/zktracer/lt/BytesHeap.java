@@ -18,14 +18,20 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 
+/**
+ * BytesHeap provides a representation of a "heap" for use with the LTv2 file format.
+ */
 public class BytesHeap {
-  private final HashMap<Entry, Integer> index = new HashMap<>();
+  private final HashMap<Entry,Integer> cache = new HashMap<>();
   private byte[] bytes = new byte[256];
   private byte[] lengths = new byte[256];
   private int length;
 
   public BytesHeap() {
-    alloc(new Entry(new byte[0]));
+    for(int i=0;i!=65536; i++) {
+      byte[] bytes = Util.long2TruncatedBytes(i);
+      alloc(new Entry(bytes));
+    }
   }
 
   /**
@@ -35,14 +41,28 @@ public class BytesHeap {
    * @return
    */
   public int insert(byte[] key) {
-    Entry e = new Entry(key);
-    Integer val = this.index.get(e);
-    //
+    final Entry e = new Entry(key);
+    // Look for an exact match
+    final Integer val = this.cache.get(e);
+    // Check for exact match.
     if (val == null) {
-      val = alloc(e);
+        return alloc(e);
     }
     //
     return val;
+  }
+
+  /**
+   * Get the bytes chunk at a given index.
+   *
+   * @param index
+   * @return
+   */
+  public byte[] get(int index) {
+    int n = lengths[index];
+    byte[] slice = new byte[n];
+    System.arraycopy(bytes,index, slice,0,n);
+    return slice;
   }
 
   /**
@@ -51,7 +71,7 @@ public class BytesHeap {
    * @return
    */
   public byte[] toBytes() {
-    int len = 4 + (length * 2);
+    int len = 4 + (2 * length);
     ByteBuffer buffer = ByteBuffer.allocate(len);
     // write heap length
     buffer.putInt(length);
@@ -72,32 +92,35 @@ public class BytesHeap {
       lengths = Arrays.copyOf(lengths, 2 * (size + length + 1));
     }
     // Configure entry
-    this.index.put(e, val);
     this.lengths[val] = (byte) e.bytes.length;
     this.length += size;
     // Copy over bytes
     System.arraycopy(e.bytes, 0, this.bytes, val, e.bytes.length);
+    // Update the cache
+    this.cache.put(e, val);
     // Done
     return val;
   }
 
-  private static class Entry {
-    private final byte[] bytes;
+    private static final class Entry {
+      private final byte[] bytes;
 
-    public Entry(byte[] bytes) {
-      this.bytes = bytes;
-    }
-
-    public boolean equals(Object o) {
-      if (o instanceof Entry e) {
-        return Arrays.equals(bytes, e.bytes);
+      public Entry(byte[] bytes) {
+        this.bytes = bytes;
       }
-      //
-      return false;
-    }
 
-    public int hashCode() {
-      return Arrays.hashCode(bytes);
+      @Override
+      public boolean equals(Object o) {
+        if (o instanceof Entry e) {
+          return Arrays.equals(bytes, e.bytes);
+        }
+        //
+        return false;
+      }
+
+      @Override
+      public int hashCode() {
+        return Arrays.hashCode(bytes);
+      }
     }
-  }
 }

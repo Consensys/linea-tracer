@@ -64,6 +64,7 @@ public class LtFileV2 extends LtFile {
     out.write(heap);
     // Write column data
     for (int i = 0; i != encodings.length; ++i) {
+      ModuleHeader mod = moduleHeaders[i];
       for (int j = 0; j != encodings[i].length; ++j) {
         out.write(encodings[i][j].data());
       }

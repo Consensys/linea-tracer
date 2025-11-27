@@ -16,6 +16,106 @@ package net.consensys.linea.zktracer.lt;
 
 public class Util {
 
+  static int approxUniqueElements(int[] data) {
+    if(data.length == 0) {
+      return 0;
+    }
+    //
+    int count = 1;
+    int last = data[0];
+    //
+    for(int i=1;i<data.length;++i) {
+      if(data[i] != last) {
+        count++;
+        last = data[i];
+      }
+    }
+    //
+    return count;
+  }
+
+  static int approxUniqueElements(long[] data) {
+    if(data.length == 0) {
+      return 0;
+    }
+    //
+    int count = 1;
+    long last = data[0];
+    //
+    for(int i=1;i<data.length;++i) {
+      if(data[i] != last) {
+        count++;
+        last = data[i];
+      }
+    }
+    //
+    return count;
+  }
+
+  /**
+   * Compute the maximum value in an array of longs, returning 0 for the empty array.
+   *
+   * @param data
+   * @return
+   */
+  static long maxValue(long[] data) {
+    long max = 0;
+
+    for (int i = 0; i < data.length; i++) {
+      max = Math.max(max, data[i]);
+    }
+
+    return max;
+  }
+
+  /**
+   * Compute the minimum value in an array of (non-negative) longs, returning Long.MAX_VALUE for the empty array.
+   *
+   * @param data
+   * @return
+   */
+  static long minValue(long[] data) {
+    long min = Long.MAX_VALUE;
+
+    for (int i = 0; i < data.length; i++) {
+      min = Math.min(min, data[i]);
+    }
+
+    return min;
+  }
+
+  /**
+   * Compute the maximum value in an array of ints, returning 0 for the empty array.
+   *
+   * @param data
+   * @return
+   */
+  static int maxValue(int[] data) {
+    int max = 0;
+
+    for (int i = 0; i < data.length; i++) {
+      max = Math.max(max, data[i]);
+    }
+
+    return max;
+  }
+
+  /**
+   * Compute the minimum value in an array of (non-negative) ints, returning Integer.MAX_VALUE for the empty array.
+   *
+   * @param data
+   * @return
+   */
+  static int minValue(int[] data) {
+    int min = Integer.MAX_VALUE;
+
+    for (int i = 0; i < data.length; i++) {
+      min = Math.min(min, data[i]);
+    }
+
+    return min;
+  }
+
   /**
    * Convert a given bitwidth into a bytewidth. For example, a bitwidth of 1 becomes a bytewidth of
    * 1 whilst a bitwidth of 9 becomes a bytewidth of 2, etc.

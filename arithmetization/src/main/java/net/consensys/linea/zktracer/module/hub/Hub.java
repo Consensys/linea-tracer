@@ -48,7 +48,7 @@ import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
-import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
+import net.consensys.linea.zktracer.module.blockdata.module.BlockData;
 import net.consensys.linea.zktracer.module.blockhash.Blockhash;
 import net.consensys.linea.zktracer.module.ecdata.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
@@ -115,11 +115,11 @@ import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.MemoryRange;
+import net.consensys.linea.zktracer.types.PublicInputs;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.AccountState;
@@ -217,7 +217,7 @@ public abstract class Hub implements Module {
   private final Module rlpUtils = setRlpUtils(wcp);
 
   // other
-  private final Blockdata blockdata;
+  private final BlockData blockdata;
   private final RomLex romLex = new RomLex(this);
   private final Rom rom = new Rom(romLex);
   private final RlpTxn rlpTxn;
@@ -256,6 +256,8 @@ public abstract class Hub implements Module {
       new CountingOnlyModule(PRECOMPILE_ECPAIRING_MILLER_LOOPS);
   private final IncrementingModule ecPairingFinalExponentiations =
       new IncrementingModule(PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS);
+  private final IncrementingModule p256VerifyEffectiveCalls =
+      new IncrementingModule(PRECOMPILE_P256_VERIFY_EFFECTIVE_CALLS);
 
   //  related to Modexp
   private final IncrementAndDetectModule modexpEffectiveCall =
@@ -293,7 +295,7 @@ public abstract class Hub implements Module {
   final IncrementingModule blsG1MapFp2ToG2EffectiveCall =
       new IncrementingModule(PRECOMPILE_BLS_MAP_FP2_TO_G2_EFFECTIVE_CALLS);
   final IncrementingModule blsC1MembershipCalls =
-      new IncrementingModule(PRECOMPILE_BLS_C1_MEMBERSHIP_CHECKS);
+      new IncrementingModule(PRECOMPILE_BLS_C1_MEMBERSHIP_CALLS);
   final IncrementingModule blsC2MembershipCalls =
       new IncrementingModule(PRECOMPILE_BLS_C2_MEMBERSHIP_CALLS);
   final IncrementingModule blsG1MembershipCalls =
@@ -332,6 +334,7 @@ public abstract class Hub implements Module {
         blsC2MembershipCalls,
         blsG1MembershipCalls,
         blsG2MembershipCalls,
+        p256VerifyEffectiveCalls,
         l1BlockSize,
         l2L1Logs);
   }
@@ -356,7 +359,8 @@ public abstract class Hub implements Module {
           ecRecoverEffectiveCall,
           ecPairingG2MembershipCalls,
           ecPairingMillerLoops,
-          ecPairingFinalExponentiations);
+          ecPairingFinalExponentiations,
+          p256VerifyEffectiveCalls);
   final Module blsData = setBlsData(this);
 
   private final L1BlockSize l1BlockSize;
@@ -430,7 +434,7 @@ public abstract class Hub implements Module {
     return Stream.concat(realModule().stream(), getTracelessModules().stream()).toList();
   }
 
-  public Hub(final ChainConfig chain, Map<Long, Hash> historicalBlockHashes) {
+  public Hub(final ChainConfig chain, PublicInputs publicInputs) {
     fork = chain.fork;
     gasCalculator = getGasCalculatorFromFork(fork);
     opCodes = OpCodes.load(fork);
@@ -439,7 +443,7 @@ public abstract class Hub implements Module {
     final Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
     final Bytes32 l2l1Topic = chain.bridgeConfiguration.topic();
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
-      log.info("WARN: Using default testing L2L1 contract address");
+      log.info("[ZkTracer] Using default testing L2L1 contract address");
     }
     l2L1Logs = new IncrementingModule(BLOCK_L2_L1_LOGS);
     keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
@@ -450,10 +454,10 @@ public abstract class Hub implements Module {
     trm = new Trm(fork);
     rlpTxn = setRlpTxn(this);
     rlpAddr = new RlpAddr(this, trm, keccak);
-    blockdata = setBlockData(this, wcp, euc, chain);
+    blockdata = setBlockData(this, wcp, euc, chain, publicInputs.blobBaseFees());
     mmu = new Mmu(euc, wcp, fork);
     mmio = new Mmio(mmu);
-    blockhash = new Blockhash(this, wcp, historicalBlockHashes);
+    blockhash = new Blockhash(this, wcp, publicInputs.historicalBlockhashes());
 
     refTableModules =
         Stream.of(setBlsRt(), setInstructionDecoder(), setPower())
@@ -1161,7 +1165,8 @@ public abstract class Hub implements Module {
 
   protected abstract Mxp setMxp();
 
-  protected abstract Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain);
+  protected abstract BlockData setBlockData(
+      Hub hub, Wcp wcp, Euc euc, ChainConfig chain, Map<Long, Bytes> blobBaseFees);
 
   protected abstract RlpTxn setRlpTxn(Hub hub);
 

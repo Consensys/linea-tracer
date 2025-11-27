@@ -14,10 +14,16 @@
  */
 package net.consensys.linea.zktracer.precompiles.modexp;
 
+import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,6 +37,7 @@ import org.apache.commons.math3.util.Pair;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -61,7 +68,8 @@ public class ModexpEIP7883Tests extends TracerTestBase {
                       final String leftPaddedLeadingWordAsHex =
                           "0".repeat(Math.max(0, 2 * minEbs32 - leadingWordAsHex.length()))
                               + leadingWordAsHex;
-                      Preconditions.checkArgument(leftPaddedLeadingWordAsHex.length() == 2 * minEbs32);
+                      Preconditions.checkArgument(
+                          leftPaddedLeadingWordAsHex.length() == 2 * minEbs32);
                       leadingWords.add(leftPaddedLeadingWordAsHex);
                       leadingWord = leadingWord.shiftRight(1);
                     }
@@ -80,6 +88,14 @@ public class ModexpEIP7883Tests extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("modexpEIP7883TestSource")
   void modexpEIP7883Test(
+      int bbs, int ebs, int mbs, int cds, String exponentLeadingWord, TestInfo testInfo) {
+    modexpEIP7883TestBody(bbs, ebs, mbs, cds, exponentLeadingWord, testInfo);
+  }
+
+  @Tag("nightly")
+  @ParameterizedTest
+  @MethodSource("modexpEIP7883TestSourceNightly")
+  void modexpEIP7883TestNightly(
       int bbs, int ebs, int mbs, int cds, String exponentLeadingWord, TestInfo testInfo) {
     modexpEIP7883TestBody(bbs, ebs, mbs, cds, exponentLeadingWord, testInfo);
   }
@@ -131,13 +147,23 @@ public class ModexpEIP7883Tests extends TracerTestBase {
         .op(OpCode.RETURNDATASIZE)
         .op(OpCode.JUMPDEST, 32); // TODO: temporary workaround for go-corset issue
 
-    // TODO: do we want to add a RETURNDATACOPY?
-
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
+
+    final Bytes returnDataSize = bytecodeRunner.getHub().currentFrame().frame().getStackItem(0);
+    final Bytes callSuccess = bytecodeRunner.getHub().currentFrame().frame().getStackItem(1);
+    if (bytesToBoolean(callSuccess)) {
+      assertEquals(mbs, returnDataSize.toInt());
+    }
   }
 
   static Stream<Arguments> modexpEIP7883TestSource() {
+    List<Arguments> arguments = new ArrayList<>(modexpEIP7883TestSourceNightly().toList());
+    Collections.shuffle(arguments, new Random(LocalDate.now().toEpochDay()));
+    return arguments.stream().limit(arguments.size() / 40); // Execute 2.5 % of the tests
+  }
+
+  static Stream<Arguments> modexpEIP7883TestSourceNightly() {
     List<Arguments> arguments = new ArrayList<>();
     for (Pair<Integer, Integer> bbsMbs : bbsMbsPairOfValues) {
       Integer bbs = bbsMbs.getFirst();

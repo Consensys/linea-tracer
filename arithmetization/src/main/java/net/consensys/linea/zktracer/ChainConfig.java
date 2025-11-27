@@ -14,8 +14,7 @@
  */
 package net.consensys.linea.zktracer;
 
-import static net.consensys.linea.zktracer.Fork.LONDON;
-import static net.consensys.linea.zktracer.Fork.PRAGUE;
+import static net.consensys.linea.zktracer.Fork.*;
 import static net.consensys.linea.zktracer.Trace.ETHEREUM_GAS_LIMIT_MAXIMUM;
 import static net.consensys.linea.zktracer.Trace.ETHEREUM_GAS_LIMIT_MINIMUM;
 import static net.consensys.linea.zktracer.Trace.LINEA_CHAIN_ID;
@@ -40,6 +39,8 @@ public class ChainConfig {
 
   public static final ChainConfig SEPOLIA_PRAGUE_TESTCONFIG = SEPOLIA_TESTCONFIG(PRAGUE);
 
+  public static final ChainConfig DEVNET_OSAKA_TESTCONFIG = DEVNET_TESTCONFIG(OSAKA);
+
   public static final ChainConfig MAINNET_TESTCONFIG(final Fork fork) {
     return new ChainConfig(
         fork,
@@ -54,6 +55,16 @@ public class ChainConfig {
     return new ChainConfig(
         fork,
         LINEA_SEPOLIA_CHAIN_ID,
+        true,
+        BigInteger.valueOf(LINEA_GAS_LIMIT_MINIMUM),
+        BigInteger.valueOf(LINEA_GAS_LIMIT_MAXIMUM),
+        LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT);
+  }
+
+  public static final ChainConfig DEVNET_TESTCONFIG(final Fork fork) {
+    return new ChainConfig(
+        fork,
+        LINEA_SEPOLIA_CHAIN_ID, // TODO update me
         true,
         BigInteger.valueOf(LINEA_GAS_LIMIT_MINIMUM),
         BigInteger.valueOf(LINEA_GAS_LIMIT_MAXIMUM),

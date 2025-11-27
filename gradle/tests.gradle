@@ -154,7 +154,7 @@ tasks.withType(Test).configureEach {
 
 tasks.test.configure {
   // Following required as some unit tests run BESU checks
-  dependsOn("copyTracerPlugin", "downloadShomeiBesuPlugin")
+  dependsOn("copyTracerPlugin", "extractShomeiBesuPlugin")
   //
   useJUnitPlatform {
     excludeTags("nightly | replay | weekly")
@@ -212,7 +212,7 @@ tasks.register("prcCallTests", Test) {
 // =============================================================================
 
 tasks.register("besuNodeTests", Test) {
-  dependsOn("copyTracerPlugin", "downloadShomeiBesuPlugin")
+  dependsOn("copyTracerPlugin", "extractShomeiBesuPlugin")
   //
   forkEvery = 1
   maxParallelForks = 3
@@ -228,7 +228,7 @@ tasks.register("besuNodeTests", Test) {
 }
 
 tasks.register("besuNodeFastReplayTests", Test) {
-  dependsOn("copyTracerPlugin", "downloadShomeiBesuPlugin")
+  dependsOn("copyTracerPlugin", "extractShomeiBesuPlugin")
   //
   forkEvery = 1
   maxParallelForks = 3
@@ -305,15 +305,32 @@ tasks.register("jacocoUnitFastReplayWeeklyNightlyReferenceBlockchainAndStateTest
 // =============================================================================
 
 tasks.register("copyTracerPlugin", Copy) {
-  dependsOn(project(":plugins").tasks.findByPath("jar"))
-  from project(":plugins").tasks.findByPath("jar").outputs.files.collect()
+  dependsOn(project(":plugins").tasks.findByPath("distZip"))
+  from zipTree(project(":plugins").tasks.findByPath("distZip").outputs.files.singleFile)
   into "${System.getProperty("besu.plugins.dir")}"
+  eachFile { fcp ->
+    fcp.relativePath = new RelativePath(true, fcp.file.name)
+  }
+  includeEmptyDirs = false
+  duplicatesStrategy = DuplicatesStrategy.FAIL
 }
 
 tasks.register("downloadShomeiBesuPlugin", Download) {
-  src "${besuShomeiPluginBaseUrl}${besuShomeiPluginVersion}/besu-shomei-plugin-${besuShomeiPluginVersion}.jar"
-  dest "${System.getProperty("besu.plugins.dir")}"
+  src "${besuShomeiPluginBaseUrl}${besuShomeiPluginVersion}/besu-shomei-plugin-${besuShomeiPluginVersion}.zip"
+  dest project.buildDir
   overwrite false
+}
+
+tasks.register("extractShomeiBesuPlugin", Copy) {
+    dependsOn "downloadShomeiBesuPlugin"
+    //
+    from zipTree("${project.buildDir}/besu-shomei-plugin-${besuShomeiPluginVersion}.zip")
+    into "${System.getProperty("besu.plugins.dir")}"
+    eachFile { fcp ->
+        fcp.relativePath = new RelativePath(true, fcp.file.name)
+    }
+    includeEmptyDirs = false
+    duplicatesStrategy = DuplicatesStrategy.FAIL
 }
 
 

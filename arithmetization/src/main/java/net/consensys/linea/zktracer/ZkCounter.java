@@ -201,8 +201,8 @@ public class ZkCounter implements LineCountingTracer {
       new IncrementingModule(PRECOMPILE_LARGE_MODEXP_EFFECTIVE_CALLS);
 
   // related to Blake
-  private final IncrementAndDetectModule blakeEffectiveCall =
-      new IncrementAndDetectModule(PRECOMPILE_BLAKE_EFFECTIVE_CALLS);
+  private final IncrementingModule blakeEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLAKE_EFFECTIVE_CALLS);
   private final BlakeRounds blakeRounds = new BlakeRounds();
 
   // related to Shakira:
@@ -232,7 +232,7 @@ public class ZkCounter implements LineCountingTracer {
   final IncrementingModule blsG1MapFp2ToG2EffectiveCall =
       new IncrementingModule(PRECOMPILE_BLS_MAP_FP2_TO_G2_EFFECTIVE_CALLS);
   final IncrementingModule blsC1MembershipCalls =
-      new IncrementingModule(PRECOMPILE_BLS_C1_MEMBERSHIP_CHECKS);
+      new IncrementingModule(PRECOMPILE_BLS_C1_MEMBERSHIP_CALLS);
   final IncrementingModule blsC2MembershipCalls =
       new IncrementingModule(PRECOMPILE_BLS_C2_MEMBERSHIP_CALLS);
   final IncrementingModule blsG1MembershipCalls =
@@ -387,7 +387,7 @@ public class ZkCounter implements LineCountingTracer {
             LogTopic.of(bridgeConfiguration.topic()));
     moduleToCount = Stream.concat(checkedModules().stream(), uncheckedModules().stream()).toList();
 
-    log.info("[ZkCounter] Created ZkCounter");
+    log.info("[ZkCounter] Created ZkCounter for fork {}", fork);
   }
 
   @Override

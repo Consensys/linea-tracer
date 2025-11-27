@@ -177,7 +177,7 @@ public class EmptyBlockTests extends TracerTestBase {
 
       if (!runWithBesu) {
         final State hub = env.getHub().state();
-        short nbOfLog = 0;
+        int nbOfLog = 0;
         for (State.HubTransactionState state : hub.getState().getAll()) {
           for (TraceSection section : state.traceSections().trace()) {
             if (section instanceof LogSection) {

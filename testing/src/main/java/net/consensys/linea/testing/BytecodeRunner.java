@@ -238,8 +238,9 @@ public final class BytecodeRunner {
     final ToyAccount receiverAccount =
         switch (collision) {
           case SENDER_IS_RECIPIENT, TRIPLE_COLLISION -> ToyAccount.builder()
-              .balance(senderBalance.subtract(transactionValue + gasPrice * selectedGasLimit))
-              .nonce(senderNonce + 1)
+              // Accounts update are already made in the TX_SKIP section
+              // .balance(senderBalance.subtract(transactionValue + gasPrice * selectedGasLimit))
+              // .nonce(senderNonce + 1)
               .address(senderAddress)
               .build();
           default -> ToyAccount.builder()

@@ -17,15 +17,15 @@ package net.consensys.linea.zktracer.lt;
 public class Util {
 
   static int approxUniqueElements(int[] data) {
-    if(data.length == 0) {
+    if (data.length == 0) {
       return 0;
     }
     //
     int count = 1;
     int last = data[0];
     //
-    for(int i=1;i<data.length;++i) {
-      if(data[i] != last) {
+    for (int i = 1; i < data.length; ++i) {
+      if (data[i] != last) {
         count++;
         last = data[i];
       }
@@ -35,15 +35,15 @@ public class Util {
   }
 
   static int approxUniqueElements(long[] data) {
-    if(data.length == 0) {
+    if (data.length == 0) {
       return 0;
     }
     //
     int count = 1;
     long last = data[0];
     //
-    for(int i=1;i<data.length;++i) {
-      if(data[i] != last) {
+    for (int i = 1; i < data.length; ++i) {
+      if (data[i] != last) {
         count++;
         last = data[i];
       }
@@ -69,7 +69,8 @@ public class Util {
   }
 
   /**
-   * Compute the minimum value in an array of (non-negative) longs, returning Long.MAX_VALUE for the empty array.
+   * Compute the minimum value in an array of (non-negative) longs, returning Long.MAX_VALUE for the
+   * empty array.
    *
    * @param data
    * @return
@@ -101,7 +102,8 @@ public class Util {
   }
 
   /**
-   * Compute the minimum value in an array of (non-negative) ints, returning Integer.MAX_VALUE for the empty array.
+   * Compute the minimum value in an array of (non-negative) ints, returning Integer.MAX_VALUE for
+   * the empty array.
    *
    * @param data
    * @return

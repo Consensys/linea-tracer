@@ -15,24 +15,25 @@
 package net.consensys.linea.zktracer.lt;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 public record Encoding(int encoding, byte[] data) {
   public static final byte ENCODING_CONSTANT = 0;
-  public static final byte ENCODING_STATIC = 1;
+  public static final byte ENCODING_STATIC_DENSE = 1;
   public static final byte ENCODING_STATIC_SPARSE = 2;
   public static final byte ENCODING_POOL_CONSTANT = 3;
-  public static final byte ENCODING_POOL8 = 4;
-  public static final byte ENCODING_POOL16 = 5;
-  public static final byte ENCODING_POOL32 = 6;
+  public static final byte ENCODING_POOL8_DENSE = 4;
+  public static final byte ENCODING_POOL16_DENSE = 5;
+  public static final byte ENCODING_POOL32_DENSE = 6;
   public static final byte ENCODING_POOL8_SPARSE = 7;
   public static final byte ENCODING_POOL16_SPARSE = 8;
   public static final byte ENCODING_POOL32_SPARSE = 9;
+
   /**
-   * Construct a static encoding for a given set of column data.
+   * Construct a static encoding for a given set of column data.  This is where values are encoded directly in the
+   * resulting byte array (i.e. rather than being encoded as indexes into the heap).
    *
-   * @param buffer
-   * @return
+   * @param buffer Column data
+   * @return Encoded column data
    */
   public static Encoding of(long[] buffer) {
     int encoding;
@@ -44,42 +45,60 @@ public record Encoding(int encoding, byte[] data) {
     if ((buffer.length == 0 || maxValue == minValue) && maxValue <= 0xFF_FFFF) {
       encoding = encoding(Encoding.ENCODING_CONSTANT, (int) maxValue);
       data = encodeU0(buffer.length);
-    } else if (maxValue < 2L && preferSparse(nblocks,buffer.length,1,8)) {
-      encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 1);
-      data = encodeU8sparse(nblocks,buffer);
     } else if (maxValue < 2L) {
-      encoding = encoding(Encoding.ENCODING_STATIC, 1);
-      data = encodeU1(buffer);
-    } else if (maxValue < 4L && preferSparse(nblocks,buffer.length,2,8)) {
-      encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 2);
-      data = encodeU8sparse(nblocks,buffer);
+      // Check for sparse encoding
+      if (preferSparse(nblocks, buffer.length, 1, 8)) {
+        encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 1);
+        data = encodeU8Sparse32(nblocks, buffer);
+      } else {
+        encoding = encoding(Encoding.ENCODING_STATIC_DENSE, 1);
+        data = encodeU1(buffer);
+      }
     } else if (maxValue < 4L) {
-      encoding = encoding(Encoding.ENCODING_STATIC, 2);
-      data = encodeU2(buffer);
-    } else if (maxValue < 16L && preferSparse(nblocks,buffer.length,4,8)) {
-      encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 4);
-      data = encodeU8sparse(nblocks,buffer);
+      // Check for sparse encoding
+      if (preferSparse(nblocks, buffer.length, 2, 8)) {
+        encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 2);
+        data = encodeU8Sparse32(nblocks, buffer);
+      } else {
+        encoding = encoding(Encoding.ENCODING_STATIC_DENSE, 2);
+        data = encodeU2(buffer);
+      }
     } else if (maxValue < 16L) {
-      encoding = encoding(Encoding.ENCODING_STATIC, 4);
-      data = encodeU4(buffer);
-    } else if (maxValue < 256L && preferSparse(nblocks,buffer.length,8,8)) {
-      encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 8);
-      data = encodeU8sparse(nblocks,buffer);
+      // Check for sparse encoding
+      if (preferSparse(nblocks, buffer.length, 4, 8)) {
+        encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 4);
+        data = encodeU8Sparse32(nblocks, buffer);
+      } else {
+        encoding = encoding(Encoding.ENCODING_STATIC_DENSE, 4);
+        data = encodeU4(buffer);
+      }
     } else if (maxValue < 256L) {
-      encoding = encoding(Encoding.ENCODING_STATIC, 8);
-      data = encodeU8(buffer);
-    } else if (maxValue < 65536L && preferSparse(nblocks,buffer.length,16,16)) {
-      encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 16);
-      data = encodeU16sparse(nblocks,buffer);
+      // Check for sparse encoding
+      if (preferSparse(nblocks, buffer.length, 8, 8)) {
+        encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 8);
+        data = encodeU8Sparse32(nblocks, buffer);
+      } else {
+        encoding = encoding(Encoding.ENCODING_STATIC_DENSE, 8);
+        data = encodeU8Dense(buffer);
+      }
     } else if (maxValue < 65536L) {
-      encoding = encoding(Encoding.ENCODING_STATIC, 16);
-      data = encodeU16(buffer);
-    } else if (maxValue < 4294967296L && preferSparse(nblocks,buffer.length,32,32)) {
-      encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 32);
-      data = encodeU32sparse(nblocks,buffer);
+      // Check for sparse encoding
+      if (preferSparse(nblocks, buffer.length, 16, 16)) {
+        encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 16);
+        data = encodeU16Sparse32(nblocks, buffer);
+      } else {
+        encoding = encoding(Encoding.ENCODING_STATIC_DENSE, 16);
+        data = encodeU16Dense(buffer);
+      }
     } else if (maxValue < 4294967296L) {
-      encoding = encoding(Encoding.ENCODING_STATIC, 32);
-      data = encodeU32(buffer);
+      // Check for sparse encoding
+      if (preferSparse(nblocks, buffer.length, 32, 32)) {
+        encoding = encoding(Encoding.ENCODING_STATIC_SPARSE, 32);
+        data = encodeU32Sparse32(nblocks, buffer);
+      } else {
+        encoding = encoding(Encoding.ENCODING_STATIC_DENSE, 32);
+        data = encodeU32Dense(buffer);
+      }
     } else {
       throw new IllegalArgumentException("column data too large (" + maxValue + ")");
     }
@@ -88,10 +107,14 @@ public record Encoding(int encoding, byte[] data) {
   }
 
   /**
-   * Construct a pooled encoding for a given set of column data.
+   * Construct a pooled encoding for a given set of column data. This is where values are encoded in the resulting
+   * array as indexes into the heap (i.e. rather than being encoded directly into the byte array).  The benefit of
+   * this encoding arises in two ways: (1) when there are lots of repeated large (e.g. u128) values; (2) when we have
+   * a large column (e.g. u128) which contains many small items.  Furthermore, since the heap is shared across all
+   * column in the encoded trace, this encoding benefits when the same value appears in multiple columns, etc.
    *
-   * @param buffer
-   * @return
+   * @param buffer Column data
+   * @return Encoded column data
    */
   public static Encoding of(int[] buffer, int bitwidth, BytesHeap heap) {
     int encoding;
@@ -101,48 +124,74 @@ public record Encoding(int encoding, byte[] data) {
     int nblocks = Util.approxUniqueElements(buffer);
     //
     if ((buffer.length == 0 || maxValue == minValue) && maxValue <= 0xFF_FFFF) {
-      if(maxValue == 0) {
+      if (buffer.length == 0 || maxValue == 0) {
         // NOTE: index 0 already represents actual 0
-         encoding = encoding(Encoding.ENCODING_CONSTANT, 0);
+        encoding = encoding(Encoding.ENCODING_CONSTANT, 0);
       } else {
         encoding = encoding(Encoding.ENCODING_POOL_CONSTANT, maxValue);
       }
       data = encodeU0(buffer.length);
-    } else if (maxValue < 256L && preferSparse(nblocks,buffer.length,8,8)) {
+    } else if (maxValue < 256L && preferSparse(nblocks, buffer.length, 8, 8)) {
       encoding = encoding(Encoding.ENCODING_POOL8_SPARSE, bitwidth);
-      data = encodeU8sparse(nblocks,buffer);
+      data = encodeU8Sparse32(nblocks, buffer);
     } else if (maxValue < 256L) {
-      data = encodeU8(buffer);
-      encoding = encoding(ENCODING_POOL8, bitwidth);
-    } else if (maxValue < 65536L && preferSparse(nblocks,buffer.length,16,16)) {
+      data = encodeU8Dense(buffer);
+      encoding = encoding(ENCODING_POOL8_DENSE, bitwidth);
+    } else if (maxValue < 65536L && preferSparse(nblocks, buffer.length, 16, 16)) {
       encoding = encoding(Encoding.ENCODING_POOL16_SPARSE, bitwidth);
-      data = encodeU16sparse(nblocks,buffer);
+      data = encodeU16Sparse32(nblocks, buffer);
     } else if (maxValue < 65536L) {
-      data = encodeU16(buffer);
-      encoding = encoding(ENCODING_POOL16, bitwidth);
-    } else if (preferSparse(nblocks,buffer.length,32,32)) {
+      data = encodeU16Dense(buffer);
+      encoding = encoding(ENCODING_POOL16_DENSE, bitwidth);
+    } else if (preferSparse(nblocks, buffer.length, 32, 32)) {
       encoding = encoding(Encoding.ENCODING_POOL32_SPARSE, bitwidth);
-      data = encodeU32sparse(nblocks,buffer);
+      data = encodeU32Sparse32(nblocks, buffer);
     } else {
-      encoding = encoding(ENCODING_POOL32, bitwidth);
-      data = encodeU32(buffer);
+      encoding = encoding(ENCODING_POOL32_DENSE, bitwidth);
+      data = encodeU32Dense(buffer);
     }
     //
 
     return new Encoding(encoding, data);
   }
 
+  /**
+   * Check whether or not to use a sparse representation of the given data. The decision is made
+   * simply by calculating the size of both the sparse and dense representations, and choosing the
+   * smallest. In doing this calculation, we have to consider the width of values used in each
+   * representation (e.g. because values can be wider when used in the sparse representation).
+   *
+   * @param nblocks Identifies the number of entries required for the sparse representation.
+   * @param length Identifies the number of actual rows in the column.
+   * @param denseWidth Identifies the width of elements in the dense representation.
+   * @param sparseWidth Identifies the width of elements in the sparse representation.
+   * @return true if the sparse representation is smallest, false otherwise.
+   */
   private static boolean preferSparse(int nblocks, int length, int denseWidth, int sparseWidth) {
     int sparseLayout = (nblocks * (32 + sparseWidth));
     int denseLayout = length * denseWidth;
     return sparseLayout < denseLayout;
   }
 
+  /**
+   * Construct an "encoding identifier" from a given opcode and operand.
+   *
+   * @param opcode
+   * @param operand
+   * @return
+   */
   private static int encoding(byte opcode, int operand) {
     int encoding = (opcode & 0xff) << 24;
     return encoding | (operand & 0xff_ffff);
   }
 
+  /**
+   * Encode an array of constant values. This amounts simply to writing the length (i.e. number of
+   * rows) into the buffer, and nothing else.
+   *
+   * @param length Number of rows in the column.
+   * @return byte encoding of the data
+   */
   private static byte[] encodeU0(int length) {
     final ByteBuffer buf = ByteBuffer.allocate(4);
     buf.putInt(length);
@@ -150,10 +199,12 @@ public record Encoding(int encoding, byte[] data) {
   }
 
   /**
-   * U1 encoding is given a special bit-level representation for efficiency.
+   * U1 encoding is given a special bit-level representation for efficiency. Specifically, 8
+   * elements are packed into each byte of the resulting data. Furthermore, the number of unused
+   * elements is stored in an additional last byte.
    *
-   * @param buffer
-   * @return
+   * @param buffer Contains only values in {0,1}.
+   * @return byte encoding of the data
    */
   private static byte[] encodeU1(long[] buffer) {
     // Determine how many bytes required
@@ -180,10 +231,12 @@ public record Encoding(int encoding, byte[] data) {
   }
 
   /**
-   * U2 encoding is given a special bit-level representation for efficiency.
+   * U2 encoding is given a special bit-level representation for efficiency. Specifically, 4
+   * elements are packed into each byte of the resulting data. Furthermore, the number of unused
+   * elements is stored in an additional last byte.
    *
-   * @param buffer
-   * @return
+   * @param buffer Contains only values in {0,1,2,3}.
+   * @return byte encoding of the data
    */
   private static byte[] encodeU2(long[] buffer) {
     // Determine how many bytes required
@@ -206,16 +259,18 @@ public record Encoding(int encoding, byte[] data) {
       }
     }
     // Mark unused bits
-    bytes[n] = (byte) ((n * 8) - buffer.length);
+    bytes[n] = (byte) ((n * 4) - buffer.length);
     // Done
     return bytes;
   }
 
   /**
-   * U2 encoding is given a special bit-level representation for efficiency.
+   * U4 encoding is given a special bit-level representation for efficiency. Specifically, 2
+   * elements are packed into each byte of the resulting data. Furthermore, the number of unused
+   * elements is stored in an additional last byte.
    *
-   * @param buffer
-   * @return
+   * @param buffer Contains only values in {0,1,...14,15}.
+   * @return byte encoding of the data
    */
   private static byte[] encodeU4(long[] buffer) {
     // Determine how many bytes required
@@ -225,7 +280,7 @@ public record Encoding(int encoding, byte[] data) {
     int byteIndex = 0;
     //
     for (int i = 0; i != buffer.length; i++) {
-      int bits = (int) (0x15 & buffer[i]) << bitIndex;
+      int bits = (int) (0xf & buffer[i]) << bitIndex;
       int ith = (bytes[byteIndex] & 0xff) | bits;
       // Assign updated byte
       bytes[byteIndex] = (byte) ith;
@@ -238,12 +293,19 @@ public record Encoding(int encoding, byte[] data) {
       }
     }
     // Mark unused bits
-    bytes[n] = (byte) ((n * 8) - buffer.length);
+    bytes[n] = (byte) ((n * 2) - buffer.length);
     // Done
     return bytes;
   }
 
-  private static byte[] encodeU8(int[] buffer) {
+  /**
+   * Encode a given set of byte values using a "dense encoding" where each value is stored
+   * consecutively.
+   *
+   * @param buffer Contains only values in {0,1,...254,255}.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU8Dense(int[] buffer) {
     final byte[] bytes = new byte[buffer.length];
     //
     for (int i = 0; i != buffer.length; i++) {
@@ -253,10 +315,34 @@ public record Encoding(int encoding, byte[] data) {
     return bytes;
   }
 
-  private static byte[] encodeU8sparse(int nblocks, long[] buffer) {
+  /**
+   * Encode a given set of byte values using a "dense encoding" where each value is stored
+   * consecutively.
+   *
+   * @param buffer Contains only values in {0,1,...254,255}.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU8Dense(long[] buffer) {
+    final byte[] bytes = new byte[buffer.length];
+    //
+    for (int i = 0; i != buffer.length; i++) {
+      bytes[i] = (byte) buffer[i];
+    }
+    //
+    return bytes;
+  }
+
+  /**
+   * Encode a given set of byte values using a "sparse encoding" consisting of tuples (u8 value, u32
+   * n), where each represents n copies of the given value.
+   *
+   * @param buffer Contains only values in {0,1,...254,255}.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU8Sparse32(int nblocks, long[] buffer) {
     final ByteBuffer bytes = ByteBuffer.allocate(nblocks * 5);
     //
-    if(nblocks > 0) {
+    if (nblocks > 0) {
       long last = buffer[0];
       int lastIndex = 0;
       bytes.put((byte) (last & 0xff));
@@ -276,10 +362,17 @@ public record Encoding(int encoding, byte[] data) {
     return bytes.array();
   }
 
-  private static byte[] encodeU8sparse(int nblocks, int[] buffer) {
+  /**
+   * Encode a given set of byte values using a "sparse encoding" consisting of tuples (u8 value, u32
+   * n), where each represents n copies of the given value.
+   *
+   * @param buffer Contains only values in {0,1,...65534,65535}.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU8Sparse32(int nblocks, int[] buffer) {
     final ByteBuffer bytes = ByteBuffer.allocate(nblocks * 5);
     //
-    if(nblocks > 0) {
+    if (nblocks > 0) {
       int last = buffer[0];
       int lastIndex = 0;
       bytes.put((byte) (last & 0xff));
@@ -299,17 +392,14 @@ public record Encoding(int encoding, byte[] data) {
     return bytes.array();
   }
 
-  private static byte[] encodeU8(long[] buffer) {
-    final byte[] bytes = new byte[buffer.length];
-    //
-    for (int i = 0; i != buffer.length; i++) {
-      bytes[i] = (byte) buffer[i];
-    }
-    //
-    return bytes;
-  }
-
-  private static byte[] encodeU16(int[] buffer) {
+  /**
+   * Encode a given set of 16bit values using a "dense encoding" where each value is stored
+   * consecutively.
+   *
+   * @param buffer Contains only values in {0,1,...65534,65535}.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU16Dense(int[] buffer) {
     final byte[] bytes = new byte[buffer.length * 2];
     //
     for (int i = 0; i != buffer.length; i++) {
@@ -321,10 +411,36 @@ public record Encoding(int encoding, byte[] data) {
     return bytes;
   }
 
-  private static byte[] encodeU16sparse(int nblocks, long[] buffer) {
+  /**
+   * Encode a given set of 16bit values using a "dense encoding" where each value is stored
+   * consecutively.
+   *
+   * @param buffer Contains only values in {0,1,...65534,65535}.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU16Dense(long[] buffer) {
+    final byte[] bytes = new byte[buffer.length * 2];
+    //
+    for (int i = 0; i != buffer.length; i++) {
+      final long ith = buffer[i];
+      bytes[i << 1] = (byte) (ith >> 8);
+      bytes[(i << 1) + 1] = (byte) ith;
+    }
+    //
+    return bytes;
+  }
+
+  /**
+   * Encode a given set of 16bit values using a "sparse encoding" consisting of tuples (u16 value,
+   * u32 n), where each represents n copies of the given value.
+   *
+   * @param buffer Contains only values in {0,1,...65534,65535}.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU16Sparse32(int nblocks, long[] buffer) {
     final ByteBuffer bytes = ByteBuffer.allocate(nblocks * 6);
     //
-    if(nblocks > 0) {
+    if (nblocks > 0) {
       long last = buffer[0];
       int lastIndex = 0;
       bytes.putShort((short) (last & 0xffff));
@@ -344,10 +460,17 @@ public record Encoding(int encoding, byte[] data) {
     return bytes.array();
   }
 
-  private static byte[] encodeU16sparse(int nblocks, int[] buffer) {
+  /**
+   * Encode a given set of 16bit values using a "sparse encoding" consisting of tuples (u16 value,
+   * u32 n), where each represents n copies of the given value.
+   *
+   * @param buffer Contains only values in {0,1,...65534,65535}.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU16Sparse32(int nblocks, int[] buffer) {
     final ByteBuffer bytes = ByteBuffer.allocate(nblocks * 6);
     //
-    if(nblocks > 0) {
+    if (nblocks > 0) {
       int last = buffer[0];
       int lastIndex = 0;
       bytes.putShort((short) (last & 0xffff));
@@ -367,10 +490,59 @@ public record Encoding(int encoding, byte[] data) {
     return bytes.array();
   }
 
-  private static byte[] encodeU32sparse(int nblocks, long[] buffer) {
+  /**
+   * Encode a given set of 32bit values using a "dense encoding" where each value is stored
+   * consecutively.
+   *
+   * @param buffer Contains values to be encoded.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU32Dense(int[] buffer) {
+    final byte[] bytes = new byte[buffer.length * 4];
+    //
+    for (int i = 0; i != buffer.length; i++) {
+      final int ith = buffer[i];
+      bytes[i << 2] = (byte) (ith >> 24);
+      bytes[(i << 2) + 1] = (byte) (ith >> 16);
+      bytes[(i << 2) + 2] = (byte) (ith >> 8);
+      bytes[(i << 2) + 3] = (byte) ith;
+    }
+    //
+    return bytes;
+  }
+
+  /**
+   * Encode a given set of 32bit values using a "dense encoding" where each value is stored
+   * consecutively.
+   *
+   * @param buffer Contains only values in {0,1,...2^31}.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU32Dense(long[] buffer) {
+    final byte[] bytes = new byte[buffer.length * 4];
+    //
+    for (int i = 0; i != buffer.length; i++) {
+      final long ith = buffer[i];
+      bytes[i << 2] = (byte) (ith >> 24);
+      bytes[(i << 2) + 1] = (byte) (ith >> 16);
+      bytes[(i << 2) + 2] = (byte) (ith >> 8);
+      bytes[(i << 2) + 3] = (byte) ith;
+    }
+    //
+    return bytes;
+  }
+
+  /**
+   * Encode a given set of 32bit values using a "sparse encoding" consisting of tuples (u32 value,
+   * u32 n), where each represents n copies of the given value.
+   *
+   * @param buffer Contains values to be encoded.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU32Sparse32(int nblocks, long[] buffer) {
     final ByteBuffer bytes = ByteBuffer.allocate(nblocks * 8);
     //
-    if(nblocks > 0) {
+    if (nblocks > 0) {
       long last = buffer[0];
       int lastIndex = 0;
       bytes.putInt((int) (last & 0xffff_ffffL));
@@ -390,10 +562,17 @@ public record Encoding(int encoding, byte[] data) {
     return bytes.array();
   }
 
-  private static byte[] encodeU32sparse(int nblocks, int[] buffer) {
+  /**
+   * Encode a given set of 32bit values using a "sparse encoding" consisting of tuples (u32 value,
+   * u32 n), where each represents n copies of the given value.
+   *
+   * @param buffer Contains only values in {0,1,...2^31}.
+   * @return byte encoding of the data
+   */
+  private static byte[] encodeU32Sparse32(int nblocks, int[] buffer) {
     final ByteBuffer bytes = ByteBuffer.allocate(nblocks * 8);
     //
-    if(nblocks > 0) {
+    if (nblocks > 0) {
       int last = buffer[0];
       int lastIndex = 0;
       bytes.putInt(last);
@@ -411,45 +590,5 @@ public record Encoding(int encoding, byte[] data) {
     }
     //
     return bytes.array();
-  }
-
-  private static byte[] encodeU16(long[] buffer) {
-    final byte[] bytes = new byte[buffer.length * 2];
-    //
-    for (int i = 0; i != buffer.length; i++) {
-      final long ith = buffer[i];
-      bytes[i << 1] = (byte) (ith >> 8);
-      bytes[(i << 1) + 1] = (byte) ith;
-    }
-    //
-    return bytes;
-  }
-
-  private static byte[] encodeU32(int[] buffer) {
-    final byte[] bytes = new byte[buffer.length * 4];
-    //
-    for (int i = 0; i != buffer.length; i++) {
-      final int ith = buffer[i];
-      bytes[i << 2] = (byte) (ith >> 24);
-      bytes[(i << 2) + 1] = (byte) (ith >> 16);
-      bytes[(i << 2) + 2] = (byte) (ith >> 8);
-      bytes[(i << 2) + 3] = (byte) ith;
-    }
-    //
-    return bytes;
-  }
-
-  private static byte[] encodeU32(long[] buffer) {
-    final byte[] bytes = new byte[buffer.length * 4];
-    //
-    for (int i = 0; i != buffer.length; i++) {
-      final long ith = buffer[i];
-      bytes[i << 2] = (byte) (ith >> 24);
-      bytes[(i << 2) + 1] = (byte) (ith >> 16);
-      bytes[(i << 2) + 2] = (byte) (ith >> 8);
-      bytes[(i << 2) + 3] = (byte) ith;
-    }
-    //
-    return bytes;
   }
 }

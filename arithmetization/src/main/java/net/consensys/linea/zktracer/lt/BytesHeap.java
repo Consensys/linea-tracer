@@ -18,17 +18,15 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 
-/**
- * BytesHeap provides a representation of a "heap" for use with the LTv2 file format.
- */
+/** BytesHeap provides a representation of a "heap" for use with the LTv2 file format. */
 public class BytesHeap {
-  private final HashMap<Entry,Integer> cache = new HashMap<>();
+  private final HashMap<Entry, Integer> cache = new HashMap<>();
   private byte[] bytes = new byte[256];
   private byte[] lengths = new byte[256];
   private int length;
 
   public BytesHeap() {
-    for(int i=0;i!=65536; i++) {
+    for (int i = 0; i != 65536; i++) {
       byte[] bytes = Util.long2TruncatedBytes(i);
       alloc(new Entry(bytes));
     }
@@ -46,7 +44,7 @@ public class BytesHeap {
     final Integer val = this.cache.get(e);
     // Check for exact match.
     if (val == null) {
-        return alloc(e);
+      return alloc(e);
     }
     //
     return val;
@@ -61,7 +59,7 @@ public class BytesHeap {
   public byte[] get(int index) {
     int n = lengths[index];
     byte[] slice = new byte[n];
-    System.arraycopy(bytes,index, slice,0,n);
+    System.arraycopy(bytes, index, slice, 0, n);
     return slice;
   }
 
@@ -102,25 +100,25 @@ public class BytesHeap {
     return val;
   }
 
-    private static final class Entry {
-      private final byte[] bytes;
+  private static final class Entry {
+    private final byte[] bytes;
 
-      public Entry(byte[] bytes) {
-        this.bytes = bytes;
-      }
-
-      @Override
-      public boolean equals(Object o) {
-        if (o instanceof Entry e) {
-          return Arrays.equals(bytes, e.bytes);
-        }
-        //
-        return false;
-      }
-
-      @Override
-      public int hashCode() {
-        return Arrays.hashCode(bytes);
-      }
+    public Entry(byte[] bytes) {
+      this.bytes = bytes;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (o instanceof Entry e) {
+        return Arrays.equals(bytes, e.bytes);
+      }
+      //
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      return Arrays.hashCode(bytes);
+    }
+  }
 }

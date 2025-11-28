@@ -16,7 +16,32 @@ package net.consensys.linea.zktracer.lt;
 
 public class Util {
 
-  static int approxUniqueElements(int[] data) {
+  static int bitWidthOf(long value) {
+    if (value < 2L) {
+      return 1;
+    } else if (value < 4L) {
+      return 2;
+    } else if (value < 16L) {
+      return 4;
+    } else if (value < 256L) {
+      return 1;
+    } else if (value < 65536L) {
+      return 2;
+    } else if (value < 4294967296L) {
+      return 4;
+    } else {
+      throw new IllegalArgumentException("invalid value for byte width: " + value);
+    }
+  }
+
+  /**
+   * Count how many blocks of contiguous values there are. For example, in the array [1,2,2,3] we
+   * have three blocks, whilst [2,2,2,3,3] has only two.
+   *
+   * @param data Data containing blocks to be counted.
+   * @return Number of blocks within the original data.
+   */
+  static int countNumberOfBlocks(int[] data) {
     if (data.length == 0) {
       return 0;
     }
@@ -32,6 +57,32 @@ public class Util {
     }
     //
     return count;
+  }
+
+  /**
+   * Determine the size of the largest block of contiguous within the given data.
+   *
+   * @param data Data containing blocks to be considered.
+   * @return Number of rows in the largest block.
+   */
+  static int determineLargestBlock(int[] data) {
+    if (data.length == 0) {
+      return 0;
+    }
+    //
+    int max = 0;
+    int last = data[0];
+    int lastIndex = 0;
+    //
+    for (int i = 1; i < data.length; ++i) {
+      if (data[i] != last) {
+        max = Math.max(max, i - lastIndex);
+        last = data[i];
+        lastIndex = i;
+      }
+    }
+    //
+    return max;
   }
 
   /**

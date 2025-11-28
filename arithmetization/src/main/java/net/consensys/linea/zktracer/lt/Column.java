@@ -88,8 +88,9 @@ public interface Column extends Trace.Column {
     public Small(Trace.ColumnHeader header) {
       super(header);
       // Sanity check bitwidth
-      if(header.bitwidth() >= 64) {
-        throw new IllegalArgumentException("invalid width for small column (u" + header.bitwidth() + ")");
+      if (header.bitwidth() >= 64) {
+        throw new IllegalArgumentException(
+            "invalid width for small column (u" + header.bitwidth() + ")");
       }
       // Following cannot overflow because of above check.
       this.longMax = 1L << header.bitwidth();

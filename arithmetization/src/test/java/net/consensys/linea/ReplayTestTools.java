@@ -71,7 +71,11 @@ public class ReplayTestTools {
    *     disable this for specific tests on a case-by-case basis.
    */
   public static void replay(
-      ChainConfig chain, String filename, TestInfo testInfo, boolean resultChecking) {
+      ChainConfig chain,
+      String filename,
+      TestInfo testInfo,
+      boolean resultChecking,
+      boolean jsonIsString) {
     final InputStream fileStream =
         ReplayTestTools.class
             .getClassLoader()
@@ -89,11 +93,20 @@ public class ReplayTestTools {
     }
 
     final Gson gson = new Gson();
+    ;
 
-    final String conflationAsString =
-        gson.fromJson(new BufferedReader(new InputStreamReader(stream)), String.class);
-    final ConflationSnapshot conflation =
-        gson.fromJson(conflationAsString, ConflationSnapshot.class);
+    final String conflationAsString;
+    final ConflationSnapshot conflation;
+
+    if (jsonIsString) {
+      conflationAsString =
+          gson.fromJson(new BufferedReader(new InputStreamReader(stream)), String.class);
+      conflation = gson.fromJson(conflationAsString, ConflationSnapshot.class);
+    } else {
+      conflation =
+          gson.fromJson(
+              new BufferedReader(new InputStreamReader(stream)), ConflationSnapshot.class);
+    }
 
     ReplayExecutionEnvironment.builder()
         .filename(filename)
@@ -115,7 +128,13 @@ public class ReplayTestTools {
    * @param filename Name of replay file
    */
   public static void replay(ChainConfig chain, String filename, TestInfo testInfo) {
-    replay(chain, filename, testInfo, true);
+    try {
+      // Try parsing the JSON as an object first
+      replay(chain, filename, testInfo, true, false);
+    } catch (Exception e) {
+      // If that fails, try parsing it as a string containing JSON
+      replay(chain, filename, testInfo, true, true);
+    }
   }
 
   /**

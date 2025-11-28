@@ -89,8 +89,11 @@ public class ReplayTestTools {
     }
 
     final Gson gson = new Gson();
+
+    final String conflationAsString =
+        gson.fromJson(new BufferedReader(new InputStreamReader(stream)), String.class);
     final ConflationSnapshot conflation =
-        gson.fromJson(new BufferedReader(new InputStreamReader(stream)), ConflationSnapshot.class);
+        gson.fromJson(conflationAsString, ConflationSnapshot.class);
 
     ReplayExecutionEnvironment.builder()
         .filename(filename)

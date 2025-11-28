@@ -199,7 +199,7 @@ public record Encoding(int encoding, byte[] data) {
     // Sparse representation does not encode data in smaller chunks than a single byte, whereas the
     // dense
     // representation does.
-    int sparseWidth = Math.min(8, valueWidth) + Math.min(8, blockSizeWidth);
+    int sparseWidth = Math.max(8, valueWidth) + Math.max(8, blockSizeWidth);
     // Do the calculation
     int sparseLayout = numBlocks * sparseWidth;
     int denseLayout = length * valueWidth;

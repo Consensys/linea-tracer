@@ -16,7 +16,9 @@
 package net.consensys.linea.plugins.rpc.batchlinecount;
 
 import static net.consensys.linea.zktracer.Fork.getForkFromBesuBlockchainService;
+import static net.consensys.linea.zktracer.types.PublicInputs.generatePublicInputs;
 
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -35,6 +37,7 @@ import net.consensys.linea.zktracer.LineCountingTracer;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.json.JsonConverter;
+import net.consensys.linea.zktracer.types.PublicInputs;
 import org.hyperledger.besu.plugin.ServiceManager;
 import org.hyperledger.besu.plugin.services.BlockchainService;
 import org.hyperledger.besu.plugin.services.TraceService;
@@ -113,16 +116,19 @@ public class ConflatedCountTracesV2 {
   }
 
   private LineCountingTracer createLineCountingTracer(long fromBlock, long toBlock) {
-    // Retrieve fork from Besu plugin API with block number
-    final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock, toBlock);
+    final BlockchainService blockchainService =
+        BesuServiceProvider.getBesuService(besuContext, BlockchainService.class);
+    final Fork fork = getForkFromBesuBlockchainService(blockchainService, fromBlock, toBlock);
 
-    return tracerSharedConfiguration.isLimitless()
-        ? new ZkCounter(l1L2BridgeSharedConfiguration, fork)
-        : new ZkTracer(
-            fork,
-            l1L2BridgeSharedConfiguration,
-            BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)
-                .getChainId()
-                .orElseThrow());
+    if (tracerSharedConfiguration.isLimitless()) {
+      return new ZkCounter(l1L2BridgeSharedConfiguration, fork);
+    } else {
+      final BigInteger chainId =
+          blockchainService
+              .getChainId()
+              .orElseThrow(() -> new IllegalStateException("ChainId must be provided"));
+      final PublicInputs publicInputs = generatePublicInputs(blockchainService, fromBlock, toBlock);
+      return new ZkTracer(fork, l1L2BridgeSharedConfiguration, chainId, publicInputs);
+    }
   }
 }

@@ -41,7 +41,7 @@ public class LineaTracerSharedCliOptions implements LineaCliOptions {
       hidden = true,
       paramLabel = "<BOOLEAN>",
       description =
-          "If the sequencer needs to use or not the limitless prover (default: ${DEFAULT-VALUE})")
+          "If the sequencer/coordinator needs to count the lines from historical blockhashes (default: ${DEFAULT-VALUE})")
   private boolean countHistoricalBlockHashes = DEFAULT_COUNT_HISTORICAL_BLOCKHASHES_ENABLED;
 
   private LineaTracerSharedCliOptions() {}

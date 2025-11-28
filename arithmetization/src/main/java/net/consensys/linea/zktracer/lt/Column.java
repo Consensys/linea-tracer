@@ -41,7 +41,7 @@ public interface Column extends Trace.Column {
   Encoding toEncoding();
 
   static Column of(Trace.ColumnHeader header, BytesHeap heap) {
-    if (header.bitwidth() < 64) {
+    if (header.bitwidth() <= 32) {
       return new Small(header);
     } else {
       return new Large(header, heap);

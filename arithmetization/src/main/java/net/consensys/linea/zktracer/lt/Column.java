@@ -133,7 +133,7 @@ public interface Column extends Trace.Column {
      * @return
      */
     public Encoding toEncoding() {
-      return Encoding.of(buffer);
+      return Encoding.of(name(),buffer);
     }
   }
 
@@ -183,7 +183,7 @@ public interface Column extends Trace.Column {
      * @return
      */
     public Encoding toEncoding() {
-      return Encoding.of(buffer, bitwidth(), heap);
+      return Encoding.of(name(),buffer, bitwidth(), heap);
     }
   }
 

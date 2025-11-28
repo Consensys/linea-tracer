@@ -21,20 +21,27 @@ public record Encoding(int encoding, byte[] data) {
   public static final byte ENCODING_STATIC_DENSE = 1;
   public static final byte ENCODING_STATIC_SPARSE8 = 2;
   public static final byte ENCODING_STATIC_SPARSE16 = 3;
-  public static final byte ENCODING_STATIC_SPARSE32 = 4;
-  public static final byte ENCODING_POOL_CONSTANT = 5;
-  public static final byte ENCODING_POOL8_DENSE = 6;
-  public static final byte ENCODING_POOL16_DENSE = 7;
-  public static final byte ENCODING_POOL32_DENSE = 8;
-  public static final byte ENCODING_POOL8_SPARSE8 = 9;
-  public static final byte ENCODING_POOL8_SPARSE16 = 10;
-  public static final byte ENCODING_POOL8_SPARSE32 = 11;
-  public static final byte ENCODING_POOL16_SPARSE8 = 12;
-  public static final byte ENCODING_POOL16_SPARSE16 = 13;
-  public static final byte ENCODING_POOL16_SPARSE32 = 14;
-  public static final byte ENCODING_POOL32_SPARSE8 = 15;
-  public static final byte ENCODING_POOL32_SPARSE16 = 16;
-  public static final byte ENCODING_POOL32_SPARSE32 = 17;
+  public static final byte ENCODING_STATIC_SPARSE24 = 4; // not supported
+  public static final byte ENCODING_STATIC_SPARSE32 = 5;
+  public static final byte ENCODING_POOL_CONSTANT = 6;
+  public static final byte ENCODING_POOL1_DENSE = 7;
+  public static final byte ENCODING_POOL2_DENSE = 8;
+  public static final byte ENCODING_POOL4_DENSE = 9;
+  public static final byte ENCODING_POOL8_DENSE = 10;
+  public static final byte ENCODING_POOL16_DENSE = 11;
+  public static final byte ENCODING_POOL32_DENSE = 12;
+  public static final byte ENCODING_POOL8_SPARSE8 = 13;
+  public static final byte ENCODING_POOL8_SPARSE16 = 14;
+  public static final byte ENCODING_POOL8_SPARSE24 = 15; // not supported
+  public static final byte ENCODING_POOL8_SPARSE32 = 16;
+  public static final byte ENCODING_POOL16_SPARSE8 = 17;
+  public static final byte ENCODING_POOL16_SPARSE16 = 18;
+  public static final byte ENCODING_POOL16_SPARSE24 = 19; // not supported
+  public static final byte ENCODING_POOL16_SPARSE32 = 20;
+  public static final byte ENCODING_POOL32_SPARSE8 = 21;
+  public static final byte ENCODING_POOL32_SPARSE16 = 22;
+  public static final byte ENCODING_POOL32_SPARSE24 = 23; // not supported
+  public static final byte ENCODING_POOL32_SPARSE32 = 24;
 
   public Encoding(boolean pooled, int constant, byte[] data) {
     this(encodingConstant(pooled, constant), data);
@@ -84,6 +91,12 @@ public record Encoding(int encoding, byte[] data) {
     //
     if (!pooled) {
       opcode = ENCODING_STATIC_DENSE;
+    } else if (entryWidth <= 1) {
+      opcode = ENCODING_POOL1_DENSE;
+    } else if (entryWidth <= 2) {
+      opcode = ENCODING_POOL2_DENSE;
+    } else if (entryWidth <= 4) {
+      opcode = ENCODING_POOL4_DENSE;
     } else if (entryWidth <= 8) {
       opcode = ENCODING_POOL8_DENSE;
     } else if (entryWidth <= 16) {
@@ -116,7 +129,7 @@ public record Encoding(int encoding, byte[] data) {
    * @param buffer Column data
    * @return Encoded column data
    */
-  public static Encoding of(int[] buffer) {
+  public static Encoding of(String name, int[] buffer) {
     long maxValue = Util.maxValue(buffer);
     long minValue = Util.minValue(buffer);
     int numberOfBlocks = Util.countNumberOfBlocks(buffer);
@@ -145,7 +158,7 @@ public record Encoding(int encoding, byte[] data) {
    * @param buffer Column data
    * @return Encoded column data
    */
-  public static Encoding of(int[] buffer, int bitwidth, BytesHeap heap) {
+  public static Encoding of(String name, int[] buffer, int bitwidth, BytesHeap heap) {
     long maxValue = Util.maxValue(buffer);
     long minValue = Util.minValue(buffer);
     int numberOfBlocks = Util.countNumberOfBlocks(buffer);
@@ -426,7 +439,7 @@ public record Encoding(int encoding, byte[] data) {
    * Encode 8bit values using a "sparse encoding" consisting of tuples (u8 value, u16 n), where each
    * represents n copies of the given value.
    *
-   * @param buffer Contains only values in {0,1,...65534,65535}.
+   * @param buffer Contains only values in {0,1,...254,255}.
    * @return byte encoding of the data
    */
   private static byte[] encodeU8Sparse16(int numBlocks, int[] buffer) {

@@ -24,11 +24,11 @@ public class Util {
     } else if (value < 16L) {
       return 4;
     } else if (value < 256L) {
-      return 1;
+      return 8;
     } else if (value < 65536L) {
-      return 2;
+      return 16;
     } else if (value < 4294967296L) {
-      return 4;
+      return 32;
     } else {
       throw new IllegalArgumentException("invalid value for byte width: " + value);
     }
@@ -81,6 +81,8 @@ public class Util {
         lastIndex = i;
       }
     }
+    // Include final block.
+    max = Math.max(max, data.length - lastIndex);
     //
     return max;
   }

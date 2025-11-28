@@ -326,7 +326,7 @@ public class ZkCounter implements LineCountingTracer {
   }
 
   public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration, Fork fork) {
-    this(bridgeConfiguration, fork, false);
+    this(bridgeConfiguration, fork, true);
   }
 
   public ZkCounter(

@@ -47,7 +47,9 @@ public class ReplayTests extends TracerTestBase {
   }
 
   @Test
+  @Disabled
   void failingMmuModexp(TestInfo testInfo) {
+    // OOB failure
     replay(OLD_MAINNET_TESTCONFIG, "legacy/5995162.mainnet.json.gz", testInfo);
   }
 

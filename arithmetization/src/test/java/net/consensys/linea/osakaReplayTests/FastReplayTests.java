@@ -33,7 +33,7 @@ public class FastReplayTests extends TracerTestBase {
   @Test
   @Disabled
   void fatMxp(TestInfo testInfo) {
-    // outcome does not match expected outcome (expected true, was false)
+    // outcome does not match expected outcome (expected true, was false)?
     replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/2492975-2492977.mainnet.json.gz", testInfo);
   }
 
@@ -61,21 +61,18 @@ public class FastReplayTests extends TracerTestBase {
   }
 
   @Test
-  @Disabled
   void incident777zkGethMainnet(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/7461019-7461030.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "osaka/7461019-7461030.mainnet.json.gz", testInfo);
   }
 
   @Test
-  @Disabled
   void issue1006(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/6032696-6032699.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "osaka/6032696-6032699.mainnet.json.gz", testInfo);
   }
 
   @Test
-  @Disabled
   void issue1004(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/6020023-6020029.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "osaka/6020023-6020029.mainnet.json.gz", testInfo);
   }
 
   @Test
@@ -84,98 +81,97 @@ public class FastReplayTests extends TracerTestBase {
   }
 
   @Test
-  @Disabled
   void failingCreate2(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/2250197.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/2250197.mainnet.json.gz", testInfo, false);
   }
 
-  @Disabled("Fails to create the ConflationSnapshot from the gson file")
+  // @Disabled("Fails to create the ConflationSnapshot from the gson file")
   @Test
   void blockHash1(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/8718090.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/8718090.mainnet.json.gz", testInfo, false);
   }
 
-  @Disabled("Fails to create the ConflationSnapshot from the gson file")
+  // @Disabled("Fails to create the ConflationSnapshot from the gson file")
   @Test
   void blockHash2(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/8718330.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/8718330.mainnet.json.gz", testInfo, false);
   }
 
   @Test
-  @Disabled
   void negativeNumberOfMmioInstruction(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/6029454-6029459.mainnet.json.gz", testInfo);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "legacy/6029454-6029459.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
-  @Disabled
   void simpleSelfDestruct(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/50020-50029.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/50020-50029.mainnet.json.gz", testInfo, false);
   }
 
   @Test
-  @Disabled
   void failedCreate2(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/41640-41649.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/41640-41649.mainnet.json.gz", testInfo, false);
   }
 
   @Test
-  @Disabled
   void largeInitCode(TestInfo testInfo) {
-    replay(SEPOLIA_TESTCONFIG(OSAKA, false), "legacy/3318494.sepolia.json.gz", testInfo);
+    replay(SEPOLIA_TESTCONFIG(OSAKA, false), "legacy/3318494.sepolia.json.gz", testInfo, false);
   }
 
   @Test
-  @Disabled
   void hotOrColdPrecompile(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/2019510-2019519.mainnet.json.gz", testInfo);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "legacy/2019510-2019519.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
-  @Disabled
   void callDataCopyCnNotFound(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/67050-67059.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/67050-67059.mainnet.json.gz", testInfo, false);
   }
 
- @Test
-  @Disabled
+  @Test
   void returnOogxForCodeDepositCost(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/1002387.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/1002387.mainnet.json.gz", testInfo, false);
   }
 
   @Test
-  @Disabled
   void modexpTriggeringNonAlignedFirstLimbSingleSourceMmuModexp(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/3108622-3108633.mainnet.json.gz", testInfo);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "legacy/3108622-3108633.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
-  @Disabled
   void mainnet1339346ContextRevertTwice(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/1339346.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/1339346.mainnet.json.gz", testInfo, false);
   }
 
   @Test
-  @Disabled
   void legacyTxWithoutChainID(TestInfo testInfo) {
-    replay(SEPOLIA_TESTCONFIG(OSAKA, false), "legacy/254251.sepolia.json.gz", testInfo);
+    replay(SEPOLIA_TESTCONFIG(OSAKA, false), "legacy/254251.sepolia.json.gz", testInfo, false);
   }
 
   @Test
-  @Disabled
   void incorrectCreationCapture(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/4323985.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/4323985.mainnet.json.gz", testInfo, false);
   }
 
-  @Disabled("Fails to create the ConflationSnapshot from the gson file")
+  // @Disabled("Fails to create the ConflationSnapshot from the gson file")
   @Test
   void duplicateSubZero(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA), "legacy/20197061-20197173.mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA), "legacy/20197061-20197173.mainnet.json.gz", testInfo, false);
   }
 
   @Test
-  @Disabled
   void stateManagerIntegrationTest(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/SSTOREX_on_mainnet.json.gz", testInfo);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/SSTOREX_on_mainnet.json.gz", testInfo, false);
   }
 }

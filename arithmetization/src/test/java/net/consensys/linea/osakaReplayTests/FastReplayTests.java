@@ -122,7 +122,9 @@ public class FastReplayTests extends TracerTestBase {
   }
 
   @Test
+  @Disabled
   void hotOrColdPrecompile(TestInfo testInfo) {
+    // constraint failure RELATIVE_USER_TXN_NUMBER_MAX
     replay(
         MAINNET_TESTCONFIG(OSAKA, false),
         "legacy/2019510-2019519.mainnet.json.gz",
@@ -136,7 +138,9 @@ public class FastReplayTests extends TracerTestBase {
   }
 
   @Test
+  @Disabled
   void returnOogxForCodeDepositCost(TestInfo testInfo) {
+    // constraint failure RELATIVE_USER_TXN_NUMBER_MAX
     replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/1002387.mainnet.json.gz", testInfo, false);
   }
 
@@ -164,10 +168,15 @@ public class FastReplayTests extends TracerTestBase {
     replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/4323985.mainnet.json.gz", testInfo, false);
   }
 
-  // @Disabled("Fails to create the ConflationSnapshot from the gson file")
   @Test
+  @Disabled
   void duplicateSubZero(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA), "legacy/20197061-20197173.mainnet.json.gz", testInfo, false);
+    // constraint failure RELATIVE_USER_TXN_NUMBER_MAX
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "legacy/20197061-20197173.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test

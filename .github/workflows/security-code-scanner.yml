@@ -49,15 +49,11 @@ jobs:
       languages-config: |
         [
           {
-            "language": "java",
+            "language": "java-kotlin",
             "build_mode": "manual",
             "build_command": "./gradlew build",
             "version": "21",
             "distribution": "temurin"
-          },
-          {
-            "language": "python",
-            "build_mode": "none"
           }
         ]
     secrets:

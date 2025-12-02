@@ -63,8 +63,7 @@ public record ConflationSnapshot(
       bbFees.put(e.getKey(), e.getValue().toArray());
     }
     //
-    return new ConflationSnapshot(
-        fork, blocks, accounts, storage, blockHashSnapshots, bbFees);
+    return new ConflationSnapshot(fork, blocks, accounts, storage, blockHashSnapshots, bbFees);
   }
 
   public long firstBlockNumber() {
@@ -99,13 +98,13 @@ public record ConflationSnapshot(
   }
 
   public Map<Long, Bytes> blobBaseFeesOrDefault() {
-    if(blobBaseFees == null) {
+    if (blobBaseFees == null) {
       return getDefaultBlobBaseFees(firstBlockNumber(), lastBlockNumber());
     }
     // Decode
-    Map<Long,Bytes> bbFees = new HashMap<>();
+    Map<Long, Bytes> bbFees = new HashMap<>();
     //
-    for(Map.Entry<Long,byte[]> e : blobBaseFees.entrySet()) {
+    for (Map.Entry<Long, byte[]> e : blobBaseFees.entrySet()) {
       bbFees.put(e.getKey(), Bytes.of(e.getValue()));
     }
     //

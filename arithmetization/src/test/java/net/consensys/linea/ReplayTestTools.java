@@ -21,8 +21,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.zip.GZIPInputStream;
 
 import com.google.gson.Gson;
@@ -68,7 +66,8 @@ public class ReplayTestTools {
    *     However until existing problems are resolved with the replay mechanism, it may be useful to
    *     disable this for specific tests on a case-by-case basis.
    */
-  public static void replay(ChainConfig chain, String filename, TestInfo testInfo, boolean resultChecking) {
+  public static void replay(
+      ChainConfig chain, String filename, TestInfo testInfo, boolean resultChecking) {
     final InputStream fileStream =
         ReplayTestTools.class
             .getClassLoader()
@@ -86,14 +85,11 @@ public class ReplayTestTools {
     }
 
     final Gson gson = new Gson();
-    ;
 
-    final String conflationAsString;
     final ConflationSnapshot conflation;
 
-      conflation =
-          gson.fromJson(
-              new BufferedReader(new InputStreamReader(stream)), ConflationSnapshot.class);
+    conflation =
+        gson.fromJson(new BufferedReader(new InputStreamReader(stream)), ConflationSnapshot.class);
 
     ReplayExecutionEnvironment.builder()
         .filename(filename)

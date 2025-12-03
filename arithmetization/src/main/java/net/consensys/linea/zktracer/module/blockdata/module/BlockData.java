@@ -102,7 +102,10 @@ public abstract class BlockData implements Module {
     if (blockInstructions.isEmpty()) {
       firstBlockNumber = blockNumber;
     }
-    final BlockHeader previousBlockHeader = null;
+    final BlockHeader previousBlockHeader =
+        blockInstructions.isEmpty()
+            ? null
+            : blockInstructions.get(blockNumber - 1).getFirst().blockHeader;
     List<BlockDataInstruction> blockDataInstructionList = new ArrayList<>();
     for (OpCode opCode : opCodes) {
       BlockDataInstruction blockDataInstruction =
@@ -139,7 +142,6 @@ public abstract class BlockData implements Module {
 
   @Override
   public void commit(Trace trace) {
-
     for (Map.Entry<Long, List<BlockDataInstruction>> entry : blockInstructions.entrySet()) {
       List<BlockDataInstruction> value = entry.getValue();
       for (BlockDataInstruction blockDataInstruction : value) {

@@ -82,7 +82,7 @@ public class LineCountingTracerTest extends TracerTestBase {
       // London, Paris and Shanghai are not supported by ZkTracer since refactoring Blockdata and
       // Hub
       if (!isPostCancun(fork)) {
-        return;
+        continue;
       }
       // TODO: reenable me when Amsterdam is supported
       if (isPostAmsterdam(fork)) {

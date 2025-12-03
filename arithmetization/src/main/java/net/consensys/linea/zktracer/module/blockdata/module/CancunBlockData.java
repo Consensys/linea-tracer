@@ -31,9 +31,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 
-public class CancunBlockData extends ShanghaiBlockData {
-
-  public static final short NB_ROWS_BLOCK_DATA = nROWS_DEPTH;
+public class CancunBlockData extends BlockData {
 
   public CancunBlockData(
       Hub hub, Wcp wcp, Euc euc, ChainConfig chain, Map<Long, Bytes> blobBaseFees) {
@@ -45,10 +43,5 @@ public class CancunBlockData extends ShanghaiBlockData {
     return new OpCode[] {
       COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, BASEFEE, BLOBBASEFEE
     };
-  }
-
-  @Override
-  protected int numberOfLinesPerBlock() {
-    return NB_ROWS_BLOCK_DATA;
   }
 }

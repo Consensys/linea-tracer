@@ -130,9 +130,6 @@ public class ZkTracer implements LineCountingTracer {
     this.chain = chain;
     hub =
         switch (chain.fork) {
-          case LONDON -> new LondonHub(chain, publicInputs);
-          case PARIS -> new ParisHub(chain, publicInputs);
-          case SHANGHAI -> new ShanghaiHub(chain, publicInputs);
           case CANCUN -> new CancunHub(chain, publicInputs);
           case PRAGUE -> new PragueHub(chain, publicInputs);
           case OSAKA -> new OsakaHub(chain, publicInputs);

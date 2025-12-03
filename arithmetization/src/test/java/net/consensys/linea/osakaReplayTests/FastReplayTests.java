@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.Fork.OSAKA;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -31,10 +30,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(UnitTestWatcher.class)
 public class FastReplayTests extends TracerTestBase {
   @Test
-  @Disabled
   void fatMxp(TestInfo testInfo) {
-    // outcome does not match expected outcome (expected true, was false)?
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/2492975-2492977.mainnet.json.gz", testInfo);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "legacy/2492975-2492977.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
@@ -54,7 +55,6 @@ public class FastReplayTests extends TracerTestBase {
   }
 
   @Test
-  @Disabled
   void multipleFailingCallToEcrecover(TestInfo testInfo) {
     // Contains tx that exceeds tx gas limit
     replay(MAINNET_TESTCONFIG(OSAKA, false), "osaka/5000544.mainnet.json.gz", testInfo, false);
@@ -85,13 +85,11 @@ public class FastReplayTests extends TracerTestBase {
     replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/2250197.mainnet.json.gz", testInfo, false);
   }
 
-  // @Disabled("Fails to create the ConflationSnapshot from the gson file")
   @Test
   void blockHash1(TestInfo testInfo) {
     replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/8718090.mainnet.json.gz", testInfo, false);
   }
 
-  // @Disabled("Fails to create the ConflationSnapshot from the gson file")
   @Test
   void blockHash2(TestInfo testInfo) {
     replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/8718330.mainnet.json.gz", testInfo, false);
@@ -122,26 +120,8 @@ public class FastReplayTests extends TracerTestBase {
   }
 
   @Test
-  @Disabled
-  void hotOrColdPrecompile(TestInfo testInfo) {
-    // constraint failure RELATIVE_USER_TXN_NUMBER_MAX
-    replay(
-        MAINNET_TESTCONFIG(OSAKA, false),
-        "legacy/2019510-2019519.mainnet.json.gz",
-        testInfo,
-        false);
-  }
-
-  @Test
   void callDataCopyCnNotFound(TestInfo testInfo) {
     replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/67050-67059.mainnet.json.gz", testInfo, false);
-  }
-
-  @Test
-  @Disabled
-  void returnOogxForCodeDepositCost(TestInfo testInfo) {
-    // constraint failure RELATIVE_USER_TXN_NUMBER_MAX
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/1002387.mainnet.json.gz", testInfo, false);
   }
 
   @Test
@@ -166,17 +146,6 @@ public class FastReplayTests extends TracerTestBase {
   @Test
   void incorrectCreationCapture(TestInfo testInfo) {
     replay(MAINNET_TESTCONFIG(OSAKA, false), "legacy/4323985.mainnet.json.gz", testInfo, false);
-  }
-
-  @Test
-  @Disabled
-  void duplicateSubZero(TestInfo testInfo) {
-    // constraint failure RELATIVE_USER_TXN_NUMBER_MAX
-    replay(
-        MAINNET_TESTCONFIG(OSAKA, false),
-        "legacy/20197061-20197173.mainnet.json.gz",
-        testInfo,
-        false);
   }
 
   @Test

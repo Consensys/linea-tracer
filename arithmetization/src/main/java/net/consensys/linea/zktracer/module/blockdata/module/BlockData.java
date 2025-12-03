@@ -12,7 +12,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 package net.consensys.linea.zktracer.module.blockdata.module;
 
 import static net.consensys.linea.zktracer.Trace.LLARGE;

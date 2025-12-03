@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -38,14 +37,6 @@ public class LondonBlockData extends BlockData {
   @Override
   protected OpCode[] setOpCodes() {
     return new OpCode[] {COINBASE, TIMESTAMP, NUMBER, DIFFICULTY, GASLIMIT, CHAINID, BASEFEE};
-  }
-
-  @Override
-  protected void traceTimestampAndNumber(Trace.Blockdata trace) {}
-
-  @Override
-  protected void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax) {
-    trace.relTxNumMax(relTxMax);
   }
 
   @Override

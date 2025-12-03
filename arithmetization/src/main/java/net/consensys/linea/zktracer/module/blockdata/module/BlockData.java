@@ -38,6 +38,7 @@ import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.PrevRanda
 import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.TimestampInstruction;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -118,8 +119,11 @@ public abstract class BlockData implements Module {
 
   @Override
   public int lineCount() {
-    return blockInstructions.size() + (conflationFinished ? 0 : 1);
+    final int numberOfBlock = blockInstructions.size() + (conflationFinished ? 0 : 1);
+    return numberOfBlock * numberOfLinesPerBlock();
   }
+
+  protected abstract int numberOfLinesPerBlock();
 
   @Override
   public int spillage(Trace trace) {
@@ -131,6 +135,10 @@ public abstract class BlockData implements Module {
     return trace.blockdata().headers(this.lineCount());
   }
 
+  protected abstract void traceTimestampAndNumber(Trace.Blockdata trace);
+
+  protected abstract void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax);
+
   @Override
   public void commit(Trace trace) {
 
@@ -141,6 +149,10 @@ public abstract class BlockData implements Module {
         blockDataInstruction.trace(trace.blockdata());
       }
     }
+  }
+
+  TxnData txnData() {
+    return hub.txnData();
   }
 
   public BlockDataInstruction getInstruction(

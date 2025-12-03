@@ -15,12 +15,8 @@
 
 package net.consensys.linea.zktracer.module.blockdata.module;
 
-import static net.consensys.linea.zktracer.TraceCancun.Blockdata.*;
+import static net.consensys.linea.zktracer.TraceLondon.Blockdata.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
-import static net.consensys.linea.zktracer.opcode.OpCode.BASEFEE;
-import static net.consensys.linea.zktracer.opcode.OpCode.CHAINID;
-import static net.consensys.linea.zktracer.opcode.OpCode.GASLIMIT;
-import static net.consensys.linea.zktracer.opcode.OpCode.PREVRANDAO;
 
 import java.util.Map;
 
@@ -32,34 +28,28 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 
-public class CancunBlockData extends ShanghaiBlockData {
+public class LondonBlockData extends BlockData {
 
-  public static final short NB_ROWS_BLOCK_DATA = nROWS_DEPTH;
-
-  public CancunBlockData(
+  public LondonBlockData(
       Hub hub, Wcp wcp, Euc euc, ChainConfig chain, Map<Long, Bytes> blobBaseFees) {
     super(hub, wcp, euc, chain, blobBaseFees);
   }
 
   @Override
   protected OpCode[] setOpCodes() {
-    return new OpCode[] {
-      COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, BASEFEE, BLOBBASEFEE
-    };
+    return new OpCode[] {COINBASE, TIMESTAMP, NUMBER, DIFFICULTY, GASLIMIT, CHAINID, BASEFEE};
   }
 
   @Override
-  public void traceTimestampAndNumber(Trace.Blockdata trace) {
-    trace.timestamp(Bytes.ofUnsignedLong(blockTimestamp)).number(blockNumber);
-  }
+  protected void traceTimestampAndNumber(Trace.Blockdata trace) {}
 
   @Override
   protected void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax) {
-    // Column not in Cancun fork. Only before Cancun.
+    trace.relTxNumMax(relTxMax);
   }
 
   @Override
   protected int numberOfLinesPerBlock() {
-    return NB_ROWS_BLOCK_DATA;
+    return nROWS_DEPTH;
   }
 }

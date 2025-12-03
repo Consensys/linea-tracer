@@ -92,8 +92,6 @@ public abstract class BlockDataInstruction {
           .basefee(bigIntegerToBytes(blockHeader.getBaseFee().get().getAsBigInteger()))
           .firstBlockNumber(firstBlockNumber)
           .relBlock((short) relBlock)
-          .number(blockHeader.getNumber())
-          .timestamp(Bytes.ofUnsignedLong(blockHeader.getTimestamp()))
           .dataHi(data.hi())
           .dataLo(data.lo())
           .arg1Hi(exoCalls[ct].arg1Hi())
@@ -105,6 +103,8 @@ public abstract class BlockDataInstruction {
           .wcpFlag(exoCalls[ct].wcpFlag())
           .eucFlag(exoCalls[ct].eucFlag());
       traceInstruction(trace);
+      // traceRelTxNumMax(trace, (short) relTxMax);
+      // traceTimestampAndNumber(trace);
       trace.fillAndValidateRow();
     }
   }

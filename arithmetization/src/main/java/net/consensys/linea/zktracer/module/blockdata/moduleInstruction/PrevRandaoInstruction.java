@@ -40,7 +40,7 @@ public class PrevRandaoInstruction extends BlockDataInstruction {
   }
 
   public void handle() {
-    data = EWord.of(blockHeader.getDifficulty().getAsBigInteger());
+    data = EWord.of(blockHeader.getPrevRandao().get());
 
     // row i
     exoCalls[0] = BlockDataExoCall.callToGEQ(this.wcp, data, EWord.ZERO);

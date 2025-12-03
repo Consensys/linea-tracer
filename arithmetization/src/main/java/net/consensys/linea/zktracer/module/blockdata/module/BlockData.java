@@ -57,7 +57,7 @@ public abstract class BlockData implements Module {
   private final Euc euc;
   private final ChainConfig chain;
   protected final Map<Long, Bytes> blobBaseFees;
-  @Getter public final Map<Long, List<BlockDataInstruction>> InstructionsPerBlock = new HashMap<>();
+  @Getter public final Map<Long, List<BlockDataInstruction>> InstructionsPerBlock = new TreeMap<>();
   @Getter public long firstBlockNumber;
   public long blockTimestamp;
   public long blockNumber;

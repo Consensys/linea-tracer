@@ -130,7 +130,9 @@ public class BlockDataExoCall {
 
     return BlockDataExoCall.builder()
         .eucFlag(true)
+        .arg1Hi(arg1B32.hi())
         .arg1Lo(arg1B32.lo())
+        .arg2Hi(arg2B32.hi())
         .arg2Lo(arg2B32.lo())
         .res(eucOperation.quotient())
         .build();

@@ -126,7 +126,7 @@ public class ForkTracingAndSwitchingBesuTest extends TracerTestBase {
             .build(List.of(txBuilderCancun, txBuilderPrague), senderAccount);
 
     ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
-        .accounts(List.of(senderAccount, receiverAccountCancun))
+        .accounts(List.of(senderAccount, receiverAccountCancun, receiverAccountPrague))
         .transactions(transactions)
         .runWithBesuNode(true)
         .oneTxPerBlockOnBesuNode(true)

@@ -25,14 +25,13 @@ import static net.consensys.linea.zktracer.opcode.OpCode.PREVRANDAO;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 
-public class CancunBlockData extends ShanghaiBlockData {
+public class CancunBlockData extends BlockData {
 
   public static final short NB_ROWS_BLOCK_DATA = nROWS_DEPTH;
 
@@ -46,20 +45,5 @@ public class CancunBlockData extends ShanghaiBlockData {
     return new OpCode[] {
       COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, BASEFEE, BLOBBASEFEE
     };
-  }
-
-  @Override
-  public void traceTimestampAndNumber(Trace.Blockdata trace) {
-    trace.timestamp(Bytes.ofUnsignedLong(blockTimestamp)).number(blockNumber);
-  }
-
-  @Override
-  protected void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax) {
-    // Column not in Cancun fork. Only before Cancun.
-  }
-
-  @Override
-  protected int numberOfLinesPerBlock() {
-    return NB_ROWS_BLOCK_DATA;
   }
 }

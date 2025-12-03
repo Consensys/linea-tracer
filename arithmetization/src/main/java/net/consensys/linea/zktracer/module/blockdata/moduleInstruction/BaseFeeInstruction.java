@@ -15,7 +15,6 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 public class BaseFeeInstruction extends BlockDataInstruction {
 
   public BaseFeeInstruction(
-      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -23,7 +22,7 @@ public class BaseFeeInstruction extends BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
-    super(opCode, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+    super(OpCode.BASEFEE, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
   }
 
   public void handle() {

@@ -26,15 +26,11 @@ import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockDataOperation;
-import net.consensys.linea.zktracer.module.blockdata.moduleOperation.CancunBlockDataOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class CancunBlockData extends ShanghaiBlockData {
 

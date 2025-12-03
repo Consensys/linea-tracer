@@ -15,7 +15,6 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 public class ChainIdInstruction extends BlockDataInstruction {
 
   public ChainIdInstruction(
-      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -23,7 +22,7 @@ public class ChainIdInstruction extends BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
-    super(opCode, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+    super(OpCode.CHAINID, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
   }
 
   public void handle() {

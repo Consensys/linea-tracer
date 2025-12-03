@@ -17,7 +17,6 @@ public class NumberInstruction extends BlockDataInstruction {
   private final boolean firstBlockInConflation;
 
   public NumberInstruction(
-      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -25,7 +24,7 @@ public class NumberInstruction extends BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
-    super(opCode, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+    super(OpCode.NUMBER, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
     this.firstBlockInConflation = (blockHeader.getNumber() == firstBlockNumber);
   }
 

@@ -23,7 +23,6 @@ public class GasLimitInstruction extends BlockDataInstruction {
   private final EWord gasLimitMaximum;
 
   public GasLimitInstruction(
-      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -31,7 +30,7 @@ public class GasLimitInstruction extends BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
-    super(opCode, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+    super(OpCode.GASLIMIT, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
     this.firstBlockInConflation = (blockHeader.getNumber() == firstBlockNumber);
     this.gasLimitMinimum = EWord.of(chain.gasLimitMinimum);
     this.gasLimitMaximum = EWord.of(chain.gasLimitMaximum);

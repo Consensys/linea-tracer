@@ -16,7 +16,6 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 public class TimestampInstruction extends BlockDataInstruction {
 
   public TimestampInstruction(
-      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -24,7 +23,7 @@ public class TimestampInstruction extends BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
-    super(opCode, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+    super(OpCode.TIMESTAMP, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
   }
 
   public void handle() {

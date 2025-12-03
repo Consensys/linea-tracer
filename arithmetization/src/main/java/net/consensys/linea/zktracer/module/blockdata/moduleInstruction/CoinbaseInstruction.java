@@ -15,7 +15,6 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 public class CoinbaseInstruction extends BlockDataInstruction {
 
   public CoinbaseInstruction(
-      OpCode opCode,
       ChainConfig chain,
       Hub hub,
       Wcp wcp,
@@ -23,11 +22,11 @@ public class CoinbaseInstruction extends BlockDataInstruction {
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       long firstBlockNumber) {
-    super(opCode, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+    super(OpCode.COINBASE, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
   }
 
   public void handle() {
-    data = EWord.ofHexString(this.hub.coinbaseAddressOfRelativeBlock(relBlock).toHexString());
+    data = EWord.ofHexString(this.hub.coinbaseAddressOfRelativeBlock(this.relBlock).toHexString());
     // row i
     exoCalls[0] = BlockDataExoCall.callToLT(this.wcp, data, POWER_256_20);
   }

@@ -37,8 +37,6 @@ import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.GasLimitI
 import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.NumberInstruction;
 import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.PrevRandaoInstruction;
 import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.TimestampInstruction;
-import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockdataOperation;
-import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockDataOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
@@ -55,8 +53,7 @@ public abstract class BlockData implements Module {
   private final Wcp wcp;
   private final Euc euc;
   private final ChainConfig chain;
-    protected final Map<Long, Bytes> blobBaseFees;
-  @Getter private final List<BlockDataOperation> operations = new ArrayList<>();
+  protected final Map<Long, Bytes> blobBaseFees;
   @Getter public final List<BlockDataInstruction> instructions = new ArrayList<>();
   @Getter public final Map<Long, List<BlockDataInstruction>> blockInstructions = new HashMap<>();
   @Getter public long firstBlockNumber;
@@ -167,21 +164,21 @@ public abstract class BlockData implements Module {
       case COINBASE -> new CoinbaseInstruction(
           chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case TIMESTAMP -> new TimestampInstruction(
-          OpCode.TIMESTAMP, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case NUMBER -> new NumberInstruction(
-          OpCode.NUMBER, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case DIFFICULTY -> new DifficultyInstruction(
-          OpCode.DIFFICULTY, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case PREVRANDAO -> new PrevRandaoInstruction(
-          OpCode.PREVRANDAO, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case GASLIMIT -> new GasLimitInstruction(
-          OpCode.GASLIMIT, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case CHAINID -> new ChainIdInstruction(
-          OpCode.CHAINID, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case BASEFEE -> new BaseFeeInstruction(
-          OpCode.BASEFEE, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
       case BLOBBASEFEE -> new BlobBaseFeeInstruction(
-          OpCode.BLOBBASEFEE, chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber);
+          chain, hub, wcp, euc, blockHeader, prevBlockHeader, firstBlockNumber, blobBaseFees);
       default -> throw new IllegalArgumentException("[BlockData] Unsupported opcode " + opCode);
     };
   }

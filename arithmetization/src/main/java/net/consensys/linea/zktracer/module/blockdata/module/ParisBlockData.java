@@ -25,14 +25,11 @@ import static net.consensys.linea.zktracer.opcode.OpCode.PREVRANDAO;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockDataOperation;
-import net.consensys.linea.zktracer.module.blockdata.moduleOperation.ParisBlockDataOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class ParisBlockData extends LondonBlockData {
   public ParisBlockData(
@@ -44,6 +41,7 @@ public class ParisBlockData extends LondonBlockData {
   protected OpCode[] setOpCodes() {
     return new OpCode[] {COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, BASEFEE};
   }
+
   @Override
   protected int numberOfLinesPerBlock() {
     return nROWS_DEPTH;

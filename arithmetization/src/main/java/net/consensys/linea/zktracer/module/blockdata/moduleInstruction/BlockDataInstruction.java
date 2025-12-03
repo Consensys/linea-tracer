@@ -29,7 +29,7 @@ public abstract class BlockDataInstruction {
   public final long firstBlockNumber;
 
   protected EWord data;
-  private final int relBlock;
+  public final int relBlock;
 
   public static final EWord POWER_256_20 = EWord.of(TWOFIFTYSIX_TO_THE_TWENTY);
   public static final EWord POWER_256_8 = EWord.of(BigInteger.ONE.shiftLeft(8 * 8));

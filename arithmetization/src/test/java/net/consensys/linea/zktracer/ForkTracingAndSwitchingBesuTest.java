@@ -131,7 +131,7 @@ public class ForkTracingAndSwitchingBesuTest extends TracerTestBase {
         .runWithBesuNode(true)
         .oneTxPerBlockOnBesuNode(true)
         .customBesuNodeGenesis(
-            "BesuExecutionToolsGenesis_ParisToPrague.json") /* Block 0 has totalDifficulty at 1, so TTD is set to 1 in genesis to have Block 1 on Paris fork */
+            "BesuExecutionToolsGenesis_CancunToPrague.json") /* Block 0 has totalDifficulty at 1, so TTD is set to 1 in genesis to have Block 1 on Paris fork */
         .build()
         .run();
   }

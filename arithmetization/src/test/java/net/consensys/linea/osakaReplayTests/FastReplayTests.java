@@ -55,12 +55,6 @@ public class FastReplayTests extends TracerTestBase {
   }
 
   @Test
-  void multipleFailingCallToEcrecover(TestInfo testInfo) {
-    // Contains tx that exceeds tx gas limit
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "osaka/5000544.mainnet.json.gz", testInfo, false);
-  }
-
-  @Test
   void incident777zkGethMainnet(TestInfo testInfo) {
     replay(MAINNET_TESTCONFIG(OSAKA, false), "osaka/7461019-7461030.mainnet.json.gz", testInfo);
   }

@@ -39,8 +39,6 @@ public class ChainConfig {
 
   public static final ChainConfig SEPOLIA_PRAGUE_TESTCONFIG = SEPOLIA_TESTCONFIG(PRAGUE);
 
-  public static final ChainConfig DEVNET_OSAKA_TESTCONFIG = DEVNET_TESTCONFIG(OSAKA);
-
   public static final int DEVNET_CHAIN_ID = 59139;
 
   public static ChainConfig MAINNET_TESTCONFIG(final Fork fork) {

@@ -21,8 +21,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.zip.GZIPInputStream;
 
 import com.google.gson.Gson;
@@ -69,11 +67,7 @@ public class ReplayTestTools {
    *     disable this for specific tests on a case-by-case basis.
    */
   public static void replay(
-      ChainConfig chain,
-      String filename,
-      TestInfo testInfo,
-      boolean resultChecking,
-      boolean jsonIsString) {
+      ChainConfig chain, String filename, TestInfo testInfo, boolean resultChecking) {
     final InputStream fileStream =
         ReplayTestTools.class
             .getClassLoader()
@@ -91,20 +85,11 @@ public class ReplayTestTools {
     }
 
     final Gson gson = new Gson();
-    ;
 
-    final String conflationAsString;
     final ConflationSnapshot conflation;
 
-    if (jsonIsString) {
-      conflationAsString =
-          gson.fromJson(new BufferedReader(new InputStreamReader(stream)), String.class);
-      conflation = gson.fromJson(conflationAsString, ConflationSnapshot.class);
-    } else {
-      conflation =
-          gson.fromJson(
-              new BufferedReader(new InputStreamReader(stream)), ConflationSnapshot.class);
-    }
+    conflation =
+        gson.fromJson(new BufferedReader(new InputStreamReader(stream)), ConflationSnapshot.class);
 
     ReplayExecutionEnvironment.builder()
         .filename(filename)
@@ -127,17 +112,6 @@ public class ReplayTestTools {
    */
   public static void replay(ChainConfig chain, String filename, TestInfo testInfo) {
     // Try parsing the JSON as an object or a string containing the JSON
-    replay(chain, filename, testInfo, true, isStringifiedJson(filename));
-  }
-
-  // Helper method determine if the content is a JSON object or a string containing JSON
-  private static boolean isStringifiedJson(String filename) {
-    try {
-      return Files.readString(Paths.get(PREFIX + filename)).startsWith("\"");
-    } catch (Exception e) {
-      // Log the error or handle it as necessary
-      e.printStackTrace();
-      throw new IllegalArgumentException("Unable to read the file");
-    }
+    replay(chain, filename, testInfo, true);
   }
 }

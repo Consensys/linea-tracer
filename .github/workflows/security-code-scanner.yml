@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - arith-dev
-      - main
   pull_request:
     branches:
       - arith-dev
-      - main
   workflow_call:
     secrets:
       SECURITY_SCAN_METRICS_TOKEN:

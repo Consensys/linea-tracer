@@ -33,6 +33,8 @@ public class NumberInstruction extends BlockDataInstruction {
 
     exoCalls[0] = BlockDataExoCall.callToIsZero(this.wcp, EWord.of(firstBlockNumber));
 
+    // Default values
+    exoCalls[1] = BlockDataExoCall.builder().build();
     // row i
     if (firstBlockInConflation) {
       exoCalls[1] = BlockDataExoCall.callToLT(this.wcp, data, POWER_256_8);

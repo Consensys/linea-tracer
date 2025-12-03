@@ -35,7 +35,7 @@ public class TimestampInstruction extends BlockDataInstruction {
     exoCalls[0] = BlockDataExoCall.callToLT(this.wcp, data, POWER_256_8);
 
     // row i + 1
-    exoCalls[1] = BlockDataExoCall.callToLT(this.wcp, data, prevData);
+    exoCalls[1] = BlockDataExoCall.callToGT(this.wcp, data, prevData);
   }
 
   public int nbRows() {

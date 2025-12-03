@@ -54,7 +54,6 @@ public abstract class BlockData implements Module {
   private final Euc euc;
   private final ChainConfig chain;
   protected final Map<Long, Bytes> blobBaseFees;
-  @Getter public final List<BlockDataInstruction> instructions = new ArrayList<>();
   @Getter public final Map<Long, List<BlockDataInstruction>> blockInstructions = new HashMap<>();
   @Getter public long firstBlockNumber;
   public long blockTimestamp;
@@ -101,7 +100,6 @@ public abstract class BlockData implements Module {
       firstBlockNumber = blockNumber;
     }
     final BlockHeader previousBlockHeader = null;
-    // instructions.isEmpty() ? null : instructions.getLast().blockHeader();
     List<BlockDataInstruction> blockDataInstructionList = new ArrayList<>();
     for (OpCode opCode : opCodes) {
       BlockDataInstruction blockDataInstruction =
@@ -109,7 +107,7 @@ public abstract class BlockData implements Module {
       blockDataInstruction.handle();
       blockDataInstructionList.addLast(blockDataInstruction);
     }
-    blockInstructions.put(blockNumber - firstBlockNumber, blockDataInstructionList);
+    blockInstructions.put(blockNumber, blockDataInstructionList);
   }
 
   protected abstract OpCode[] setOpCodes();

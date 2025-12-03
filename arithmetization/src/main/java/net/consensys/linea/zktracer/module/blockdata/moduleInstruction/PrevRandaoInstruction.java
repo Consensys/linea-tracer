@@ -29,7 +29,7 @@ public class PrevRandaoInstruction extends BlockDataInstruction {
     data = EWord.of(blockHeader.getDifficulty().getAsBigInteger());
 
     // row i
-    exoCalls[0] = BlockDataExoCall.callToLT(this.wcp, data, EWord.ZERO);
+    exoCalls[0] = BlockDataExoCall.callToGEQ(this.wcp, data, EWord.ZERO);
   }
 
   public int nbRows() {

@@ -45,8 +45,12 @@ public class GasLimitInstruction extends BlockDataInstruction {
 
     // row i + 1
     // comparison to maximum
-    exoCalls[1] = BlockDataExoCall.callToGEQ(this.wcp, data, gasLimitMaximum);
+    exoCalls[1] = BlockDataExoCall.callToLEQ(this.wcp, data, gasLimitMaximum);
 
+    // Default values
+    exoCalls[2] = BlockDataExoCall.builder().build();
+    exoCalls[3] = BlockDataExoCall.builder().build();
+    exoCalls[4] = BlockDataExoCall.builder().build();
     if (!firstBlockInConflation) {
       final BigInteger prevGasLimit = BigInteger.valueOf(prevBlockHeader.getGasLimit());
       // row i + 2

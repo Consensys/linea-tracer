@@ -88,6 +88,7 @@ public abstract class BlockDataInstruction {
           .exoInst(exoCalls[ct].instruction())
           .wcpFlag(exoCalls[ct].wcpFlag())
           .eucFlag(exoCalls[ct].eucFlag());
+      traceInstruction(trace);
       // traceRelTxNumMax(trace, (short) relTxMax);
       // traceTimestampAndNumber(trace);
       trace.fillAndValidateRow();

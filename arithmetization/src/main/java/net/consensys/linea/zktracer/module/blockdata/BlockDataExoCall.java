@@ -52,10 +52,10 @@ public class BlockDataExoCall {
     return BlockDataExoCall.builder()
         .wcpFlag(true)
         .instruction(EVM_INST_LT)
-        .arg1Hi(arg1B32.lo())
-        .arg1Lo(arg1B32.hi())
-        .arg2Hi(arg2B32.lo())
-        .arg2Lo(arg2B32.hi())
+        .arg1Hi(arg1B32.hi())
+        .arg1Lo(arg1B32.lo())
+        .arg2Hi(arg2B32.hi())
+        .arg2Lo(arg2B32.lo())
         .res(booleanToBytes(wcp.callLT(arg1B32, arg2B32)))
         .build();
   }
@@ -68,11 +68,11 @@ public class BlockDataExoCall {
     return BlockDataExoCall.builder()
         .wcpFlag(true)
         .instruction(EVM_INST_GT)
-        .arg1Hi(arg1B32.lo())
-        .arg1Lo(arg1B32.hi())
-        .arg2Hi(arg2B32.lo())
-        .arg2Lo(arg2B32.hi())
-        .res(booleanToBytes(wcp.callLT(arg1B32, arg2B32)))
+        .arg1Hi(arg1B32.hi())
+        .arg1Lo(arg1B32.lo())
+        .arg2Hi(arg2B32.hi())
+        .arg2Lo(arg2B32.lo())
+        .res(booleanToBytes(wcp.callGT(arg1B32, arg2B32)))
         .build();
   }
 
@@ -84,10 +84,10 @@ public class BlockDataExoCall {
     return BlockDataExoCall.builder()
         .wcpFlag(true)
         .instruction(WCP_INST_LEQ)
-        .arg1Hi(arg1B32.lo())
-        .arg1Lo(arg1B32.hi())
-        .arg2Hi(arg2B32.lo())
-        .arg2Lo(arg2B32.hi())
+        .arg1Hi(arg1B32.hi())
+        .arg1Lo(arg1B32.lo())
+        .arg2Hi(arg2B32.hi())
+        .arg2Lo(arg2B32.lo())
         .res(booleanToBytes(wcp.callLEQ(arg1B32, arg2B32)))
         .build();
   }
@@ -100,11 +100,11 @@ public class BlockDataExoCall {
     return BlockDataExoCall.builder()
         .wcpFlag(true)
         .instruction(WCP_INST_GEQ)
-        .arg1Hi(arg1B32.lo())
-        .arg1Lo(arg1B32.hi())
-        .arg2Hi(arg2B32.lo())
-        .arg2Lo(arg2B32.hi())
-        .res(booleanToBytes(wcp.callLEQ(arg1B32, arg2B32)))
+        .arg1Hi(arg1B32.hi())
+        .arg1Lo(arg1B32.lo())
+        .arg2Hi(arg2B32.hi())
+        .arg2Lo(arg2B32.lo())
+        .res(booleanToBytes(wcp.callGEQ(arg1B32, arg2B32)))
         .build();
   }
 
@@ -130,8 +130,8 @@ public class BlockDataExoCall {
 
     return BlockDataExoCall.builder()
         .eucFlag(true)
-        .arg1Lo(arg1B32.hi())
-        .arg2Lo(arg2B32.hi())
+        .arg1Lo(arg1B32.lo())
+        .arg2Lo(arg2B32.lo())
         .res(eucOperation.quotient())
         .build();
   }

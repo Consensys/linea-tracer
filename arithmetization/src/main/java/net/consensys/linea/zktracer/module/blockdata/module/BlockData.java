@@ -57,7 +57,7 @@ public abstract class BlockData implements Module {
   private final Euc euc;
   private final ChainConfig chain;
   protected final Map<Long, Bytes> blobBaseFees;
-  @Getter public final Map<Long, List<BlockDataInstruction>> blockInstructions = new HashMap<>();
+  @Getter public final Map<Long, List<BlockDataInstruction>> InstructionsPerBlock = new HashMap<>();
   @Getter public long firstBlockNumber;
   public long blockTimestamp;
   public long blockNumber;
@@ -99,13 +99,13 @@ public abstract class BlockData implements Module {
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     blockNumber = blockHeader.getNumber();
     blockTimestamp = blockHeader.getTimestamp();
-    if (blockInstructions.isEmpty()) {
+    if (InstructionsPerBlock.isEmpty()) {
       firstBlockNumber = blockNumber;
     }
     final BlockHeader previousBlockHeader =
-        blockInstructions.isEmpty()
+        InstructionsPerBlock.isEmpty()
             ? null
-            : blockInstructions.get(blockNumber - 1).getFirst().blockHeader;
+            : InstructionsPerBlock.get(blockNumber - 1).getFirst().blockHeader;
     List<BlockDataInstruction> blockDataInstructionList = new ArrayList<>();
     for (OpCode opCode : opCodes) {
       BlockDataInstruction blockDataInstruction =
@@ -113,7 +113,7 @@ public abstract class BlockData implements Module {
       blockDataInstruction.handle();
       blockDataInstructionList.addLast(blockDataInstruction);
     }
-    blockInstructions.put(blockNumber, blockDataInstructionList);
+    InstructionsPerBlock.put(blockNumber, blockDataInstructionList);
   }
 
   protected abstract OpCode[] setOpCodes();
@@ -126,7 +126,7 @@ public abstract class BlockData implements Module {
 
   @Override
   public int lineCount() {
-    final int numberOfBlock = blockInstructions.size() + (conflationFinished ? 0 : 1);
+    final int numberOfBlock = InstructionsPerBlock.size() + (conflationFinished ? 0 : 1);
     return numberOfBlock * NB_ROWS_BLOCK_DATA;
   }
 
@@ -142,7 +142,7 @@ public abstract class BlockData implements Module {
 
   @Override
   public void commit(Trace trace) {
-    for (Map.Entry<Long, List<BlockDataInstruction>> entry : blockInstructions.entrySet()) {
+    for (Map.Entry<Long, List<BlockDataInstruction>> entry : InstructionsPerBlock.entrySet()) {
       List<BlockDataInstruction> value = entry.getValue();
       for (BlockDataInstruction blockDataInstruction : value) {
         blockDataInstruction.trace(trace.blockdata());

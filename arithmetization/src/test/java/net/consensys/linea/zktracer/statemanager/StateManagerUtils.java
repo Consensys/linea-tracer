@@ -34,11 +34,11 @@ public class StateManagerUtils {
   }
 
   public static int getRelBlockNoFromBlock(Hub hub, int blockNb) {
-    return hub.blockdata().getBlockInstructions().get(toLong(blockNb)).getFirst().relBlock;
+    return hub.blockdata().getInstructionsPerBlock().get(toLong(blockNb)).getFirst().relBlock;
   }
 
   public static int getBlockCount(Hub hub) {
-    return hub.blockdata().getBlockInstructions().size();
+    return hub.blockdata().getInstructionsPerBlock().size();
   }
 
   public static List<Map<Address, FragmentFirstAndLast<AccountFragment>>>

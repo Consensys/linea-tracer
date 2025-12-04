@@ -115,8 +115,8 @@ public class BlockDataExoCall {
     return BlockDataExoCall.builder()
         .wcpFlag(true)
         .instruction(EVM_INST_ISZERO)
-        .arg1Hi(arg1B32.slice(0, LLARGE))
-        .arg1Lo(arg1B32.slice(LLARGE, LLARGE))
+        .arg1Hi(arg1B32.hi())
+        .arg1Lo(arg1B32.lo())
         .res(booleanToBytes(wcp.callISZERO(arg1B32)))
         .build();
   }

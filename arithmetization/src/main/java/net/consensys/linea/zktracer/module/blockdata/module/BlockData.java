@@ -60,7 +60,7 @@ public abstract class BlockData implements Module {
 
   private boolean conflationFinished = false;
 
-  @Getter public final OpCode[] opCodes = setOpCodes();
+  private final OpCode[] opCodes = setOpCodes();
 
   @Override
   public ModuleName moduleKey() {
@@ -147,10 +147,11 @@ public abstract class BlockData implements Module {
     for (Map.Entry<Long, List<BlockDataInstruction>> entry : InstructionsPerBlock.entrySet()) {
       List<BlockDataInstruction> value = entry.getValue();
       for (BlockDataInstruction blockDataInstruction : value) {
-        blockDataInstruction.trace(trace.blockdata());
+        Trace.Blockdata traceBlockdata = trace.blockdata();
+        blockDataInstruction.trace(traceBlockdata);
         traceRelTxNumMax(
-            trace.blockdata(), (short) txnData().numberOfUserTransactionsInCurrentBlock());
-        traceTimestampAndNumber(trace.blockdata());
+            traceBlockdata, (short) txnData().numberOfUserTransactionsInCurrentBlock());
+        traceTimestampAndNumber(traceBlockdata);
       }
     }
   }

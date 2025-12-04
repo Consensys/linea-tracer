@@ -50,7 +50,6 @@ public class PrevRandaoInstruction extends BlockDataInstruction {
     return nROWS_PV;
   }
 
-  // TODO reverse for Paris
   public void traceInstruction(Trace.Blockdata trace) {
     trace.isPrevrandao(true);
   }

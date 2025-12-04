@@ -92,8 +92,6 @@ public abstract class BlockDataInstruction {
           .basefee(bigIntegerToBytes(blockHeader.getBaseFee().get().getAsBigInteger()))
           .firstBlockNumber(firstBlockNumber)
           .relBlock((short) relBlock)
-          .timestamp(Bytes.ofUnsignedLong(blockHeader.getTimestamp()))
-          .number(blockHeader.getNumber())
           .dataHi(data.hi())
           .dataLo(data.lo())
           .arg1Hi(exoCalls[ct].arg1Hi())

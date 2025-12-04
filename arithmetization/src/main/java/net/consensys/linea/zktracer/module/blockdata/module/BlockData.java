@@ -40,6 +40,7 @@ import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.PrevRanda
 import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.TimestampInstruction;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -140,6 +141,10 @@ public abstract class BlockData implements Module {
     return trace.blockdata().headers(this.lineCount());
   }
 
+  protected abstract void traceTimestampAndNumber(Trace.Blockdata trace);
+
+  protected abstract void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax);
+
   @Override
   public void commit(Trace trace) {
     for (Map.Entry<Long, List<BlockDataInstruction>> entry : InstructionsPerBlock.entrySet()) {
@@ -148,6 +153,10 @@ public abstract class BlockData implements Module {
         blockDataInstruction.trace(trace.blockdata());
       }
     }
+  }
+
+  TxnData txnData() {
+    return hub.txnData();
   }
 
   public BlockDataInstruction getInstruction(

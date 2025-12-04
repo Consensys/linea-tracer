@@ -77,7 +77,8 @@ public abstract class BlockDataInstruction {
 
   public abstract void traceInstruction(Trace.Blockdata trace);
 
-  public void trace(Trace.Blockdata trace) {
+  public void trace(
+      Trace.Blockdata trace, boolean shouldTraceTsAndNb, boolean shouldTraceRelTxNumMax) {
     int nbRows = nbRows();
     for (short ct = 0; ct < nbRows; ct++) {
       trace
@@ -102,6 +103,16 @@ public abstract class BlockDataInstruction {
           .wcpFlag(exoCalls[ct].wcpFlag())
           .eucFlag(exoCalls[ct].eucFlag());
       traceInstruction(trace);
+      // Should remove the if when in the monorepo
+      if (shouldTraceTsAndNb) {
+        trace
+            .timestamp(Bytes.ofUnsignedLong(blockHeader.getTimestamp()))
+            .number(blockHeader.getNumber());
+      }
+      // Should be removed when we move to the monorepo
+      if (shouldTraceRelTxNumMax) {
+        trace.relTxNumMax((short) hub.txnData().numberOfUserTransactionsInCurrentBlock());
+      }
       trace.fillAndValidateRow();
     }
   }

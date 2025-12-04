@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -41,11 +40,13 @@ public class LondonBlockData extends BlockData {
   }
 
   @Override
-  protected void traceTimestampAndNumber(Trace.Blockdata trace) {}
+  public boolean shouldTraceTimestampAndNumber() {
+    return false;
+  }
 
   @Override
-  protected void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax) {
-    trace.relTxNumMax(relTxMax);
+  protected boolean shouldTraceRelTxNumMax() {
+    return true;
   }
 
   @Override

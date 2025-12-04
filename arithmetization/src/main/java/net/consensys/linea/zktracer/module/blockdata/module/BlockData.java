@@ -38,7 +38,6 @@ import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.PrevRanda
 import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.TimestampInstruction;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -138,9 +137,9 @@ public abstract class BlockData implements Module {
     return trace.blockdata().headers(this.lineCount());
   }
 
-  protected abstract void traceTimestampAndNumber(Trace.Blockdata trace);
+  protected abstract boolean shouldTraceTimestampAndNumber();
 
-  protected abstract void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax);
+  protected abstract boolean shouldTraceRelTxNumMax();
 
   @Override
   public void commit(Trace trace) {
@@ -148,16 +147,10 @@ public abstract class BlockData implements Module {
       List<BlockDataInstruction> value = entry.getValue();
       for (BlockDataInstruction blockDataInstruction : value) {
         Trace.Blockdata traceBlockdata = trace.blockdata();
-        blockDataInstruction.trace(traceBlockdata);
-        traceRelTxNumMax(
-            traceBlockdata, (short) txnData().numberOfUserTransactionsInCurrentBlock());
-        traceTimestampAndNumber(traceBlockdata);
+        blockDataInstruction.trace(
+            traceBlockdata, shouldTraceTimestampAndNumber(), shouldTraceRelTxNumMax());
       }
     }
-  }
-
-  TxnData txnData() {
-    return hub.txnData();
   }
 
   public BlockDataInstruction getInstruction(

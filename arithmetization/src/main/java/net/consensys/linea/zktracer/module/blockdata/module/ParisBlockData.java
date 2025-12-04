@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.blockdata.module;
 
-import static net.consensys.linea.zktracer.TraceCancun.Blockdata.*;
+import static net.consensys.linea.zktracer.TraceParis.Blockdata.nROWS_DEPTH;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.BASEFEE;
 import static net.consensys.linea.zktracer.opcode.OpCode.CHAINID;
@@ -31,34 +31,19 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 
-public class CancunBlockData extends ShanghaiBlockData {
-
-  public static final short NB_ROWS_BLOCK_DATA = nROWS_DEPTH;
-
-  public CancunBlockData(
+public class ParisBlockData extends LondonBlockData {
+  public ParisBlockData(
       Hub hub, Wcp wcp, Euc euc, ChainConfig chain, Map<Long, Bytes> blobBaseFees) {
     super(hub, wcp, euc, chain, blobBaseFees);
   }
 
   @Override
   protected OpCode[] setOpCodes() {
-    return new OpCode[] {
-      COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, BASEFEE, BLOBBASEFEE
-    };
-  }
-
-  @Override
-  public void traceTimestampAndNumber(Trace.Blockdata trace) {
-    trace.timestamp(Bytes.ofUnsignedLong(blockTimestamp)).number(blockNumber);
-  }
-
-  @Override
-  protected void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax) {
-    // Column not in Cancun fork. Only before Cancun.
+    return new OpCode[] {COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, BASEFEE};
   }
 
   @Override
   protected int numberOfLinesPerBlock() {
-    return NB_ROWS_BLOCK_DATA;
+    return nROWS_DEPTH;
   }
 }

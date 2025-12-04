@@ -27,7 +27,6 @@ import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
 import net.consensys.linea.zktracer.module.blsdata.BlsData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.McopySection;
-import net.consensys.linea.zktracer.module.hub.section.create.ShanghaiCreateSection;
 import net.consensys.linea.zktracer.module.hub.section.finalization.CancunFinalizationSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.CancunSelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.skip.CancunTxSkipSection;
@@ -43,7 +42,6 @@ import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.CancunRlpTxn;
 import net.consensys.linea.zktracer.module.tables.PowerRt;
-import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.CancunInstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
@@ -56,7 +54,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-public class CancunHub extends Hub {
+public class CancunHub extends ShanghaiHub {
   public CancunHub(ChainConfig chain, PublicInputs publicInputs) {
     super(chain, publicInputs);
   }
@@ -79,24 +77,6 @@ public class CancunHub extends Hub {
         blsC2MembershipCalls,
         blsG1MembershipCalls,
         blsG2MembershipCalls);
-  }
-
-  @Override
-  protected BlsRt setBlsRt() {
-    // BlsRt is not used in London
-    return null;
-  }
-
-  @Override
-  protected boolean coinbaseWarmthAtTxEnd() {
-    // since EIP-3651 (Shanghai), the coinbase address is warm at the beginning of the transaction,
-    // so obviously at the end.
-    return true;
-  }
-
-  @Override
-  protected void setCreateSection(final Hub hub, final MessageFrame frame) {
-    new ShanghaiCreateSection(hub, frame);
   }
 
   @Override

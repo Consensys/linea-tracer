@@ -15,9 +15,7 @@
 package net.consensys.linea.zktracer.module.blockdata.module;
 
 import static net.consensys.linea.zktracer.Trace.LLARGE;
-import static net.consensys.linea.zktracer.TraceCancun.Blockdata.nROWS_DEPTH;
 import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_DATA;
-import static net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData.NB_ROWS_BLOCK_DATA;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.util.*;
@@ -50,9 +48,6 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @RequiredArgsConstructor
 public abstract class BlockData implements Module {
-
-  public static final short NB_ROWS_BLOCK_DATA = nROWS_DEPTH;
-
   private final Hub hub;
   private final Wcp wcp;
   private final Euc euc;

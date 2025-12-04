@@ -25,6 +25,7 @@ import static net.consensys.linea.zktracer.opcode.OpCode.PREVRANDAO;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -49,7 +50,8 @@ public class CancunBlockData extends ShanghaiBlockData {
 
   @Override
   public void traceTimestampAndNumber(Trace.Blockdata trace) {
-    trace.timestamp(Bytes.ofUnsignedLong(blockTimestamp)).number(blockNumber);
+    trace.timestamp(Bytes.ofUnsignedLong(blockTimestamp));
+    trace.number(blockNumber);
   }
 
   @Override

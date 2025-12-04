@@ -123,8 +123,10 @@ public abstract class BlockData implements Module {
   @Override
   public int lineCount() {
     final int numberOfBlock = InstructionsPerBlock.size() + (conflationFinished ? 0 : 1);
-    return numberOfBlock * NB_ROWS_BLOCK_DATA;
+    return numberOfBlock * numberOfLinesPerBlock();
   }
+
+  protected abstract int numberOfLinesPerBlock();
 
   @Override
   public int spillage(Trace trace) {
@@ -146,6 +148,9 @@ public abstract class BlockData implements Module {
       List<BlockDataInstruction> value = entry.getValue();
       for (BlockDataInstruction blockDataInstruction : value) {
         blockDataInstruction.trace(trace.blockdata());
+        traceRelTxNumMax(
+            trace.blockdata(), (short) txnData().numberOfUserTransactionsInCurrentBlock());
+        traceTimestampAndNumber(trace.blockdata());
       }
     }
   }

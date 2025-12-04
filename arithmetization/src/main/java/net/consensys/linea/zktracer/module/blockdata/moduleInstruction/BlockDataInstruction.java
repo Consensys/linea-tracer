@@ -49,7 +49,6 @@ public abstract class BlockDataInstruction {
   public static final EWord POWER_256_8 = EWord.of(BigInteger.ONE.shiftLeft(8 * 8));
 
   /** Store all wcp and euc computations with params and results */
-  // TODO ctMax vs nbRows
   public final BlockDataExoCall[] exoCalls = new BlockDataExoCall[nbRows()];
 
   public BlockDataInstruction(
@@ -103,8 +102,6 @@ public abstract class BlockDataInstruction {
           .wcpFlag(exoCalls[ct].wcpFlag())
           .eucFlag(exoCalls[ct].eucFlag());
       traceInstruction(trace);
-      // traceRelTxNumMax(trace, (short) relTxMax);
-      // traceTimestampAndNumber(trace);
       trace.fillAndValidateRow();
     }
   }

@@ -42,6 +42,9 @@ public class BlockHashTests extends TracerTestBase {
   @Disabled
   @Test
   void conflationFollowingThePreviousOneWithAgainHistoricalBlockhashesChecked(TestInfo testInfo) {
-    replay(SEPOLIA_TESTCONFIG(OSAKA), "pragueRunAsOsaka/19562399-19562417.sepolia.prague.json.gz", testInfo);
+    replay(
+        SEPOLIA_TESTCONFIG(OSAKA),
+        "pragueRunAsOsaka/19562399-19562417.sepolia.prague.json.gz",
+        testInfo);
   }
 }

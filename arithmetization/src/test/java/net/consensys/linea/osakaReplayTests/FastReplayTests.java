@@ -76,17 +76,29 @@ public class FastReplayTests extends TracerTestBase {
 
   @Test
   void failingCreate2(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "londonRunAsOsaka/2250197.mainnet.json.gz", testInfo, false);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "londonRunAsOsaka/2250197.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
   void blockHash1(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "londonRunAsOsaka/8718090.mainnet.json.gz", testInfo, false);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "londonRunAsOsaka/8718090.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
   void blockHash2(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "londonRunAsOsaka/8718330.mainnet.json.gz", testInfo, false);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "londonRunAsOsaka/8718330.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
@@ -100,22 +112,38 @@ public class FastReplayTests extends TracerTestBase {
 
   @Test
   void simpleSelfDestruct(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "londonRunAsOsaka/50020-50029.mainnet.json.gz", testInfo, false);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "londonRunAsOsaka/50020-50029.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
   void failedCreate2(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "londonRunAsOsaka/41640-41649.mainnet.json.gz", testInfo, false);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "londonRunAsOsaka/41640-41649.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
   void largeInitCode(TestInfo testInfo) {
-    replay(SEPOLIA_TESTCONFIG(OSAKA, false), "londonRunAsOsaka/3318494.sepolia.json.gz", testInfo, false);
+    replay(
+        SEPOLIA_TESTCONFIG(OSAKA, false),
+        "londonRunAsOsaka/3318494.sepolia.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
   void callDataCopyCnNotFound(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "londonRunAsOsaka/67050-67059.mainnet.json.gz", testInfo, false);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "londonRunAsOsaka/67050-67059.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
@@ -129,21 +157,37 @@ public class FastReplayTests extends TracerTestBase {
 
   @Test
   void mainnet1339346ContextRevertTwice(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "londonRunAsOsaka/1339346.mainnet.json.gz", testInfo, false);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "londonRunAsOsaka/1339346.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
   void legacyTxWithoutChainID(TestInfo testInfo) {
-    replay(SEPOLIA_TESTCONFIG(OSAKA, false), "londonRunAsOsaka/254251.sepolia.json.gz", testInfo, false);
+    replay(
+        SEPOLIA_TESTCONFIG(OSAKA, false),
+        "londonRunAsOsaka/254251.sepolia.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
   void incorrectCreationCapture(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "londonRunAsOsaka/4323985.mainnet.json.gz", testInfo, false);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "londonRunAsOsaka/4323985.mainnet.json.gz",
+        testInfo,
+        false);
   }
 
   @Test
   void stateManagerIntegrationTest(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "londonRunAsOsaka/SSTOREX_on_mainnet.json.gz", testInfo, false);
+    replay(
+        MAINNET_TESTCONFIG(OSAKA, false),
+        "londonRunAsOsaka/SSTOREX_on_mainnet.json.gz",
+        testInfo,
+        false);
   }
 }

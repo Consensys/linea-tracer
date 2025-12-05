@@ -805,7 +805,6 @@ public class ZkCounter implements LineCountingTracer {
         mod.updateTally(modLinesComingFromOobCall(precompile));
       }
       case PRC_P256_VERIFY -> {
-        // TODO: is this correct?
         if (callDataSize == PRECOMPILE_CALL_DATA_SIZE___P256_VERIFY) {
           ecdata.callEcData(0, precompile, frame.getInputData(), returnData);
         }

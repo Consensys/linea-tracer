@@ -130,6 +130,8 @@ public class CorsetValidator extends AbstractExecutable {
         System.getenv().getOrDefault("GOCORSET_FLAGS", "--report --report-context 2 --air ");
     // Determine whether to generate a coverage report (or not).
     String coverage = System.getenv().get("GOCORSET_COVERAGE");
+    // Determine whether field override provided
+    String field = System.getenv().get("GOCORSET_FIELD");
     // Specify corset binary
     options.add("go-corset");
     // Set chain properties
@@ -143,6 +145,11 @@ public class CorsetValidator extends AbstractExecutable {
       Path coverageFilename = determineCoverageFile(traceFile);
       options.add("--coverage");
       options.add(coverageFilename.toString());
+    }
+    // Set underlying field
+    if (field != null) {
+      options.add("--field");
+      options.add(field);
     }
     // Specify trace file to use
     options.add(traceFile.toAbsolutePath().toString());

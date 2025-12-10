@@ -29,7 +29,7 @@ Linea's stack is made up of multiple repositories, these include:
 
 > This repository contains the elements of the Linea stack responsible for this process.
 
-- [linea-monorepo](https://github.com/Consensys/linea-monorepo): The main repository for the Linea stack & network. 
+- [linea-monorepo](https://github.com/Consensys/linea-monorepo): The main repository for the Linea stack & network
 > Also maintains a set of Linea-Besu plugins for the sequencer and RPC nodes.
 - [linea-specification](https://github.com/Consensys/linea-specification): Specification of the constraint system defining Linea's zkEVM
 - [linea-besu](https://github.com/hyperledger/besu/): Besu execution client

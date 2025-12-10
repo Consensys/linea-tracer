@@ -29,9 +29,10 @@ Linea's stack is made up of multiple repositories, these include:
 
 > This repository contains the elements of the Linea stack responsible for this process.
 
-- [linea-monorepo](https://github.com/Consensys/linea-monorepo): The main repository for the Linea stack & network
-- [besu](https://github.com/hyperledger/besu): Besu client
-- [linea-sequencer](https://github.com/Consensys/linea-sequencer): A set of Linea-Besu plugins for the sequencer and RPC nodes
+- [linea-monorepo](https://github.com/Consensys/linea-monorepo): The main repository for the Linea stack & network. 
+> Also maintains a set of Linea-Besu plugins for the sequencer and RPC nodes.
+- [linea-specification](https://github.com/Consensys/linea-specification): Specification of the constraint system defining Linea's zkEVM
+- [linea-besu](https://github.com/hyperledger/besu/): Besu execution client
 - [linea-constraints](https://github.com/Consensys/linea-constraints): Implementation of the constraint system from the specification
 - [linea-specification](https://github.com/Consensys/linea-specification): Specification of the constraint system defining Linea's zkEVM
 
@@ -47,7 +48,7 @@ Linea abstracts away the complexity of this technical architecture to allow deve
 
 Contributions are welcome!
 
-### Guidelines for Non-Code and other Trivial Contributions
+### Guidelines for non-code and other trivial contributions
 
 Please keep in mind that we do not accept non-code contributions like fixing comments, typos or some other trivial fixes. Although we appreciate the extra help, managing lots of these small contributions is unfeasible, and puts extra pressure in our continuous delivery systems (running all tests, etc). Feel free to open an issue pointing to any of those errors, and we will batch them into a single change.
 
@@ -70,7 +71,7 @@ Before contributing, ensure you're familiar with:
 
 ### Useful links
 
-- [Linea docs](https://docs.linea.build)
+- [Linea docs](https://docs.linea.build) managed from a [public repo](https://github.com/Consensys/doc.linea)
 - [Linea blog](https://linea.mirror.xyz)
 - [Support](https://support.linea.build)
 - [Discord](https://discord.gg/linea)

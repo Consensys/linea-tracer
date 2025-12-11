@@ -376,7 +376,7 @@ public class LondonTxnDataOperation extends TxnDataOperation {
           .gasLeftover(gasLeftOver.toLong())
           .refundCounter(refundCounter.toLong())
           .refundEffective(refundEffective.toLong())
-          .gasCumulative(cumulativeGas)
+          .gasCumulative(cumulativeGas.toLong())
           .statusCode(tx.statusCode())
           .codeFragmentIndex(tx.getCodeFragmentIndex())
           .phaseRlpTxn(UnsignedByte.of(valuesToRlptxn.get(ct).phase()))

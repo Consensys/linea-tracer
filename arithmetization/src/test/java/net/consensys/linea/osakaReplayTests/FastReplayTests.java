@@ -195,4 +195,9 @@ public class FastReplayTests extends TracerTestBase {
   void mainnetHubSeenDiscrepancyWithRevertedCreate2s(TestInfo testInfo) {
     replay(MAINNET_TESTCONFIG(OSAKA, false), "osaka/result.json", testInfo, false);
   }
+
+  @Test
+  void shomei_issue_mainet_26558614_to_26558814(TestInfo testInfo) {
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "osaka/mainet_26558614_to_26558814.json", testInfo, false);
+  }
 }

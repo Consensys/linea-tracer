@@ -190,4 +190,9 @@ public class FastReplayTests extends TracerTestBase {
         testInfo,
         false);
   }
+
+  @Test
+  void mainnetHubSeenDiscrepancyWithRevertedCreate2s(TestInfo testInfo) {
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "osaka/result.json", testInfo, false);
+  }
 }

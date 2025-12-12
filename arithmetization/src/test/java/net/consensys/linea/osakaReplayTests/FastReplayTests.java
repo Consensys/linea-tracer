@@ -198,6 +198,6 @@ public class FastReplayTests extends TracerTestBase {
 
   @Test
   void shomei_issue_mainet_26558614_to_26558814(TestInfo testInfo) {
-    replay(MAINNET_TESTCONFIG(OSAKA, false), "osaka/mainet_26558614_to_26558814.json", testInfo, false);
+    replay(MAINNET_TESTCONFIG(OSAKA, false), "osaka/mainnet_26558614_to_26558814.json", testInfo, false);
   }
 }

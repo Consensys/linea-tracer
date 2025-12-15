@@ -47,7 +47,7 @@ jobs:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 
       - name: Store distribution artifacts
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: distributions
           path: arithmetization/build/libs
@@ -99,21 +99,21 @@ jobs:
 
       - name: Upload test report
         if: ${{ always() }}
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: replay-tests-report
           path: arithmetization/build/reports/tests/**/*
 
       - name: Upload jacoco fast replay tests coverage report
         if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: jacoco-fast-replay-tests-coverage-report
           path: arithmetization/build/reports/jacoco/jacocoFastReplayTestsReport/**/*
 
       - name: Upload jacoco fast replay tests exec file
         if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: jacoco-fast-replay-tests-exec-file
           path: arithmetization/build/jacoco/fastReplayTests.exec

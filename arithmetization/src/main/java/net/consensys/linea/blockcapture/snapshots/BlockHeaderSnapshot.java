@@ -46,7 +46,8 @@ public record BlockHeaderSnapshot(
     String mixHashOrPrevRandao,
     long nonce,
     Optional<String> baseFee,
-    Optional<String> parentBeaconBlockRoot) {
+    Optional<String> parentBeaconBlockRoot,
+    Optional<String> withdrawalsRoot) {
   public static BlockHeaderSnapshot from(BlockHeader header) {
     return new BlockHeaderSnapshot(
         header.getParentHash().toHexString(),
@@ -65,7 +66,8 @@ public record BlockHeaderSnapshot(
         header.getMixHashOrPrevRandao().toHexString(),
         header.getNonce(),
         header.getBaseFee().map(Quantity::toHexString),
-        header.getParentBeaconBlockRoot().map(Bytes::toHexString));
+        header.getParentBeaconBlockRoot().map(Bytes::toHexString),
+        header.getWithdrawalsRoot().map(Bytes::toHexString));
   }
 
   public BlockHeader toBlockHeader() {
@@ -90,7 +92,7 @@ public record BlockHeaderSnapshot(
             .blockHeaderFunctions(new MainnetBlockHeaderFunctions());
 
     this.baseFee.ifPresent(baseFee -> builder.baseFee(Wei.fromHexString(baseFee)));
-    // Following null check is required for older replays only.  Eventually, it can be removed (i.e.
+    // Following null checks are required for older replays only.  Eventually, it can be removed (i.e.
     // once all LONDON
     // replays are dropped).  Also, this is necessary despite the fact that this field is already an
     // Optional.
@@ -98,6 +100,11 @@ public record BlockHeaderSnapshot(
       this.parentBeaconBlockRoot.ifPresent(
           root -> builder.parentBeaconBlockRoot(Bytes32.fromHexString(root)));
     }
+    if (this.withdrawalsRoot != null) {
+      this.withdrawalsRoot.ifPresent(
+        root -> builder.withdrawalsRoot(Hash.fromHexString(root)));
+    }
+
     //
     return builder.buildBlockHeader();
   }

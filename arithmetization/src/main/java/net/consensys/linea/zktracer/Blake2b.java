@@ -46,6 +46,26 @@ public class Blake2b {
     "fc59093aafa9ab43daae0e914c57635c5402d8e3d2130eb9b3cc181de7f0ecf9b22bf99a7815ce16419e200e01846e6b5df8cc7703041bbceb571de6631d2615"
   };
 
+  private static String[] TestVectorUnitWith1 = {
+    // Input
+    "00000000000000000000000000000000000000000000000000000000000badb0770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    // Output
+    "bdceb326589cb7914462bb3386084cc377c7bab9ae1c372dfc56f0db9daa13287e422376a5bb2c8f08da0754f21c8162e2f99e1af32da005c990b34eba681c92"
+  };
+
+  private static String[] TestVectorUnitWith0 = {
+    // Input
+    "00000000000000000000000000000000000000000000000000000000000badb0770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    // Output
+    "08c9bcf367e6096a3ba7ca8485ae67bb2bf894fe72f36e3cf1361d5f3af54fa5d182e6ad7f520e511f6c3e2b8c68059b6bbd41fbabd9831f79217e1319cde05b"
+  };
+
+  private static String[] TestVectorUnitWith10 = {
+    // Input
+    "0000000a00000000000000000000000000000000000000000000000000000000000badb0770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "1a3913310df40cceb2646207c069ba2e51e51b0262c75091808b53eed49241594e045c57973a41e16a1c36c99af1a02d5060a8388a3f2e347c5e5a2f625a2659"
+  };
+
   private static String[][] TestVectors = {
     TestVector4,
     TestVector5,
@@ -768,127 +788,302 @@ public class Blake2b {
       h[i] ^= v[i] ^ v[i + 8];
     }
     log.info(
-        " { \"F\" : { \"r\" : [{}], \"h0_input\" : [{}],  \"h1_input\" : [{}], \"h2_input\" : [{}], \"h3_input\" : [{}], \"h4_input\" : [{}], \"h5_input\" : [{}],\"h6_input\" : [{}], \"h7_input\" : [{}],  \"m0\" : [{}], "
-            + "\"m1\" : [{}], \"m2\" : [{}], \"m3\" : [{}], \"m4\" : [{}], \"m5\" : [{}], \"m6\" : [{}], \"m7\" : [{}], \"m8\" : [{}], \"m9\" : [{}], \"m10\" : [{}], \"m11\" : [{}], \"m12\" : [{}], \"m13\" : [{}], \"m14\" : [{}], \"m15\" : [{}], "
-            + "\"t0\" : [{}], \"t1\" : [{}],\"f\" : [{}],  \"h0\" : [{}],  \"h1\" : [{}], \"h2\" : [{}], \"h3\" : [{}], \"h4\" : [{}], \"h5\" : [{}],\"h6\" : [{}], \"h7\" : [{}] }}",
+        " { \"F\" : { \"r\" : [{}], \"h0h1_be_input\" : [{}],  \"h2h3_be_input\" : [{}], \"h4h5_be_input\" : [{}], \"h6h7_be_input\" : [{}], \"m0m1_be\" : [{}], "
+            + "\"m2m3_be\" : [{}], \"m4m5_be\" : [{}], \"m6m7_be\" : [{}], \"m8m9_be\" : [{}], \"m10m11_be\" : [{}], \"m12m13_be\" : [{}], \"m14m15_be\" : [{}] "
+            + "\"t0t1_be\" : [{}], \"f\" : [{}],  \"h0h1_be\" : [{}],  \"h2h3_be\" : [{}], \"h4h5_be\" : [{}], \"h6h7_be\" : [{}]",
         Long.toUnsignedString(r),
-        Long.toUnsignedString(hh[0]),
-        Long.toUnsignedString(hh[1]),
-        Long.toUnsignedString(hh[2]),
-        Long.toUnsignedString(hh[3]),
-        Long.toUnsignedString(hh[4]),
-        Long.toUnsignedString(hh[5]),
-        Long.toUnsignedString(hh[6]),
-        Long.toUnsignedString(hh[7]),
-        Long.toUnsignedString(m[0]),
-        Long.toUnsignedString(m[1]),
-        Long.toUnsignedString(m[2]),
-        Long.toUnsignedString(m[3]),
-        Long.toUnsignedString(m[4]),
-        Long.toUnsignedString(m[5]),
-        Long.toUnsignedString(m[6]),
-        Long.toUnsignedString(m[7]),
-        Long.toUnsignedString(m[8]),
-        Long.toUnsignedString(m[9]),
-        Long.toUnsignedString(m[10]),
-        Long.toUnsignedString(m[11]),
-        Long.toUnsignedString(m[12]),
-        Long.toUnsignedString(m[13]),
-        Long.toUnsignedString(m[14]),
-        Long.toUnsignedString(m[15]),
-        Long.toUnsignedString(t[0]),
-        Long.toUnsignedString(t[1]),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[0]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[1]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[2]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[3]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[4]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[5]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[6]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[7]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[0]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[1]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[2]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[3]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[4]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[5]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[6]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[7]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[8]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[9]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[10]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[11]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[12]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[13]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[14]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {m[15]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {t[0]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {t[1]})).toString())
+            .toUnsignedBigInteger(),
         f ? 1 : 0,
-        Long.toUnsignedString(h[0]),
-        Long.toUnsignedString(h[1]),
-        Long.toUnsignedString(h[2]),
-        Long.toUnsignedString(h[3]),
-        Long.toUnsignedString(h[4]),
-        Long.toUnsignedString(h[5]),
-        Long.toUnsignedString(h[6]),
-        Long.toUnsignedString(h[7]));
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {h[0]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[1]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {h[2]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[3]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {h[4]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[5]})).toString())
+            .toUnsignedBigInteger(),
+        Bytes.fromHexString(
+                "0x"
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {h[6]})).toString()
+                    + HexFormat.of().formatHex(toLittleEndianBytes(new long[] {hh[7]})).toString())
+            .toUnsignedBigInteger());
     String ff = f ? "1" : "0";
     String message =
         " { \"F\" : { \"r\" : ["
             + Long.toUnsignedString(r)
-            + "], \"h0_input\" : ["
-            + Long.toUnsignedString(hh[0])
-            + "],  \"h1_input\" : ["
-            + Long.toUnsignedString(hh[1])
-            + "], \"h2_input\" : ["
-            + Long.toUnsignedString(hh[2])
-            + "], \"h3_input\" : ["
-            + Long.toUnsignedString(hh[3])
-            + "], \"h4_input\" : ["
-            + Long.toUnsignedString(hh[4])
-            + "], \"h5_input\" : ["
-            + Long.toUnsignedString(hh[5])
-            + "],\"h6_input\" : ["
-            + Long.toUnsignedString(hh[6])
-            + "], \"h7_input\" : ["
-            + Long.toUnsignedString(hh[7])
-            + "],  \"m0\" : ["
-            + Long.toUnsignedString(m[0])
+            + "], \"h0h1_be_input\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {hh[0]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {hh[1]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "],  \"h2h3_be_input\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {hh[2]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {hh[3]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "], \"h4h5_be_input\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {hh[4]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {hh[5]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "], \"h6h7_be_input\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {hh[6]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {hh[7]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "],  \"m0m1_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[0]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[1]}))
+                            .toString())
+                .toUnsignedBigInteger()
             + "], "
-            + "\"m1\" : ["
-            + Long.toUnsignedString(m[1])
-            + "], \"m2\" : ["
-            + Long.toUnsignedString(m[2])
-            + "], \"m3\" : ["
-            + Long.toUnsignedString(m[3])
-            + "], \"m4\" : ["
-            + Long.toUnsignedString(m[4])
-            + "], \"m5\" : ["
-            + Long.toUnsignedString(m[5])
-            + "], \"m6\" : ["
-            + Long.toUnsignedString(m[6])
-            + "], \"m7\" : ["
-            + Long.toUnsignedString(m[7])
-            + "], \"m8\" : ["
-            + Long.toUnsignedString(m[8])
-            + "], \"m9\" : ["
-            + Long.toUnsignedString(m[9])
-            + "], \"m10\" : ["
-            + Long.toUnsignedString(m[10])
-            + "], \"m11\" : ["
-            + Long.toUnsignedString(m[11])
-            + "], \"m12\" : ["
-            + Long.toUnsignedString(m[12])
-            + "], \"m13\" : ["
-            + Long.toUnsignedString(m[13])
-            + "], \"m14\" : ["
-            + Long.toUnsignedString(m[14])
-            + "], \"m15\" : ["
-            + Long.toUnsignedString(m[15])
+            + "\"m2m3_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[2]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[3]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "], \"m4m5_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[4]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[5]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "], \"m6m7_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[6]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[7]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "], \"m8m9_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[8]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[9]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "], \"m10m11_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[10]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[11]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "], \"m12m13_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[12]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[13]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "], \"m14m15_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[14]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {m[15]}))
+                            .toString())
+                .toUnsignedBigInteger()
             + "], "
-            + "\"t0\" : ["
-            + Long.toUnsignedString(t[0])
-            + "], \"t1\" : ["
-            + Long.toUnsignedString(t[1])
+            + "\"t0t1_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {t[0]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {t[1]}))
+                            .toString())
+                .toUnsignedBigInteger()
             + "],\"f\" : ["
             + ff
-            + "],  \"h0\" : ["
-            + Long.toUnsignedString(h[0])
-            + "],  \"h1\" : ["
-            + Long.toUnsignedString(h[1])
-            + "], \"h2\" : ["
-            + Long.toUnsignedString(h[2])
-            + "], \"h3\" : [ "
-            + Long.toUnsignedString(h[3])
-            + "], \"h4\" : ["
-            + Long.toUnsignedString(h[4])
-            + "], \"h5\" : ["
-            + Long.toUnsignedString(h[5])
-            + "],\"h6\" : ["
-            + Long.toUnsignedString(h[6])
-            + "], \"h7\" : ["
-            + Long.toUnsignedString(h[7])
+            + "],  \"h0h1_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {h[0]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {h[1]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "],  \"h2h3_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {h[2]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {h[3]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "], \"h4h5_be\" : ["
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {h[4]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {h[5]}))
+                            .toString())
+                .toUnsignedBigInteger()
+            + "], \"h6h7_be\" : [ "
+            + Bytes.fromHexString(
+                    "0x"
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {h[6]}))
+                            .toString()
+                        + HexFormat.of()
+                            .formatHex(toLittleEndianBytes(new long[] {h[7]}))
+                            .toString())
+                .toUnsignedBigInteger()
             + "] }}";
     try (BufferedWriter writer = new BufferedWriter(new FileWriter("testG1G1.text", true))) {
       writer.write(message);
       writer.newLine();
     } catch (IOException ex) {
       ex.printStackTrace();
+    }
+
+    for (int i = 0; i < 250; i++) {
+      long generatedLong = 0 + (long) (Math.random() * (Math.pow(2, 64) - 0));
+      Bytes bb = Bytes.ofUnsignedLong(generatedLong);
+      HexFormat hex = HexFormat.of();
+      byte[] bytes = hex.parseHex(bb.toString().substring(2));
+      long leLong = fromLittleEndian64(bytes, 0);
+      String mm =
+          " { \"BE_to_LE_u64\" : { \"input\" : ["
+              + Long.toUnsignedString(generatedLong)
+              + "], \"output\" : ["
+              + Long.toUnsignedString(leLong)
+              + "] }}";
+      if (generatedLong != 9223372036854775807L) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("BEtoLE.text", true))) {
+          writer.write(mm);
+          writer.newLine();
+        } catch (IOException ex) {
+          ex.printStackTrace();
+        }
+      }
     }
 
     //

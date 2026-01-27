@@ -35,4 +35,10 @@ public class Incident1445 extends TracerTestBase {
     replay(MAINNET_TESTCONFIG(OSAKA), "osaka/incident-1445-28279135-28279249.json.gz", testInfo, false);
   }
 
+
+  @Test
+  void block_2827980(TestInfo testInfo) {
+    replay(MAINNET_TESTCONFIG(OSAKA), "osaka/incident-1445-28279180.mainnet.json.gz", testInfo, false);
+  }
+
 }

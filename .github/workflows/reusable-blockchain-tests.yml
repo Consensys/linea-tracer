@@ -78,28 +78,28 @@ jobs:
 
       - name: Upload artifact
         if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: failedBlockchainReferenceTests-${{ inputs.zkevm_fork }}.json
           path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: blockchain-reference-tests-report-${{ inputs.zkevm_fork }}
           path: reference-tests/build/reports/tests/**/*
 
       - name: Upload jacoco exec spec blockchain tests coverage report
         if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: jacoco-blockchain-tests-coverage-report-${{ inputs.zkevm_fork }}
           path: reference-tests/build/reports/jacoco/jacocoReferenceExecutionSpecBlockchainTestsReport/**/*
 
       - name: Upload jacoco blockchain tests exec file
         if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: jacoco-blockchain-tests-exec-file-${{ inputs.zkevm_fork }}
           path: reference-tests/build/jacoco/referenceExecutionSpecBlockchainTests.exec

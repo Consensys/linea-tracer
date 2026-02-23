@@ -50,7 +50,7 @@ jobs:
           JAVA_OPTS: -Dorg.gradle.daemon=false
 
       - name: Download artifact
-        uses: dawidd6/action-download-artifact@ac66b43f0e6a346234dd65d4d0c8fbb31cb316e5 # v11
+        uses: dawidd6/action-download-artifact@fe9d59ce33ce92db8a6ac90b2c8be6b6d90417c8 # v15
         if: ${{ inputs.failed_module != '' }}
         with:
           name: failedBlockchainReferenceTests.json

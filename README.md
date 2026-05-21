@@ -1,3 +1,8 @@
+> [!WARNING]
+> **This repository has been archived and is no longer actively maintained.**
+> The content has been moved to [**Consensys/linea-monorepo**](https://github.com/Consensys/linea-monorepo).
+> Please refer to that repository for the latest implementation of the Linea tracer system.
+
 # Linea tracer (zkEVM)
 
 This repository hosts a Linea tracing implementation for
